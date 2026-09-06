@@ -1,0 +1,170 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --background: #05030A;
+  --bg-primary: #05030A;
+  --bg-secondary: #080514;
+  --bg-tertiary: #0c081c;
+  --surface: #0e0920;
+  
+  --purple-glow-primary: rgba(111, 45, 255, 0.28);
+  --purple-glow-soft: rgba(139, 92, 246, 0.2);
+  --cyan-glow-subtle: rgba(56, 189, 248, 0.15);
+
+  --foreground: #f8f7fb;
+  --text-primary: #f8f7fb;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.55);
+
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Outfit', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  background-color: var(--background);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  min-height: 100svh;
+  overflow-x: hidden;
+  background-image: 
+    radial-gradient(circle at 50% 38%, rgba(111, 45, 255, 0.28) 0%, transparent 45%),
+    radial-gradient(circle at 50% 65%, rgba(56, 189, 248, 0.06) 0%, transparent 55%);
+  background-attachment: fixed;
+}
+
+/* Typography styles */
+h1, h2, h3, .font-display {
+  font-family: var(--font-display);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(5, 3, 13, 0.9);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(112, 35, 255, 0.3);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(112, 35, 255, 0.5);
+}
+
+/* Floating Character Animation */
+@keyframes characterFloat {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+    filter: drop-shadow(0 0 40px rgba(112, 35, 255, 0.45));
+  }
+  50% {
+    transform: translateY(-6px) scale(1.015);
+    filter: drop-shadow(0 0 60px rgba(168, 85, 247, 0.65));
+  }
+}
+
+.animate-character-float {
+  animation: characterFloat 4.5s ease-in-out infinite;
+}
+
+/* Flowing SVG Line Pulse */
+@keyframes flowDash {
+  0% {
+    stroke-dashoffset: 0;
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    stroke-dashoffset: -120;
+    opacity: 0.25;
+  }
+}
+
+.animate-flow-line-1 {
+  stroke-dasharray: 18 14;
+  animation: flowDash 12s linear infinite;
+}
+
+.animate-flow-line-2 {
+  stroke-dasharray: 22 18;
+  animation: flowDash 16s linear infinite reverse;
+}
+
+.animate-flow-line-3 {
+  stroke-dasharray: 14 20;
+  animation: flowDash 10s linear infinite;
+}
+
+/* Get Started Button */
+.btn-get-started {
+  background: #ffffff;
+  color: #05030d;
+  font-weight: 600;
+  font-size: 1.05rem;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 25px rgba(255, 255, 255, 0.2), 0 0 35px rgba(112, 35, 255, 0.35);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: -0.01em;
+}
+
+.btn-get-started:hover {
+  transform: scale(1.02);
+  box-shadow: 0 6px 35px rgba(255, 255, 255, 0.35), 0 0 50px rgba(168, 85, 247, 0.55);
+}
+
+.btn-get-started:active {
+  transform: scale(0.98);
+}
+
+/* Glass Card & Panel */
+.glass-panel {
+  background: rgba(12, 8, 28, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 1rem;
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

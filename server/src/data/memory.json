@@ -1,0 +1,112 @@
+{
+  "factsByUser": {
+    "default-user": [
+      {
+        "id": "53a80b4e-f311-4c22-92cd-158fa8494e5c",
+        "userId": "default-user",
+        "fact": "Final-year computer science student prepping for upcoming tech interviews",
+        "category": "education",
+        "confidence": 0.95,
+        "createdAt": 1788148002548,
+        "lastMentionedAt": 1788148002548
+      },
+      {
+        "id": "f12a3f39-9218-465c-b4cf-2e1c60856b26",
+        "userId": "default-user",
+        "fact": "Working on a distributed voice agent project with real-time barge-in",
+        "category": "project",
+        "confidence": 0.9,
+        "createdAt": 1788234402548,
+        "lastMentionedAt": 1788234402548
+      },
+      {
+        "id": "9b75f08a-452e-43ef-a4d5-e9a757cd53c7",
+        "userId": "default-user",
+        "fact": "Prefers dark mode and loves iced coffee while coding late at night",
+        "category": "preference",
+        "confidence": 0.85,
+        "createdAt": 1788061602548,
+        "lastMentionedAt": 1788061602548
+      }
+    ],
+    "test-user": [
+      {
+        "id": "97924007-dbc0-4e25-a1a6-4f35a06f2b68",
+        "userId": "test-user",
+        "fact": "Has a scheduled reminder: \"Remind me to call the professor at 5 PM today.\" for in 1 hour",
+        "category": "reminder",
+        "confidence": 0.9,
+        "createdAt": 1788320802552,
+        "lastMentionedAt": 1788322075359
+      },
+      {
+        "id": "28b4c9f1-5a3e-4ff6-b37f-dcce6ff80b0e",
+        "userId": "test-user",
+        "fact": "User's name is Swati",
+        "category": "profile",
+        "confidence": 0.9,
+        "createdAt": 1788631437624,
+        "lastMentionedAt": 1788683488862
+      },
+      {
+        "id": "73feac38-f9dc-4403-b2a7-29aa16e41d28",
+        "userId": "test-user",
+        "fact": "BTech CSE student",
+        "category": "education",
+        "confidence": 0.9,
+        "createdAt": 1788631437627,
+        "lastMentionedAt": 1788683490219
+      },
+      {
+        "id": "88de87f5-ee36-4ccf-9414-313952a1a1ab",
+        "userId": "test-user",
+        "fact": "User prefers short explanations",
+        "category": "preference",
+        "confidence": 0.9,
+        "createdAt": 1788681707910,
+        "lastMentionedAt": 1788683681341
+      }
+    ],
+    "user-alice-isolated": [
+      {
+        "id": "a4c0e04f-4d47-4cdb-92b0-aae48a900d90",
+        "userId": "user-alice-isolated",
+        "fact": "User likes cats and drink iced coffee",
+        "category": "preference",
+        "confidence": 0.9,
+        "createdAt": 1788681712115,
+        "lastMentionedAt": 1788683682362
+      }
+    ]
+  },
+  "remindersByUser": {
+    "default-user": [
+      {
+        "id": "ac89aded-02ca-4397-bb56-3c5a0a71fd00",
+        "userId": "default-user",
+        "text": "Submit final project report to professor by 5 PM",
+        "timeString": "5:00 PM today",
+        "createdAt": 1788306402548,
+        "status": "pending"
+      }
+    ],
+    "test-user": [
+      {
+        "id": "2dfc2f6e-6d02-46c2-80dc-945b20303470",
+        "userId": "test-user",
+        "text": "Remind me to call the professor at 5 PM today.",
+        "timeString": "in 1 hour",
+        "createdAt": 1788320802552,
+        "status": "pending"
+      },
+      {
+        "id": "068b1e64-f2d5-470a-8105-ef84bdff404d",
+        "userId": "test-user",
+        "text": "Remind me to call the professor at 5 PM today.",
+        "timeString": "in 1 hour",
+        "createdAt": 1788322075359,
+        "status": "pending"
+      }
+    ]
+  }
+}

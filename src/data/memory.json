@@ -1,0 +1,45 @@
+{
+  "factsByUser": {
+    "default-user": [
+      {
+        "id": "4af2cb6e-a2ad-4f60-ba6b-c5d211eff986",
+        "userId": "default-user",
+        "fact": "Final-year computer science student prepping for upcoming tech interviews",
+        "category": "education",
+        "confidence": 0.95,
+        "createdAt": 1788539975945,
+        "lastMentionedAt": 1788539975945
+      },
+      {
+        "id": "f3806cdf-53a8-4894-956b-4bba22fd4486",
+        "userId": "default-user",
+        "fact": "Working on a distributed voice agent project with real-time barge-in",
+        "category": "project",
+        "confidence": 0.9,
+        "createdAt": 1788626375945,
+        "lastMentionedAt": 1788626375945
+      },
+      {
+        "id": "23b640f9-13a7-4486-92d5-e48d7630b4db",
+        "userId": "default-user",
+        "fact": "Prefers dark mode and loves iced coffee while coding late at night",
+        "category": "preference",
+        "confidence": 0.85,
+        "createdAt": 1788453575945,
+        "lastMentionedAt": 1788453575945
+      }
+    ]
+  },
+  "remindersByUser": {
+    "default-user": [
+      {
+        "id": "27896677-8f16-44e6-acf4-0957530adc6d",
+        "userId": "default-user",
+        "text": "Submit final project report to professor by 5 PM",
+        "timeString": "5:00 PM today",
+        "createdAt": 1788698375945,
+        "status": "pending"
+      }
+    ]
+  }
+}

@@ -330,15 +330,26 @@ export class StoryEngine {
     }
 
     // Turn 3: "My friend was rude to me today, but I also said some really harsh things back. Do you think I should apologize?"
-    if (/\b(my friend was (?:really )?rude to me|friend was rude to me|she was (?:really )?rude to me|friend was rude)\b/i.test(lower) && /\b(harsh things back|harsh things|harsh)\b/i.test(lower) && /\b(should i apologize|do you think i should apologize|apologize)\b/i.test(lower)) {
+    if (/\b(my friend was (?:really )?rude to me|friend was rude to me|she was (?:really )?rude to me|friend was rude)\b/i.test(lower) && /\b(harsh things back|harsh things|harsh)\b/i.test(lower)) {
       updated.situation = 'friendship_conflict';
       updated.otherPersonActions.push('was rude to user');
       updated.userActions.push('said harsh things back');
-      updated.stage = 'clarifying';
+      updated.responsibility = 'shared';
+      updated.stage = 'advised';
       return {
         updatedStory: updated,
         hasDirectResponse: true,
-        responseText: "Maybe, yeah. If you said things that were unnecessarily harsh, I'd apologize for your part. But tell me what she said first — I want to understand both sides before deciding who's more at fault."
+        responseText: "Honestly, I think both of you contributed here. Her being rude wasn't okay, but saying really harsh things back wasn't great either. I'd apologize for what you said without taking responsibility for her behavior."
+      };
+    }
+
+    // Contextual Apology Advice
+    if (/\b(do you think i should apologize|should i apologize|kya mujhe maafi mangni chahiye|apologize to her|apologize to him)\b/i.test(lower) && (updated.situation === 'friendship_conflict' || context?.friendConflictLogged)) {
+      updated.stage = 'advised';
+      return {
+        updatedStory: updated,
+        hasDirectResponse: true,
+        responseText: "Yeah, I think you probably should apologize for your part. You can apologize for what you said without pretending the whole argument was your fault."
       };
     }
 
@@ -378,6 +389,18 @@ export class StoryEngine {
         updatedStory: updated,
         hasDirectResponse: true,
         responseText: "Ugh, what did she say?"
+      };
+    }
+
+    // "She said I'm dumb." / "she says you don't have knowledge you are so dumb"
+    if (/\b(she said (?:that )?i'?m dumb|she says (?:that )?i'?m dumb|she said i'?m stupid|she called me dumb|said i'?m dumb|you don'?t have knowledge you are so dumb)\b/i.test(lower)) {
+      updated.situation = 'friendship_conflict';
+      updated.otherPersonActions.push('called user dumb');
+      updated.stage = 'clarifying';
+      return {
+        updatedStory: updated,
+        hasDirectResponse: true,
+        responseText: "Ouch. That's a really hurtful thing to say to a friend. What did you say back?"
       };
     }
 

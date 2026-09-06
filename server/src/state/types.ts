@@ -136,6 +136,7 @@ export interface VoiceProsody {
 export type ConversationMode =
   | 'CASUAL'
   | 'GENERAL_CHAT'
+  | 'CASUAL_CHAT'
   | 'PERSONAL_STORY'
   | 'EMOTIONAL_SUPPORT'
   | 'ADVICE'
@@ -143,9 +144,15 @@ export type ConversationMode =
   | 'STORY'
   | 'STORYTELLING'
   | 'INFORMATION'
+  | 'CURRENT_INFORMATION'
+  | 'TECHNICAL_EXPLANATION'
   | 'GAME'
   | 'INTERVIEW'
+  | 'INTERVIEW_PREP'
   | 'INTERVIEWER_ROLEPLAY'
+  | 'FRIEND_CONFLICT'
+  | 'RELATIONSHIP_CONFLICT'
+  | 'FLIRTING'
   | 'GIRLFRIEND_STYLE_ROLEPLAY'
   | 'BOYFRIEND_STYLE_ROLEPLAY'
   | 'PROPOSAL_PRACTICE'
@@ -258,6 +265,31 @@ export interface InterviewState {
   lastQuestion: string;
   totalQuestionsAsked: number;
   context?: InterviewContextState;
+}
+
+export interface PendingQuestion {
+  question: string;
+  expectedInformation: 'interview_role' | 'conflict_detail' | 'other_person_statement' | 'user_response' | 'crush_name' | 'clarification' | 'general';
+  topic: string;
+  mode: ConversationMode;
+  turnId: string;
+  timestamp: number;
+}
+
+export interface FullConversationContext {
+  activeMode: ConversationMode;
+  activeTopic: string;
+  pendingQuestion?: PendingQuestion | null;
+  pendingExpectedAnswer?: string | null;
+  recentIntent?: DetailedIntent | UserIntent | string;
+  recentEntity?: MentionedEntity | null;
+  recentFacts: string[];
+  emotionalState: SpecificEmotion;
+  conversationGoal?: string | null;
+  storyState: ConversationStory;
+  lastUserMessage?: string;
+  lastAyraMessage?: string;
+  lastMeaningfulUserMessage?: string;
 }
 
 export interface StateTransitionEvent {

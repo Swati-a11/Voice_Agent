@@ -317,15 +317,38 @@ export class IntentClassifier {
     normalized = normalized.replace(/\bknow youtube\b/gi, 'do you know YouTube');
     normalized = normalized.replace(/\bknow alia bhatt\b/gi, 'do you know Alia Bhatt');
     normalized = normalized.replace(/\b(was route to me|route to me)\b/gi, 'was rude to me');
+    normalized = normalized.replace(/\b(?:its\s+for\s+|it's\s+for\s+)?best\s+lover\s+roll\b/gi, "it's for web developer role");
+    normalized = normalized.replace(/\bbest\s+lover\s+(?:roll|role)\b/gi, 'web developer role');
+    normalized = normalized.replace(/\bmessage\s+(?:up\s+)?what\s+should\s+i\s+do\b/gi, 'mess up, what should I do');
+    normalized = normalized.replace(/\b(save\s+some\s+really\s+hard\s+things\s+back|save\s+some\s+hard\s+things\s+back|save\s+some\s+really\s+harsh\s+things\s+back)\b/gi, 'said some really harsh things back');
+    normalized = normalized.replace(/\b(make\s+with\s+him)\b/gi, 'make up with him');
+    normalized = normalized.replace(/\b(make\s+with\s+her)\b/gi, 'make up with her');
+    normalized = normalized.replace(/\bcompletely\s+conversation\b/gi, 'complete conversation');
+    normalized = normalized.replace(/\bwho\s+is\s+called\s+you\s+think\s+it\s+was\b/gi, 'whose fault do you think it was');
+    normalized = normalized.replace(/\bwho\s+is\s+called\b/gi, 'whose fault');
     normalized = normalized.replace(/\b(should approach|have to approach|to approach to her|approach to her|approach to him)\b/gi, (m) => m.replace(/approach/i, 'apologize'));
     normalized = normalized.replace(/\b(apply to her|apply to him|have to apply|have to apply to)\b/gi, (m) => m.replace(/apply/i, 'apologize'));
     normalized = normalized.replace(/\b(pretend your my interview|pretend you're my interview|your my interview|act as my interview|be my interview)\b/gi, "pretend you're my interviewer");
+    normalized = normalized.replace(/\bpretend your my interviewer\b/gi, "pretend you're my interviewer");
+    normalized = normalized.replace(/\byour my interviewer\b/gi, "you're my interviewer");
     normalized = normalized.replace(/\b(?:software|web|fullstack|frontend|backend|machine learning|ml)\s+developer\s+rule\b/gi, (m) => m.replace(/rule$/i, 'role'));
     normalized = normalized.replace(/\b(developer rule|engineer rule)\b/gi, (m) => m.replace(/rule$/i, 'role'));
     normalized = normalized.replace(/\b(really hard things back|hard things back)\b/gi, 'really harsh things back');
     normalized = normalized.replace(/\btake for (?:my\s+)?interview\b/gi, 'take my interview');
     normalized = normalized.replace(/\btake (?:for\s+)?interview one question\b/gi, 'take my interview one question');
     return normalized;
+  }
+
+  public static isReportedSpeech(text: string): { isReported: boolean; speaker?: string; content?: string } {
+    const match = text.match(/\b(she\s+said|he\s+said|my\s+friend\s+said|she\s+told\s+me|he\s+told\s+me|they\s+told\s+me|he\s+called\s+me|she\s+called\s+me|they\s+were\s+saying|my\s+teacher\s+said|my\s+boss\s+told\s+me|she\s+says\s+like|he\s+says\s+like|she\s+says|he\s+says|my\s+friend\s+says|friend\s+says|boss\s+said|teacher\s+said|usne\s+kaha|usne\s+bola)\s*(?:that|like|ke|ki|:)?\s*(.+)$/i);
+    if (match) {
+      return {
+        isReported: true,
+        speaker: match[1].toLowerCase(),
+        content: match[2].trim()
+      };
+    }
+    return { isReported: false };
   }
 
   /**
@@ -1734,7 +1757,7 @@ export class IntentClassifier {
       return result;
     }
 
-    if (/\b(pretend you'?re (?:my|an) interviewer|be (?:an|my) interviewer and take my interview|be (?:my|an) interviewer|take my interview|interview me|start (?:the|my|an) interview|interviewer mode|act like (?:an|my) interviewer)\b/i.test(clean)) {
+    if (/\b(pretend\s+(?:you'?re|your)\s+(?:my|an)?\s*interviewer|be\s+(?:an|my)?\s*interviewer\s*(?:and\s+take\s+my\s+interview)?|take\s+(?:my\s+)?interview|interview\s+me|start\s+(?:the|my|an)?\s*interview|interviewer\s+mode|mock\s+interview|act\s+(?:like|as)\s+(?:an|my)?\s*interviewer|ask\s+me\s+interview\s+questions|give\s+me\s+honest\s+(?:interview\s+)?feedback|take\s+my\s+interview\s+one\s+question\s+at\s+a\s+time)\b/i.test(clean)) {
       result.intent = 'interviewer_roleplay';
       result.userIntent = 'COMMAND';
       result.conversationMode = 'INTERVIEWER_ROLEPLAY';
@@ -1946,6 +1969,45 @@ export class IntentClassifier {
       return result;
     }
 
+    // 0.047 Explicit Casual Conversation Request ("Let's have a complete normal conversation", "let's just talk", "talk to me like a friend")
+    if (/\b(let'?s have a complete normal conversation|let'?s have a normal conversation|talk to me like a friend|let'?s talk normally|just talk to me|say something random|complete normal conversation|normal conversation)\b/i.test(clean)) {
+      result.intent = 'casual_chat';
+      result.userIntent = 'NORMAL_TURN';
+      result.conversationMode = 'CASUAL';
+      return result;
+    }
+
+    // 0.048 Flirting Mode ("flirt with me", "try flirting with me", "continue flirting", "carry on" when in flirting)
+    if (/\b(flirt with me|try flirting with me|flirting with me|continue flirting|keep flirting|start flirting)\b/i.test(clean) || (context?.activeConversationMode === 'FLIRTING' && /^(carry on|continue|keep going|more|go on)[.!]?$/i.test(clean))) {
+      result.intent = 'flirtation';
+      result.userIntent = 'STATEMENT';
+      result.conversationMode = 'FLIRTING';
+      return result;
+    }
+
+    // 0.049 Correction / Not a compliment / Negative feedback
+    if (/\b(it is not a compliment|it'?s not a compliment|not a compliment|it wasn'?t a compliment|it was not a compliment)\b/i.test(clean)) {
+      result.intent = 'role_correction';
+      result.userIntent = 'CORRECTION';
+      result.conversationMode = 'CASUAL';
+      return result;
+    }
+
+    if (/\b(no no you'?re not dumb|not you[, ]+my friend|not talking about you|my friend says that i am dumb|my friend said that i am dumb)\b/i.test(clean)) {
+      result.intent = 'friendship_conflict';
+      result.userIntent = 'CORRECTION';
+      result.conversationMode = 'FRIEND_CONFLICT';
+      return result;
+    }
+
+    if (/\b(you'?re actually not very good|you are actually not very good|you'?re not very good|not very good at this|you kind of suck)\b/i.test(clean)) {
+      result.intent = 'insult';
+      result.userIntent = 'STATEMENT';
+      result.conversationMode = 'CASUAL';
+      result.socialRequestType = 'roast';
+      return result;
+    }
+
     // 0.1 Affection Question ("Do you like me?", "Do you like me Ayra?")
     if (/\b(do you like me|do you like me ayra|do you love me|kya tum mujhe pasand karti ho)\b/i.test(clean)) {
       result.intent = 'personal_feedback';
@@ -1962,8 +2024,13 @@ export class IntentClassifier {
       return result;
     }
 
-    // 1. Insult & Playful Negativity (Section 16: "you are so annoying", "you are dumb", "you are so rude", "no, you're annoying")
-    if (/\b(you are very annoying|you're very annoying|you are so annoying|you're so annoying|you are annoying|you're annoying|no you're annoying|no,? you're annoying|you are so and knowing|you are dumb|you're dumb|you are stupid|you're stupid|you are useless|you're useless|you are pagal|you're pagal|pagal ho kya|bakwas ho|chup raho|you are so rude|you're so rude|you are rude|you're rude|why are you rude)\b/i.test(clean)) {
+    // 0.3 Reported Speech Check before direct insult
+    const reportedCheck = IntentClassifier.isReportedSpeech(clean);
+    const hasReportedPrefix = reportedCheck.isReported || /\b(she said|he said|my friend said|she says|he says|my friend says|my boss told|my teacher said|usne bola|usne kaha)\b/i.test(clean);
+    const inConflictContext = context?.activeConversationMode === 'FRIEND_CONFLICT' || (context?.previousAgentText && /what did (?:she|he) say|what happened/i.test(context.previousAgentText));
+
+    // 1. Insult & Playful Negativity (Direct towards Ayra only when NOT reported speech)
+    if (!hasReportedPrefix && !inConflictContext && /\b(you are very annoying|you're very annoying|you are so annoying|you're so annoying|you are annoying|you're annoying|no you're annoying|no,? you're annoying|you are so and knowing|you are dumb|you're dumb|you are stupid|you're stupid|you are useless|you're useless|you are pagal|you're pagal|pagal ho kya|bakwas ho|chup raho|you are so rude|you're so rude|you are rude|you're rude|why are you rude)\b/i.test(clean)) {
       result.intent = 'insult';
       result.userIntent = 'STATEMENT';
       result.conversationMode = 'CASUAL';

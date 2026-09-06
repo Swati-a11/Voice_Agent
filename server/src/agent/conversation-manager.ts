@@ -16,7 +16,9 @@ import {
   InterviewState,
   VoiceProsody,
   PersonalStoryThread,
-  ConversationStory
+  ConversationStory,
+  PendingQuestion,
+  FullConversationContext
 } from '../state/types.js';
 import { PERSONAS, getPersona } from '../persona/persona-config.js';
 import { IntentClassifier, DetailedClassificationResult } from './intent-classifier.js';
@@ -130,6 +132,9 @@ export class ConversationManager extends EventEmitter {
   private lastGoodnightTime = 0;
   private lastJokeCategory = 'general';
   private lastTechnicalTopic: string | null = null;
+  private pendingQuestion: PendingQuestion | null = null;
+  private conversationGoal: string | null = null;
+  private lastMeaningfulUserMessage: string = '';
   private conversationStory: ConversationStory = StoryEngine.createInitialStory();
 
   // Story Mode Context Tracking & Multi-Story Catalogs
@@ -1652,6 +1657,116 @@ stale=false`);
       }
     }
 
+    // 0.00000000001 Negative Feedback & Correction
+    if (/\b(it is not a compliment|it'?s not a compliment|not a compliment|it wasn'?t a compliment|it was not a compliment)\b/i.test(text)) {
+      return "Okay okay, point taken. That one actually hurt a little.";
+    }
+    if (/\b(no no you'?re not dumb|not you[, ]+my friend|my friend says that i am dumb|my friend said that i am dumb)\b/i.test(text)) {
+      this.conversationMode = 'FRIEND_CONFLICT';
+      this.conversationStory.situation = 'friendship_conflict';
+      return "Ahh got it, she said that about you. That's still a really hurtful thing for a friend to say.";
+    }
+    if (/\b(you'?re actually not very good|you are actually not very good|you'?re not very good|not very good at this)\b/i.test(text)) {
+      return "Ouch! Tough crowd today. What can I do better?";
+    }
+
+    // 0.00000000002 Casual Conversation Request
+    if (/\b(let'?s have a complete normal conversation|let'?s have a normal conversation|talk to me like a friend|let'?s talk normally|just talk to me|say something random|complete normal conversation)\b/i.test(text)) {
+      this.conversationMode = 'CASUAL';
+      return "Sure, let's just chat like friends. How's everything going with you today?";
+    }
+
+    // 0.00000000003 Flirting Continuation ("carry on" when in flirting)
+    if ((this.conversationMode === 'FLIRTING' || params.intentResult?.conversationMode === 'FLIRTING') && /^(carry on|continue|keep going|more|go on)[.!]?$/i.test(text)) {
+      return "Careful now... if we keep going like this, you might actually fall for my charm.";
+    }
+
+    // 0.00000000004 Interview Mode Configuration & "one question at a time and give me honest feedback"
+    if (/\b(one question at a time and give me honest feedback|one question at a time|honest feedback)\b/i.test(text) && /\b(interview|question|take)\b/i.test(text)) {
+      this.interviewState.active = true;
+      this.conversationMode = 'INTERVIEW';
+      this.interviewRoleplayStep = 1;
+      return "Got it — one question at a time with honest feedback. Let's begin. Tell me about yourself and your background with software development.";
+    }
+
+    // 0.000000000045 Interviewer Roleplay Activation ("pretend your my interviewer for a software developer role")
+    if (/\b(pretend\s+(?:you'?re|your)\s+(?:my|an)?\s*interviewer|be\s+(?:an|my)?\s*interviewer\s*(?:and\s+take\s+my\s+interview)?|take\s+(?:my\s+)?interview|interview\s+me|start\s+(?:the|my|an)?\s*interview|interviewer\s+mode|mock\s+interview|act\s+(?:like|as)\s+(?:an|my)?\s*interviewer|ask\s+me\s+interview\s+questions|give\s+me\s+honest\s+(?:interview\s+)?feedback|take\s+my\s+interview\s+one\s+question\s+at\s+a\s+time)\b/i.test(text)) {
+      this.activeRoleplay = 'interviewer';
+      this.conversationMode = 'INTERVIEWER_ROLEPLAY';
+      this.interviewState.active = true;
+      this.interviewRoleplayStep = 1;
+      if (/\b(software developer|software dev|web developer|frontend|backend|fullstack|react)\b/i.test(text)) {
+        this.interviewContext.role = 'software developer';
+      }
+      return "Alright, let's do it properly as your interviewer. I'll ask one question at a time and I'll be honest with the feedback. Start by telling me about yourself.";
+    }
+
+    // 0.00000000005 Pending Question: Interview Role Resolution ("its for best lover roll" -> web developer role, software developer role)
+    const isInterviewRoleQuestion = !/\b(pretend|act as|take my interview|mock interview|one question at a time|interviewer)\b/i.test(text) && (prevAgent.includes('what role') || this.pendingQuestion?.expectedInformation === 'interview_role');
+    if (isInterviewRoleQuestion && /\b(web developer|software developer|software dev|machine learning|ml developer|frontend|backend|fullstack|developer|engineer|dev)\b/i.test(text)) {
+      this.pendingQuestion = null;
+      if (/\b(web developer|frontend|web dev)\b/i.test(text)) {
+        this.interviewContext.role = 'web developer';
+        return "Got it, web developer role! Then tonight I'd focus on your core fundamentals, HTML, CSS, JavaScript, React, your projects, and problem-solving rather than trying to learn everything. If you want, we can also do a quick mock interview.";
+      }
+      if (/\b(software developer|software dev|developer)\b/i.test(text)) {
+        this.interviewContext.role = 'software developer';
+        return "Got it, software developer. Then tonight I'd focus on your core fundamentals, your projects, and a little problem-solving rather than trying to learn everything. If you want, we can also do a quick mock interview.";
+      }
+    }
+
+    // 0.00000000006 Reported Speech in Friend Conflict ("she says you don't have knowledge you are so dumb", "she said I'm dumb")
+    if (/\b(she says|she said|my friend said|my friend says)\b/i.test(text) && /\b(you don'?t have knowledge|you are so dumb|you'?re dumb|i'?m dumb|im dumb|you don'?t know anything|useless|stupid)\b/i.test(text)) {
+      this.conversationStory.situation = 'friendship_conflict';
+      this.conversationStory.otherPersonActions.push('insulted user / called user dumb');
+      this.conversationMode = 'FRIEND_CONFLICT';
+      this.pendingQuestion = {
+        question: "What did you say back?",
+        expectedInformation: 'user_response',
+        topic: 'friend_conflict',
+        mode: 'FRIEND_CONFLICT',
+        turnId: params.turnId || '',
+        timestamp: Date.now()
+      };
+      return "Ouch. That's a really hurtful thing to say to a friend. What did you say back?";
+    }
+
+    // 0.00000000007 Technical explanation ("now explain react hooks for an interview", "explain")
+    if (/\b(now explain react hooks for an interview|explain react hooks for an interview|explain react hooks to me like|explain react hooks)\b/i.test(text)) {
+      this.lastTechnicalTopic = 'React Hooks';
+      this.conversationMode = 'TECHNICAL_EXPLANATION';
+      return "React Hooks are functions like useState and useEffect that let functional components manage local state and lifecycle side effects without class components. In an interview, highlight how hooks simplify component code and make stateful logic reusable.";
+    }
+    if (/^(explain|explain\.|explain please|tell me more)[.!]?$/i.test(text)) {
+      if (this.lastTechnicalTopic === 'React Hooks' || prevAgent.includes('hooks') || prevAgent.includes('react')) {
+        return "To break down React Hooks: useState handles component state, while useEffect manages side effects like data fetching and subscriptions. In an interview, explain how hooks let you share stateful logic without class components.";
+      }
+    }
+
+    // 0.00000000008 Topic switches
+    if (/\b(forget the interview|leave the interview)\b/i.test(text) && /\b(my friend|friend|let'?s talk about my friend)\b/i.test(text) && !/\bbirthday\b/i.test(text)) {
+      this.interviewState.active = false;
+      this.activeRoleplay = 'none';
+      this.conversationMode = 'FRIEND_CONFLICT';
+      this.conversationStory.situation = 'friendship_conflict';
+      return "Ahh yaar, okay. Forget the interview for a second. What happened with your friend?";
+    }
+    if (/\b(enough technical stuff|okay enough technical stuff)\b/i.test(text)) {
+      this.conversationMode = 'CASUAL';
+      return "Long day? Take a breath and kick back. What's on your mind?";
+    }
+
+    // 0.00000000009 Direct insult to Ayra ("you are so dumb", "you are dumb", "you are stupid")
+    if (!IntentClassifier.isReportedSpeech(text).isReported && !/\b(she said|he said|friend said|she says|he says|friend says|no no you'?re not dumb)\b/i.test(text) && /^(you are so dumb|you are dumb|you'?re so dumb|you'?re dumb|you are stupid|you'?re stupid)[.!]?$/i.test(text)) {
+      return "Excuse me?! That's harsh.";
+    }
+
+    // 0.00000000010 World Information
+    if (/\b(the world right now that you think i should actually know|what'?s happening in the world right now|what happened in the world right now|what is happening in the world right now|happening in the world right now)\b/i.test(text)) {
+      this.conversationMode = 'CURRENT_INFORMATION';
+      return "The world right now is navigating several major transitions: active geopolitical tensions and conflicts (such as in the Middle East and Eastern Europe), global economic adjustments around inflation and interest rates, rapid acceleration in AI and renewable energy, and ongoing political elections worldwide. If there's a specific region or topic you want the latest updates on, I can break that down.";
+    }
+
     // 0.000000 Context Switch to Cats / General Animals (Failure 10 / Section 42)
     if (/\b(tell me (?:something )?about cats|about cats|cats instead|tell me about cats instead|what about cats|let's talk about cats|talk about cats)\b/i.test(text)) {
       if (this.activeStoryState) {
@@ -1688,7 +1803,7 @@ stale=false`);
       return "Alright, boyfriend mode it is. Now come on, tell me what's going on.";
     }
 
-    if (/\b(pretend you'?re (?:my|an) interviewer|be (?:an|my) interviewer and take my interview|be (?:my|an) interviewer|take my interview|interview me|start (?:the|my|an) interview|interviewer mode|act like (?:an|my) interviewer|act as (?:my|an) interviewer|ask me interview questions|give me honest (?:interview\s+)?feedback|take my interview one question at a time)\b/i.test(text)) {
+    if (/\b(pretend\s+(?:you'?re|your)\s+(?:my|an)?\s*interviewer|be\s+(?:an|my)?\s*interviewer\s*(?:and\s+take\s+my\s+interview)?|take\s+(?:my\s+)?interview|interview\s+me|start\s+(?:the|my|an)?\s*interview|interviewer\s+mode|mock\s+interview|act\s+(?:like|as)\s+(?:an|my)?\s*interviewer|ask\s+me\s+interview\s+questions|give\s+me\s+honest\s+(?:interview\s+)?feedback|take\s+my\s+interview\s+one\s+question\s+at\s+a\s+time)\b/i.test(text)) {
       this.activeRoleplay = 'interviewer';
       this.conversationMode = 'INTERVIEWER_ROLEPLAY';
       this.interviewState.active = true;
@@ -1732,14 +1847,14 @@ stale=false`);
     // 0.0000000003 Flirtation ("Now flirt with me", "Flirt with me")
     if (/\b(now flirt with me|flirt with me|flirt kar na|flirt karo|say something flirty)\b/i.test(text) && !/\b(don't|dont|stop)\b/i.test(text)) {
       this.activeRoleplay = 'none';
-      this.conversationMode = 'CASUAL';
+      this.conversationMode = 'FLIRTING';
       this.interviewState.active = false;
       const flirts = [
         "Well... that depends. Are you always this confident, or are you trying to impress me?",
         "Oh? So we're flirting now? Bold move.",
         "Careful, you're making it very easy for me to tease you."
       ];
-      return flirts[Math.floor(Math.random() * flirts.length)];
+      return flirts[0];
     }
 
     // 0.00000000035 Information: Interviewer question types (Disambiguation from Roleplay)
@@ -1884,7 +1999,7 @@ stale=false`);
     }
 
     // 0.000000001 Friend's Birthday & Context Reset ("Forget that. I want to tell you that tomorrow is my friend's birthday.")
-    if (/\b(?:forget\s+(?:that|it|everything)|leave\s+(?:that|it)|never\s+mind|scratch\s+that)[.,]?\s*(?:i\s+want\s+to\s+tell\s+you\s+that\s+)?(?:tomorrow\s+is\s+my\s+friend'?s\s+birthday|my\s+friend'?s\s+birthday\s+is\s+tomorrow)\b/i.test(text) || /\b(tomorrow is my friend'?s birthday|my friend'?s birthday is tomorrow|kal meri friend ka birthday hai|kal mere dost ka birthday hai|friend'?s birthday tomorrow)\b/i.test(text)) {
+    if (/\b(?:forget\s+(?:that|it|everything|the\s+interview)|leave\s+(?:that|it|the\s+interview)|never\s+mind|scratch\s+that)[.,]?\s*(?:i\s+want\s+to\s+tell\s+you\s+that\s+)?(?:tomorrow\s+is\s+my\s+friend'?s\s+birthday|my\s+friend'?s\s+birthday\s+is\s+tomorrow)\b/i.test(text) || /\b(tomorrow is my friend'?s birthday|my friend'?s birthday is tomorrow|kal meri friend ka birthday hai|kal mere dost ka birthday hai|friend'?s birthday tomorrow)\b/i.test(text)) {
       this.friendBirthdayContext.announced = true;
       this.friendBirthdayContext.time = 'tomorrow';
       this.friendBirthdayContext.relationship = 'friend';
@@ -2017,18 +2132,19 @@ stale=false`);
     }
 
     // 0.000000021 Role Specification (Machine Learning Developer vs Software Developer Correction vs Web Dev)
-    if (/\b(it's for a (?:machine learning|ml)\s*(?:developer|engineer|dev)?\s*(?:job|role)?|it is for a (?:machine learning|ml)\s*(?:developer|engineer|dev)?\s*(?:job|role)?|machine learning developer (?:job|role)?)\b/i.test(text)) {
+    const isRoleplayActivation = /\b(pretend|interviewer|take my interview|mock interview|act as|one question at a time)\b/i.test(text);
+    if (!isRoleplayActivation && /\b(it's for a (?:machine learning|ml)\s*(?:developer|engineer|dev)?\s*(?:job|role)?|it is for a (?:machine learning|ml)\s*(?:developer|engineer|dev)?\s*(?:job|role)?|machine learning developer (?:job|role)?)\b/i.test(text)) {
       this.interviewContext.role = 'machine learning developer';
       return "Ahh, machine learning developer. Okay, that makes sense. No wonder you're nervous — that's a role where they test both programming and ML fundamentals. If you want, we can do a quick mock interview tonight.";
     }
 
-    if (/\b(it is the role of (?:software developer|software development|software dev)|it'?s the role of (?:software developer|software development|software dev)|it'?s for (?:software development|software dev|software developer|a software developer)|it is for (?:software development|software dev|software developer|a software developer)|software developer role|software developer|software development)\b/i.test(text) || (/\b(actually,?\s*it'?s for a (?:software|web|frontend|backend|fullstack|machine learning|ml)\s*(?:developer|engineer|dev)?\s*role|it is for a software developer role)\b/i.test(text))) {
+    if (!isRoleplayActivation && (/\b(it is the role of (?:software developer|software development|software dev)|it'?s the role of (?:software developer|software development|software dev)|it'?s for (?:software development|software dev|software developer|a software developer)|it is for (?:software development|software dev|software developer|a software developer)|software developer role|software developer|software development)\b/i.test(text) || (/\b(actually,?\s*it'?s for a (?:software|web|frontend|backend|fullstack|machine learning|ml)\s*(?:developer|engineer|dev)?\s*role|it is for a software developer role)\b/i.test(text)))) {
       this.interviewContext.role = 'software developer';
       this.lastTechnicalTopic = 'software development';
       return "Got it, software developer. Then tonight I'd focus on your core fundamentals, your projects, and a little problem-solving rather than trying to learn everything. If you want, we can also do a quick mock interview.";
     }
 
-    if (/\b(it's a (?:web|frontend|backend|fullstack|react|python|java)\s*(?:developer|engineer|dev)?\s*role|web developer role|frontend developer role|it is a web developer role)\b/i.test(text)) {
+    if (!isRoleplayActivation && /\b(it's a (?:web|frontend|backend|fullstack|react|python|java)\s*(?:developer|engineer|dev)?\s*role|web developer role|frontend developer role|it is a web developer role)\b/i.test(text)) {
       this.interviewContext.role = 'web developer';
       return "Nice! Web developer roles usually cover frontend, backend, or full-stack questions. Are you focusing on React, JavaScript, or something else tonight?";
     }

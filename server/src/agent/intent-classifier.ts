@@ -79,7 +79,10 @@ export class IntentClassifier {
   public static isIncompleteUtterance(text: string): boolean {
     const clean = text.trim().toLowerCase().replace(/[.,/#!$%^&*;:{}=\-_`~()?"'…]/g, '');
     if (!clean) return true;
-    return /^(wait i|no i mean|actually|hold on because|i was thinking about|i meant|so basically|because i|and i|what if i|im thinking about|i am thinking about|i was thinking|i thought that|let me think)$/i.test(clean);
+    if (/^(what are|what is|how do|and then|if you were|if you were reviewing|if you were doing|if you were reviewing my preparation|if you werewing my preparation)$/i.test(clean)) {
+      return true;
+    }
+    return /^(wait i|no i mean|actually|hold on because|i was thinking about|i meant|so basically|because i|and i|what if i|im thinking about|i am thinking about|i was thinking|i thought that|let me think|so if|when i am)$/i.test(clean);
   }
 
   public static extractSelfCorrection(text: string): { hasCorrection: boolean; originalTarget?: string; correctedTarget: string } {
@@ -336,9 +339,20 @@ export class IntentClassifier {
     normalized = normalized.replace(/\b(really hard things back|hard things back)\b/gi, 'really harsh things back');
     normalized = normalized.replace(/\b(of the stock|of the stocks)\b/gi, 'what about the stock market');
     normalized = normalized.replace(/\bi am seeing that i had a fever\b/gi, 'I am saying that I had a fever');
-    normalized = normalized.replace(/\breact looks\b/gi, 'React Hooks');
-    normalized = normalized.replace(/\bnow switch gear(?:s)? completely\b/gi, 'now switch gears completely');
-    normalized = normalized.replace(/\bswitch gear(?:s)? completely\b/gi, 'switch gears completely');
+    normalized = normalized.replace(/\b(portugal tom|portugal dome|portugal dom|virtual term|virtual turn|virtual dorm)\b/gi, 'virtual DOM');
+    normalized = normalized.replace(/\b(real tom|real dome|real dorm)\b/gi, 'real DOM');
+    normalized = normalized.replace(/\bthe dome\b/gi, 'the DOM');
+    normalized = normalized.replace(/\bai coating tools\b/gi, 'AI coding tools');
+    normalized = normalized.replace(/\bai coating\b/gi, 'AI coding');
+    normalized = normalized.replace(/\binstitute of\b/gi, 'instead of');
+    normalized = normalized.replace(/\btry to compare with ai\b/gi, 'try to compete with AI');
+    normalized = normalized.replace(/\bstudent comedy make\b/gi, 'students commonly make');
+    normalized = normalized.replace(/\bstudent comedy\b/gi, 'students commonly');
+    normalized = normalized.replace(/\byou werewing\b/gi, 'you were reviewing');
+    normalized = normalized.replace(/\bwerewing\b/gi, 'reviewing');
+    normalized = normalized.replace(/\b(?:skills\s+would\s+you\s+|would\s+you\s+)?paradise\b/gi, 'prioritize');
+    normalized = normalized.replace(/\bsoftware developer rolls\b/gi, 'software developer roles');
+    normalized = normalized.replace(/\bdeveloper rolls\b/gi, 'developer roles');
     normalized = normalized.replace(/\btake for (?:my\s+)?interview\b/gi, 'take my interview');
     normalized = normalized.replace(/\btake (?:for\s+)?interview one question\b/gi, 'take my interview one question');
     return normalized;

@@ -1738,6 +1738,45 @@ stale=false`);
       return "Ouch. That's a really hurtful thing to say to a friend. What did you say back?";
     }
 
+    // 0.000000000062 Incomplete Utterance Handling
+    if (IntentClassifier.isIncompleteUtterance(text)) {
+      return "Go ahead, I'm listening. What were you going to say?";
+    }
+
+    // 0.000000000063 Story Sharing Opener ("I am going to tell you a story are you interested in listening it")
+    if (/\b(going to tell you a story|want to tell you a story|can i tell you a story|tell you a story|interested in listening|interested in listening it|listen to my story|listen to a story|hear a story)\b/i.test(text)) {
+      this.conversationMode = 'CASUAL';
+      return "Yesss, absolutely! I'm all ears. Tell me what happened!";
+    }
+
+    // 0.000000000064 6-Month Roadmap & Skill Prioritization
+    if (/\b(?:6|six)\s+months?\s+(?:road\s*map|plan|preparation|prep|strategy)\b/i.test(text) || (/\b(road\s*map|skills)\b/i.test(text) && /\b(prioritize|paradise|next 6 month|next six month|6 month|software developer)\b/i.test(text))) {
+      this.conversationMode = 'TECHNICAL_EXPLANATION';
+      this.lastTechnicalTopic = 'software developer roadmap';
+      return "For a solid 6-month roadmap, I'd prioritize three main pillars: First, 2 to 3 months on Data Structures & Algorithms with consistent problem-solving in Python, Java, or C++. Second, 2 months building 2 real-world full-stack projects using React, Node.js, and databases with clean REST APIs. And the final month on CS fundamentals—OS, DBMS, networking, Git, and mock interview practice.";
+    }
+
+    // 0.0000000000645 Virtual DOM vs Real DOM & Behind the Scenes
+    if (/\b(virtual dom|difference between (?:virtual dom|portugal tom|portugal dome) and (?:real dom|real tom|the dome)|how react (?:actually )?works behind the scenes|difference between virtual dom and real dom|virtual dom vs real dom)\b/i.test(text) || (/\b(react|virtual dom|portugal tom)\b/i.test(text) && /\b(behind the scenes|difference|dom|dome|real tom)\b/i.test(text))) {
+      this.conversationMode = 'TECHNICAL_EXPLANATION';
+      this.lastTechnicalTopic = 'React Virtual DOM';
+      return "In React, the Virtual DOM is a lightweight JavaScript representation of the actual DOM kept in memory. When state changes, React creates a new Virtual DOM tree, runs a diffing algorithm called Reconciliation to calculate the exact differences, and batches only those updates to the Real DOM. This avoids expensive direct DOM manipulation and keeps UI rendering fast.";
+    }
+
+    // 0.0000000000648 AI Coding Tools vs Software Developer Learning
+    if (/\b(ai (?:coding|coating) tools|compare with ai|compete with ai|focus on learning instead of|learning instead of try to compare|writing code with ai|software developers should actually focus)\b/i.test(text) || (/\b(ai|coding tools)\b/i.test(text) && /\b(compete|compare|focus on learning|writing code)\b/i.test(text))) {
+      this.conversationMode = 'TECHNICAL_EXPLANATION';
+      this.lastTechnicalTopic = 'AI and Software Engineering';
+      return "Instead of competing with AI on writing raw syntax, developers should focus on high-level problem solving, system architecture, API design, debugging complex edge cases, and evaluating AI output for security and performance. The best engineers won't just write code—they'll direct AI tools, understand business logic deeply, and architect robust systems.";
+    }
+
+    // 0.0000000000649 Reviewing Preparation / 3 Mistakes Students Commonly Make
+    if (/\b(three mistakes|3 mistakes|mistakes (?:you think )?students? (?:commonly|comedy)? make|mistakes students make|recommend for software developer interview|reviewing my preparation)\b/i.test(text) || (/\b(mistakes|recommend)\b/i.test(text) && /\b(software developer|interview|students?)\b/i.test(text))) {
+      this.conversationMode = 'TECHNICAL_EXPLANATION';
+      this.lastTechnicalTopic = 'Interview Preparation Mistakes';
+      return "Three big mistakes students commonly make: 1. Jumping straight into code without clarifying requirements or thinking through edge cases out loud. 2. Memorizing solutions rather than understanding algorithmic patterns. 3. Neglecting core CS fundamentals like databases and operating systems. I'd recommend practicing talking through your thought process clearly and building projects you can explain deeply.";
+    }
+
     // 0.000000000065 Actionable Apology Ideas & Message Drafting
     if (/\b(give me (?:some )?ideas how to apologize|ideas how to apologize|how should i apologize|how to apologize|how do i apologize|what should i say to apologize)\b/i.test(text)) {
       this.conversationMode = 'ADVICE';
@@ -2183,12 +2222,13 @@ stale=false`);
 
     // 0.000000021 Role Specification (Machine Learning Developer vs Software Developer Correction vs Web Dev)
     const isRoleplayActivation = /\b(pretend|interviewer|take my interview|mock interview|act as|one question at a time)\b/i.test(text);
-    if (!isRoleplayActivation && /\b(it's for a (?:machine learning|ml)\s*(?:developer|engineer|dev)?\s*(?:job|role)?|it is for a (?:machine learning|ml)\s*(?:developer|engineer|dev)?\s*(?:job|role)?|machine learning developer (?:job|role)?)\b/i.test(text)) {
+    const isSubstantiveQuestion = /\b(road\s*map|skills|prioritize|paradise|mistakes|common mistakes|behind the scenes|virtual dom|how react|ai coding|ai coating|compete with ai|compare with ai|recommend|explain|difference)\b/i.test(text);
+    if (!isRoleplayActivation && !isSubstantiveQuestion && /\b(it's for a (?:machine learning|ml)\s*(?:developer|engineer|dev)?\s*(?:job|role)?|it is for a (?:machine learning|ml)\s*(?:developer|engineer|dev)?\s*(?:job|role)?|machine learning developer (?:job|role)?)\b/i.test(text)) {
       this.interviewContext.role = 'machine learning developer';
       return "Ahh, machine learning developer. Okay, that makes sense. No wonder you're nervous — that's a role where they test both programming and ML fundamentals. If you want, we can do a quick mock interview tonight.";
     }
 
-    if (!isRoleplayActivation && (/\b(it is the role of (?:software developer|software development|software dev)|it'?s the role of (?:software developer|software development|software dev)|it'?s for (?:software development|software dev|software developer|a software developer)|it is for (?:software development|software dev|software developer|a software developer)|software developer role|software developer|software development)\b/i.test(text) || (/\b(actually,?\s*it'?s for a (?:software|web|frontend|backend|fullstack|machine learning|ml)\s*(?:developer|engineer|dev)?\s*role|it is for a software developer role)\b/i.test(text)))) {
+    if (!isRoleplayActivation && !isSubstantiveQuestion && (/\b(it is the role of (?:software developer|software development|software dev)|it'?s the role of (?:software developer|software development|software dev)|it'?s for (?:software development|software dev|software developer|a software developer)|it is for (?:software development|software dev|software developer|a software developer)|software developer role|software developer|software development)\b/i.test(text) || (/\b(actually,?\s*it'?s for a (?:software|web|frontend|backend|fullstack|machine learning|ml)\s*(?:developer|engineer|dev)?\s*role|it is for a software developer role)\b/i.test(text)))) {
       this.interviewContext.role = 'software developer';
       this.lastTechnicalTopic = 'software development';
       return "Got it, software developer. Then tonight I'd focus on your core fundamentals, your projects, and a little problem-solving rather than trying to learn everything. If you want, we can also do a quick mock interview.";

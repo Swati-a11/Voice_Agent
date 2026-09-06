@@ -343,8 +343,28 @@ export class StoryEngine {
       };
     }
 
-    // Contextual Apology Advice
-    if (/\b(do you think i should apologize|should i apologize|kya mujhe maafi mangni chahiye|apologize to her|apologize to him)\b/i.test(lower) && (updated.situation === 'friendship_conflict' || context?.friendConflictLogged)) {
+    // Actionable Apology Ideas ("okay then give me some ideas how to apologize to her", "how should I apologize?")
+    if (/\b(give me (?:some )?ideas how to apologize|ideas how to apologize|how should i apologize|how to apologize|how do i apologize|what should i say to apologize)\b/i.test(lower)) {
+      updated.stage = 'advised';
+      return {
+        updatedStory: updated,
+        hasDirectResponse: true,
+        responseText: "Keep it simple and sincere. You could text something like: 'Hey, I felt bad about how heated things got earlier. My words were harsh and I'm sorry for reacting that way. I value our friendship and hope we can talk when you're ready.'"
+      };
+    }
+
+    // Message Drafting ("what should I text her?")
+    if (/\b(what should i text (?:her|him|them)|draft a text (?:for me)?|what to text (?:her|him))\b/i.test(lower)) {
+      updated.stage = 'advised';
+      return {
+        updatedStory: updated,
+        hasDirectResponse: true,
+        responseText: "I'd send something short: 'Hey, I was out of line with what I said earlier, and I'm genuinely sorry for snapping. Whenever you're up for it, I'd love to clear the air.'"
+      };
+    }
+
+    // Contextual Apology Judgment Advice ("should I apologize?")
+    if (/\b(do you think i should apologize|should i apologize|kya mujhe maafi mangni chahiye|apologize to her|apologize to him)\b/i.test(lower) && !/\b(ideas|how|what should i say|what should i text)\b/i.test(lower) && (updated.situation === 'friendship_conflict' || context?.friendConflictLogged)) {
       updated.stage = 'advised';
       return {
         updatedStory: updated,

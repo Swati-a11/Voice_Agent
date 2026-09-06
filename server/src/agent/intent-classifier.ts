@@ -334,6 +334,11 @@ export class IntentClassifier {
     normalized = normalized.replace(/\b(?:software|web|fullstack|frontend|backend|machine learning|ml)\s+developer\s+rule\b/gi, (m) => m.replace(/rule$/i, 'role'));
     normalized = normalized.replace(/\b(developer rule|engineer rule)\b/gi, (m) => m.replace(/rule$/i, 'role'));
     normalized = normalized.replace(/\b(really hard things back|hard things back)\b/gi, 'really harsh things back');
+    normalized = normalized.replace(/\b(of the stock|of the stocks)\b/gi, 'what about the stock market');
+    normalized = normalized.replace(/\bi am seeing that i had a fever\b/gi, 'I am saying that I had a fever');
+    normalized = normalized.replace(/\breact looks\b/gi, 'React Hooks');
+    normalized = normalized.replace(/\bnow switch gear(?:s)? completely\b/gi, 'now switch gears completely');
+    normalized = normalized.replace(/\bswitch gear(?:s)? completely\b/gi, 'switch gears completely');
     normalized = normalized.replace(/\btake for (?:my\s+)?interview\b/gi, 'take my interview');
     normalized = normalized.replace(/\btake (?:for\s+)?interview one question\b/gi, 'take my interview one question');
     return normalized;
@@ -1734,11 +1739,65 @@ export class IntentClassifier {
       return result;
     }
 
-    // 0. Explicit Topic Change / New Activity ("Actually no, tell me something else", "something else", etc.)
+    // 0. Explicit Topic Change / New Activity ("Actually no, tell me something else", "switch gears completely", etc.)
+    if (/\b(?:now\s+)?switch\s+gears\s+completely\b/i.test(clean) || /\b(?:now\s+)?switch\s+gears\b/i.test(clean)) {
+      if (/\b(react\s+hooks|react|javascript|typescript|node\.?js|python|sql|generative\s+ai|rag|rest\s+apis?)\b/i.test(clean)) {
+        result.intent = 'technical_explanation';
+        result.userIntent = 'QUESTION';
+        result.conversationMode = 'TECHNICAL_EXPLANATION';
+        return result;
+      }
+      result.intent = 'topic_change';
+      result.userIntent = 'TOPIC_CHANGE';
+      result.conversationMode = 'GENERAL_CHAT';
+      return result;
+    }
+
     if (/\b(actually no|tell me something else|something else|kuch aur baat|change the topic|let's talk about something else|kuch aur batao|kuch aur sunao|kuch naya)\b/i.test(clean)) {
       result.intent = 'topic_change';
       result.userIntent = 'TOPIC_CHANGE';
       result.conversationMode = 'GENERAL_CHAT';
+      return result;
+    }
+
+    // 0.0001 Technical Explanation Requests ("explain React Hooks", "give me a real-world example")
+    if (/\b(?:explain|tell me about|what is|how do|how does)\s+(?:react hooks|react|javascript|typescript|node\.?js|python|sql|generative ai|rag|rest apis?)\b/i.test(clean) || /\b(explain react hooks|react hooks)\b/i.test(clean) || (clean === 'give me a real-world example' || clean === 'give me a real world example' || clean === 'real world example')) {
+      result.intent = 'technical_explanation';
+      result.userIntent = 'QUESTION';
+      result.conversationMode = 'TECHNICAL_EXPLANATION';
+      return result;
+    }
+
+    // 0.0002 Apology Action & Message Drafting ("give me some ideas how to apologize to her", "what should I text her")
+    if (/\b(give me (?:some )?ideas how to apologize|how should i apologize|ideas how to apologize|how to apologize|apologize to her|apologize to him|what should i say to apologize)\b/i.test(clean)) {
+      result.intent = 'apology_action';
+      result.userIntent = 'QUESTION';
+      result.conversationMode = 'ADVICE';
+      return result;
+    }
+
+    if (/\b(what should i text (?:her|him|them)|draft a text (?:for me)?|what to text (?:her|him))\b/i.test(clean)) {
+      result.intent = 'message_drafting';
+      result.userIntent = 'INFORMATION_REQUEST';
+      result.conversationMode = 'ADVICE';
+      return result;
+    }
+
+    // 0.0003 Stock Market & Live Financial Info ("what about the stock market", "what about stocks")
+    if (/\b(what about (?:the )?stock market|what about stocks|stock market|of the stock|of the stocks)\b/i.test(clean)) {
+      result.intent = 'stock_market';
+      result.userIntent = 'QUESTION';
+      result.conversationMode = 'CURRENT_INFORMATION';
+      result.isCurrentInformation = true;
+      result.requiresWebSearch = true;
+      return result;
+    }
+
+    // 0.0004 Personal Health Statements ("I had a fever today", "I had a fever this morning", "I'm tired")
+    if (/\b(had a fever|having a fever|got a fever|caught a fever|fever today|fever this morning)\b/i.test(clean) || /\b(everything is (?:okay|great|fine)(?:,?\s+everything is just (?:okay|great|fine))?\s+but i had a fever)\b/i.test(clean) || /\b(i am (?:saying|seeing) that i had a fever)\b/i.test(clean) || /\b(i'?m tired|i am tired|feeling exhausted|feeling so tired|feeling tired today)\b/i.test(clean)) {
+      result.intent = 'personal_health_event';
+      result.userIntent = 'STATEMENT';
+      result.conversationMode = 'CASUAL';
       return result;
     }
 

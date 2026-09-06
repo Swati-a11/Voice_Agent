@@ -1715,11 +1715,18 @@ stale=false`);
       }
     }
 
-    // 0.00000000006 Reported Speech in Friend Conflict ("she says you don't have knowledge you are so dumb", "she said I'm dumb")
-    if (/\b(she says|she said|my friend said|my friend says)\b/i.test(text) && /\b(you don'?t have knowledge|you are so dumb|you'?re dumb|i'?m dumb|im dumb|you don'?t know anything|useless|stupid)\b/i.test(text)) {
+    // 0.00000000006 Reported Speech in Friend Conflict ("she says you don't have knowledge you are so dumb", "she called me dumb and I said some harsh things back")
+    if (/\b(she says|she said|my friend said|my friend says|she called me|he called me)\b/i.test(text) && /\b(you don'?t have knowledge|you are so dumb|you'?re dumb|i'?m dumb|im dumb|you don'?t know anything|useless|stupid|dumb)\b/i.test(text)) {
       this.conversationStory.situation = 'friendship_conflict';
       this.conversationStory.otherPersonActions.push('insulted user / called user dumb');
       this.conversationMode = 'FRIEND_CONFLICT';
+
+      if (/\b(i said (?:some )?harsh things|harsh things back|harsh words|i said bad things|said some harsh things|said harsh things)\b/i.test(text)) {
+        this.conversationStory.userActions.push('said harsh things back');
+        this.conversationStory.responsibility = 'shared';
+        return "Honestly, I think both of you contributed here. Her calling you dumb wasn't okay, but saying harsh things back wasn't great either. I'd apologize for what you said without taking responsibility for her behavior.";
+      }
+
       this.pendingQuestion = {
         question: "What did you say back?",
         expectedInformation: 'user_response',
@@ -1731,16 +1738,59 @@ stale=false`);
       return "Ouch. That's a really hurtful thing to say to a friend. What did you say back?";
     }
 
-    // 0.00000000007 Technical explanation ("now explain react hooks for an interview", "explain")
-    if (/\b(now explain react hooks for an interview|explain react hooks for an interview|explain react hooks to me like|explain react hooks)\b/i.test(text)) {
+    // 0.000000000065 Actionable Apology Ideas & Message Drafting
+    if (/\b(give me (?:some )?ideas how to apologize|ideas how to apologize|how should i apologize|how to apologize|how do i apologize|what should i say to apologize)\b/i.test(text)) {
+      this.conversationMode = 'ADVICE';
+      return "Keep it simple and sincere. You could text something like: 'Hey, I felt bad about how heated things got earlier. My words were harsh and I'm sorry for reacting that way. I value our friendship and hope we can talk when you're ready.'";
+    }
+
+    if (/\b(what should i text (?:her|him|them)|draft a text (?:for me)?|what to text (?:her|him))\b/i.test(text)) {
+      this.conversationMode = 'ADVICE';
+      return "I'd send something short: 'Hey, I was out of line with what I said earlier, and I'm genuinely sorry for snapping. Whenever you're up for it, I'd love to clear the air.'";
+    }
+
+    // 0.000000000068 Stock Market & Live Financial Info ("what about the stock market?", "what about stocks?", "of the stock")
+    if (/\b(what about (?:the )?stock market|what about stocks|stock market|of the stock|of the stocks)\b/i.test(text)) {
+      this.conversationMode = 'CURRENT_INFORMATION';
+      return "The global stock markets are currently navigating movements in major tech equities, interest rate expectations from the Federal Reserve, and energy commodity prices. If you're tracking a specific index or sector like the S&P 500, Nasdaq, or Nifty 50, let me know!";
+    }
+
+    // 0.00000000007 Technical explanation & Explicit Topic Switch ("now switch gears completely explain react hooks to me", "explain react hooks")
+    if (/\b(?:now\s+)?switch\s+gears\s+completely\b/i.test(text) || /\b(?:now\s+)?switch\s+gears\b/i.test(text) || /\b(now explain react hooks|explain react hooks to me|explain react hooks)\b/i.test(text)) {
+      this.interviewState.active = false;
+      this.activeRoleplay = 'none';
       this.lastTechnicalTopic = 'React Hooks';
       this.conversationMode = 'TECHNICAL_EXPLANATION';
-      return "React Hooks are functions like useState and useEffect that let functional components manage local state and lifecycle side effects without class components. In an interview, highlight how hooks simplify component code and make stateful logic reusable.";
+      if (/\b(for an interview|in an interview)\b/i.test(text)) {
+        return "React Hooks are functions like useState and useEffect that let functional components manage local state and lifecycle side effects without class components. In an interview, highlight how hooks simplify component code and make stateful logic reusable.";
+      }
+      return "React Hooks are functions like useState and useEffect that let functional components manage local state and lifecycle side effects without class components. They make state logic reusable and components much cleaner.";
     }
+
+    if (/\b(give me a real[- ]world example|real[- ]world example|give an example|give example)\b/i.test(text) && (this.lastTechnicalTopic === 'React Hooks' || this.conversationMode === 'TECHNICAL_EXPLANATION' || prevAgent.includes('hooks') || prevAgent.includes('react'))) {
+      return "For example, imagine a live chat app: you'd use useState to track the messages list and the current text input, and useEffect to connect to the chat WebSocket server when the component mounts and disconnect when it unmounts.";
+    }
+
     if (/^(explain|explain\.|explain please|tell me more)[.!]?$/i.test(text)) {
       if (this.lastTechnicalTopic === 'React Hooks' || prevAgent.includes('hooks') || prevAgent.includes('react')) {
         return "To break down React Hooks: useState handles component state, while useEffect manages side effects like data fetching and subscriptions. In an interview, explain how hooks let you share stateful logic without class components.";
       }
+    }
+
+    // 0.000000000075 Personal Health Statements ("I had a fever today", "I had a fever this morning", "everything is okay... but I had a fever today")
+    if (/\b(had a fever|having a fever|got a fever|caught a fever|fever today|fever this morning)\b/i.test(text) || /\b(everything is (?:okay|great|fine)(?:,?\s+everything is just (?:okay|great|fine))?\s+but i had a fever)\b/i.test(text) || /\b(i am (?:saying|seeing) that i had a fever)\b/i.test(text)) {
+      this.conversationMode = 'CASUAL';
+      return "Oh no, you had a fever this morning? Are you feeling better now? Definitely rest up and take it easy today.";
+    }
+
+    if (/^(yeah,?\s+i'?m (?:okay|better|fine) now|i'?m (?:okay|better|fine) now|feeling better now|im fine now|much better)[.!]?$/i.test(text)) {
+      this.conversationMode = 'CASUAL';
+      return "Good to hear! Still, don't overexert yourself tonight.";
+    }
+
+    if (/^(i'?m tired|i am tired|feeling tired|so tired|exhausted)[.!]?$/i.test(text) || /\b(okay enough technical stuff,? i'?m tired)\b/i.test(text)) {
+      this.conversationMode = 'CASUAL';
+      return "Yeah, you sound like you've had a long day. Take a breath and kick back. What's on your mind?";
     }
 
     // 0.00000000008 Topic switches

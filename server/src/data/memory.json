@@ -27,6 +27,15 @@
         "confidence": 0.85,
         "createdAt": 1788061602548,
         "lastMentionedAt": 1788061602548
+      },
+      {
+        "id": "9628dd8f-fca8-401b-bf61-ee7cc136e294",
+        "userId": "default-user",
+        "fact": "User's name is Dumb",
+        "category": "personal",
+        "confidence": 0.9,
+        "createdAt": 1788735027390,
+        "lastMentionedAt": 1788735027390
       }
     ],
     "test-user": [

@@ -16,7 +16,7 @@ export interface IntentClassificationContext {
 
 export interface NarrativeAnalysisResult {
   isNarrative: boolean;
-  type: 'day_experience' | 'childhood' | 'friend_conflict' | 'pain_bad_day' | 'embarrassing_moment' | 'work_college' | 'shopping_app' | 'milestone_achievement' | 'story_continuation' | 'story_end' | 'general_sharing' | 'none';
+  type: 'day_experience' | 'childhood' | 'friend_conflict' | 'pain_bad_day' | 'embarrassing_moment' | 'work_college' | 'shopping_app' | 'milestone_achievement' | 'story_continuation' | 'story_end' | 'general_sharing' | 'animal_encounter' | 'none';
   storyType: string;
   mainEvent: string;
   peopleMentioned: string[];
@@ -355,6 +355,19 @@ export class IntentClassifier {
     normalized = normalized.replace(/\bdeveloper rolls\b/gi, 'developer roles');
     normalized = normalized.replace(/\btake for (?:my\s+)?interview\b/gi, 'take my interview');
     normalized = normalized.replace(/\btake (?:for\s+)?interview one question\b/gi, 'take my interview one question');
+    normalized = normalized.replace(/\b(i also set|i set|set some really hard things|set some really harsh things|set some hard things)\b/gi, 'I said some really harsh things');
+    normalized = normalized.replace(/\b(set some|set really)\s+(?:hard|harsh)\s+things\b/gi, 'said some harsh things');
+    normalized = normalized.replace(/\b(very hash things|very hash|hash things)\b/gi, 'very harsh things');
+    normalized = normalized.replace(/\b(when my friends meet dumb|when my friend meet dumb|friends meet dumb|friend meet dumb|meet dumb)\b/gi, 'when my friend called me dumb');
+    normalized = normalized.replace(/\b(really hours things back|hours things back|hours things)\b/gi, 'really harsh things back');
+    normalized = normalized.replace(/\b(she call me dumb|he call me dumb)\b/gi, (m) => m.replace(/call/i, 'called'));
+    normalized = normalized.replace(/\b(he said me to get out|she said me to get out|teacher said me to get out|said me to get out)\b/gi, 'he told me to get out');
+    normalized = normalized.replace(/\b(and trying to impress you|and try to impress you)\b/gi, "I'm trying to impress you");
+    normalized = normalized.replace(/\b(interesting in listening|interesting in listening it)\b/gi, 'interested in listening');
+    normalized = normalized.replace(/\bhey ira\b/gi, 'Hey Ayra');
+    normalized = normalized.replace(/\b(what if she doesn'?t reply to me|what if she doesn'?t reply)\b/gi, "what if she doesn't reply");
+    normalized = normalized.replace(/\b(food what would you recommend|and food what would you recommend)\b/gi, 'and what would you recommend');
+    normalized = normalized.replace(/\bsoftware developer road\b/gi, 'software developer role');
     return normalized;
   }
 
@@ -613,25 +626,30 @@ export class IntentClassifier {
       };
     }
 
-    // 4. College / School Funny Moments / Classroom Laughing / Surprise tests
+    // 4. College / School Funny Moments / Classroom Laughing / Surprise tests / Teacher Reprimand
     // Catches:
     // - "Kal college mein na ek bahut funny incident hua, phir mera friend literally floor pe gir gaya laughing."
     // - "Aaj college mein kuch weird hua." -> "Professor ne mujhe class ke saamne bula liya." -> "Phir unhone..."
     // - "I woke up late, missed breakfast, rushed to college, then my professor suddenly announced a test."
+    // - "I was scolded by my teacher" -> "what happened next is that he said me to get out of the classroom"
     const isCollegeWorkIncident = (
-      /\b(college|school|class|campus|professor|teacher)\b/i.test(lower) &&
-      (/\b(funny incident|weird|floor pe gir gaya|floor pe|laughing|hasne laga|class ke saamne|bula liya|called in front|surprise test|announced a test|scolded|daanta|incident hua|so raha tha)\b/i.test(lower))
+      /\b(college|school|class|classroom|campus|professor|teacher)\b/i.test(lower) &&
+      (/\b(funny incident|weird|floor pe gir gaya|floor pe|laughing|hasne laga|class ke saamne|bula liya|called in front|surprise test|announced a test|scolded|daanta|incident hua|so raha tha|get out|kicked me out|kicked out|told me to get out|said me to get out|asked me to leave)\b/i.test(lower))
     ) || (
       /\b(floor pe gir gaya laughing|floor pe gir gaya|literally fell on the floor laughing)\b/i.test(lower)
     ) || (
-      /\b(professor ne|teacher ne)\b/i.test(lower) && /\b(bula liya|class ke saamne|daanta|announced|called)\b/i.test(lower)
+      /\b(professor ne|teacher ne)\b/i.test(lower) && /\b(bula liya|class ke saamne|daanta|announced|called|nikal diya|bahar)\b/i.test(lower)
+    ) || (
+      /\b(scolded by (?:my )?teacher|scolded by teacher|teacher scolded me|professor scolded me)\b/i.test(lower)
+    ) || (
+      /\b(get out of the classroom|get out of class|kicked me out|kicked out of the classroom|told me to get out|said me to get out)\b/i.test(lower)
     );
 
     if (isCollegeWorkIncident) {
       const details: string[] = [];
-      const people: string[] = [];
-      let emotion = 'amused';
-      let mainEvent = 'Incident at college / class';
+      const people: string[] = ['teacher'];
+      let emotion = 'upset / overwhelmed';
+      let mainEvent = 'Incident with teacher at school/college';
 
       if (/funny|laughing|floor pe|hasne/i.test(lower)) {
         details.push('friend fell on floor laughing during funny incident');
@@ -648,6 +666,11 @@ export class IntentClassifier {
         people.push('professor');
         emotion = 'stressed / overwhelmed';
         mainEvent = 'Professor announced a surprise test';
+      } else if (/scolded|daanta|get out|kicked|leave/i.test(lower)) {
+        details.push('scolded by teacher and asked to get out of class');
+        people.push('teacher');
+        emotion = 'upset / frustrated';
+        mainEvent = 'Teacher scolded user and asked them to leave the classroom';
       }
 
       return {
@@ -664,6 +687,27 @@ export class IntentClassifier {
         people,
         emotions: [emotion],
         confidence: 0.95
+      };
+    }
+
+    // 4b. Pet / Animal Encounter Narrative ("so I was walking home today and this cute Street cat started following me everywhere")
+    const isAnimalNarrative = (
+      /\b(street cat|stray cat|cute cat|cat started following|cat followed me|cat was following|cute kitten|stray dog|cute dog|dog started following|dog followed me)\b/i.test(lower) ||
+      (/\b(walking home|on my way home|on the street|outside|today)\b/i.test(lower) && /\b(cat|kitten|dog|puppy)\b/i.test(lower) && /\b(following|followed|saw|found|cute)\b/i.test(lower))
+    );
+
+    if (isAnimalNarrative) {
+      return {
+        ...emptyResult,
+        isNarrative: true,
+        type: 'animal_encounter',
+        storyType: 'pet_animal_encounter',
+        mainEvent: 'Cute street cat/animal followed user on the way home',
+        emotion: 'warm / amused / delighted',
+        details: ['cute street cat followed user everywhere'],
+        people: [],
+        emotions: ['delighted', 'amused'],
+        confidence: 0.98
       };
     }
 

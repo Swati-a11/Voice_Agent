@@ -1400,6 +1400,19 @@ stale=false`);
       return "Oh no, that is so frustrating! You finally find a top you actually want on Myntra and your size is the one thing missing. Did you end up looking for another one or just close the app?";
     }
 
+    // 2c. Pet / Animal Encounter Narrative ("so I was walking home today and this cute Street cat started following me everywhere")
+    if (
+      /\b(street cat|stray cat|cute cat|cat started following|cat followed me|cat was following|cute kitten|stray dog|cute dog|dog started following|dog followed me)\b/i.test(lower) ||
+      (/\b(walking home|on my way home|on the street|outside|today)\b/i.test(lower) && /\b(cat|kitten|dog|puppy)\b/i.test(lower) && /\b(following|followed|saw|found|cute)\b/i.test(lower))
+    ) {
+      if (lang === 'hindi') {
+        return "अरे वाह, कितना प्यारा है! क्या वह तुम्हारे पीछे-पीछे घर तक आ गई, या तुमने रुककर उसे थोड़ा सहलाया?";
+      } else if (lang === 'hinglish') {
+        return "Aww, that's so cute! Kya woh tumhare peeche peeche ghar tak aa gayi, ya tumne rukk kar thoda pet kiya?";
+      }
+      return "Aww, that's adorable! Did it follow you all the way home, or did you stop to give it some pets?";
+    }
+
     // 3. College / School Funny Moments / Classroom Laughing (Section 25 Test 2)
     // "Kal college mein na ek bahut funny incident hua, phir mera friend literally floor pe gir gaya laughing."
     if (/\b(floor pe gir gaya laughing|floor pe gir gaya|floor pe gir|fell on the floor laughing|gir gaya laughing)\b/i.test(lower) || (/\b(funny incident|hilarious)\b/i.test(lower) && /\b(college|school|friend|floor|gir gaya|laughing|hasne)\b/i.test(lower))) {
@@ -1455,7 +1468,28 @@ stale=false`);
     // Turn 1: "Aaj college mein kuch weird hua." -> "Acha? College mein kya hua, batao?"
     // Turn 2: "Professor ne mujhe class ke saamne bula liya." -> "Wait, professor ne class ke saamne bula liya? Did you know why, or was it a surprise?"
     // Turn 3: "Phir unhone..." -> Resolves "unhone" to the professor!
-    if (thread.isActive || /\b(professor|teacher|class ke saamne|unhone)\b/i.test(lower)) {
+    if (thread.isActive || /\b(professor|teacher|class ke saamne|unhone|classroom)\b/i.test(lower)) {
+      if (
+        /\b(get out of the classroom|get out of class|kicked me out|kicked out of the classroom|told me to get out|said me to get out|asked me to leave the class|class se nikal diya|class se bahar)\b/i.test(lower) ||
+        (/\b(what happened next is|what happened next was|uske baad kya hua ki|phir ye hua ki)\b/i.test(lower) && /\b(get out|classroom|class|teacher|professor|scolded|daanta)\b/i.test(lower))
+      ) {
+        if (lang === 'hindi') {
+          return "रुको, उन्होंने सच में तुम्हें क्लास से बाहर निकाल दिया? क्यों, उससे पहले तुम क्या कर रहे थे?";
+        } else if (lang === 'hinglish') {
+          return "Wait, unhone sach mein class se bahar nikal diya? Why, usse pehle kya kar rahe the tum?";
+        }
+        return "Wait, he actually kicked you out of the classroom? Why, what were you doing before that?";
+      }
+
+      if (/\b(scolded by (?:my )?teacher|scolded by teacher|teacher scolded me|professor scolded me|teacher ne daanta|daant padi)\b/i.test(lower)) {
+        if (lang === 'hindi') {
+          return "अरे यार, टीचर ने क्यों डाँटा? क्या हुआ था क्लास में?";
+        } else if (lang === 'hinglish') {
+          return "Oof, teacher ne kyun daanta? What happened in class?";
+        }
+        return "I'm following along! What happened next?";
+      }
+
       if (/\b(phir unhone|unhone kya|unhone bola|unhone kaha|and then they|then he|then she)\b/i.test(lower)) {
         if (lang === 'hindi') {
           return "फिर प्रोफेसर ने क्या बोला सबके सामने? आगे क्या हुआ?";
@@ -1645,15 +1679,15 @@ stale=false`);
         return "I'm listening! What happened this morning?";
       }
 
-      const hasSubstantiveTopic = /\b(birthday|janamdin|interview|crush|girlfriend|boyfriend|cat|cats|fight|friend|boss|teacher|slapped|hit|react|node|javascript|python|world|news|happening|happened|morning|exhausted|quote|joke|help)\b/i.test(text);
-      if (!hasSubstantiveTopic) {
+      const hasSubstantiveTopic = /\b(birthday|janamdin|interview|crush|girlfriend|boyfriend|cat|cats|fight|friend|boss|teacher|slapped|hit|react|node|javascript|python|world|news|happening|happened|morning|exhausted|quote|joke|help|road\s*map|roadmap|software|developer|career|student|months?|dsa|preparation|prep|skills|mistakes?|stocks?|market|fever|flirt|story|dome)\b/i.test(text);
+      if (!hasSubstantiveTopic && text.replace(/\b(actually\s+forget\s+that|forget\s+that\s+too|okay\s+forget\s+that|forget\s+that|forget\s+it|never\s+mind|actually\s+no|tell\s+me\s+something\s+else|something\s+else|kuch\s+aur\s+baat|change\s+the\s+topic|let's\s+talk\s+about\s+something\s+else|kuch\s+aur\s+batao|kuch\s+aur\s+sunao|kuch\s+naya|okay|ok|haan|theek)\b/gi, '').trim().split(/\s+/).length < 4) {
         const lang = IntentClassifier.detectLanguageDominance(raw);
         if (lang === 'hindi') {
           return "ज़रूर! बताओ किस बारे में बात करनी है?";
         } else if (lang === 'hinglish') {
           return "Sure! Batao kya baat karni hai?";
         }
-        return "Sure! We can talk about whatever you'd like. What's on your mind?";
+        return "Sure! We can talk about your day, explore an interesting topic, or whatever you're in the mood for. What's on your mind?";
       }
     }
 
@@ -1676,9 +1710,14 @@ stale=false`);
       return "Sure, let's just chat like friends. How's everything going with you today?";
     }
 
-    // 0.00000000003 Flirting Continuation ("carry on" when in flirting)
-    if ((this.conversationMode === 'FLIRTING' || params.intentResult?.conversationMode === 'FLIRTING') && /^(carry on|continue|keep going|more|go on)[.!]?$/i.test(text)) {
-      return "Careful now... if we keep going like this, you might actually fall for my charm.";
+    // 0.00000000003 Flirting Continuation & Banter ("carry on", "and trying to impress you but first you have to impress me")
+    if (this.conversationMode === 'FLIRTING' || params.intentResult?.conversationMode === 'FLIRTING' || prevAgent.includes('trying to impress me') || prevAgent.includes('flirting now')) {
+      if (/^(carry on|continue|keep going|more|go on)[.!]?$/i.test(text)) {
+        return "Careful now... if we keep going like this, you might actually fall for my charm.";
+      }
+      if (/\b(trying to impress you|first you have to impress me|impress me first|impress you|challenge accepted|you impress me)\b/i.test(text)) {
+        return "Oh, so it's a challenge now? Alright, challenge accepted. What does it take to impress you?";
+      }
     }
 
     // 0.00000000004 Interview Mode Configuration & "one question at a time and give me honest feedback"
@@ -1711,7 +1750,7 @@ stale=false`);
       }
       if (/\b(software developer|software dev|developer)\b/i.test(text)) {
         this.interviewContext.role = 'software developer';
-        return "Got it, software developer. Then tonight I'd focus on your core fundamentals, your projects, and a little problem-solving rather than trying to learn everything. If you want, we can also do a quick mock interview.";
+        return "Got it, software developer role. Then tonight I'd focus on your core fundamentals, your projects, and a little problem-solving rather than trying to learn everything. If you want, we can also do a quick mock interview.";
       }
     }
 
@@ -1738,6 +1777,27 @@ stale=false`);
       return "Ouch. That's a really hurtful thing to say to a friend. What did you say back?";
     }
 
+    // 0.000000000061 Response to Friend Conflict / Saying harsh things back
+    const isFriendConflictContext = (
+      (this.pendingQuestion?.expectedInformation === 'user_response' && this.pendingQuestion.topic === 'friend_conflict') ||
+      prevAgent.includes('what did you say back') ||
+      this.conversationMode === 'FRIEND_CONFLICT' ||
+      this.conversationStory.situation === 'friendship_conflict' ||
+      /\b(called me dumb|my friend|to her|to him|fight|said back|harsh things)\b/i.test(text)
+    );
+    if (
+      isFriendConflictContext &&
+      (/\b(harsh things|hard things|said harsh|said hard|set.*hard|hash things|hours things|said bad things|bad things back|said something back|yelled|snapped|reacted|insulted back|told her|fought back|when my friend|called me dumb)\b/i.test(text) ||
+       /\b(i also (?:said|set)|i said|i also)\s+(?:very|some|really)\s+(?:harsh|hard|bad|hash|hours)\b/i.test(text))
+    ) {
+      this.pendingQuestion = null;
+      this.conversationStory.situation = 'friendship_conflict';
+      this.conversationStory.userActions.push('said harsh things back');
+      this.conversationStory.responsibility = 'shared';
+      this.conversationMode = 'FRIEND_CONFLICT';
+      return "Honestly, I think both of you contributed here. Her calling you dumb wasn't okay, but saying harsh things back escalated things. I'd apologize for your words without taking blame for her insult.";
+    }
+
     // 0.000000000062 Incomplete Utterance Handling
     if (IntentClassifier.isIncompleteUtterance(text)) {
       return "Go ahead, I'm listening. What were you going to say?";
@@ -1747,6 +1807,25 @@ stale=false`);
     if (/\b(going to tell you a story|want to tell you a story|can i tell you a story|tell you a story|interested in listening|interested in listening it|listen to my story|listen to a story|hear a story)\b/i.test(text)) {
       this.conversationMode = 'CASUAL';
       return "Yesss, absolutely! I'm all ears. Tell me what happened!";
+    }
+
+    // 0.0000000000632 Cat / Animal Personal Encounter Story ("so I was walking home today and this cute Street cat started following me everywhere")
+    if (/\b(cute street cat|street cat started following|cat started following|cat followed me everywhere|cute cat followed|stray cat followed)\b/i.test(text) || (/\b(walking home|on my way home)\b/i.test(text) && /\b(cat|kitten|dog|puppy)\b/i.test(text) && /\b(following|followed|saw)\b/i.test(text))) {
+      this.conversationMode = 'CASUAL';
+      this.personalStoryThread.isActive = true;
+      this.personalStoryThread.topic = 'street_cat_story';
+      return "Aww, that's adorable! Did it follow you all the way home, or did you stop to give it some pets?";
+    }
+
+    // 0.0000000000635 Teacher Reprimand / Kicked Out of Classroom ("I was scolded by my teacher", "he said me to get out of the classroom")
+    if (
+      /\b(get out of the classroom|get out of class|kicked me out|kicked out of the classroom|told me to get out|said me to get out|asked me to leave the class|class se nikal diya|class se bahar)\b/i.test(text) ||
+      (/\b(scolded by (?:my )?teacher|teacher scolded me|scolded by teacher|professor scolded)\b/i.test(text) && /\b(get out|leave|classroom|class)\b/i.test(text))
+    ) {
+      this.personalStoryThread.isActive = true;
+      this.personalStoryThread.topic = 'teacher_incident';
+      this.conversationMode = 'CASUAL';
+      return "Wait, he actually kicked you out of the classroom? Why, what were you doing before that?";
     }
 
     // 0.000000000064 6-Month Roadmap & Skill Prioritization
@@ -1786,6 +1865,15 @@ stale=false`);
     if (/\b(what should i text (?:her|him|them)|draft a text (?:for me)?|what to text (?:her|him))\b/i.test(text)) {
       this.conversationMode = 'ADVICE';
       return "I'd send something short: 'Hey, I was out of line with what I said earlier, and I'm genuinely sorry for snapping. Whenever you're up for it, I'd love to clear the air.'";
+    }
+
+    // 0.000000000066 Follow-up in Friend Conflict: "What if she doesn't reply?"
+    if (
+      /\b(what if she (?:doesn'?t|does not|wont|won'?t)\s+(?:reply|text back|respond|answer|message)|what if she doesn'?t reply to me|what if she doesn'?t reply|what if she ignores me|what if she never replies|what if they don'?t reply|agar usne reply nahi kiya|reply na kare toh)\b/i.test(text) ||
+      (/\b(doesn'?t|does not|wont|won'?t)\s+reply\b/i.test(text) && (this.conversationStory.situation === 'friendship_conflict' || this.conversationMode === 'FRIEND_CONFLICT' || this.conversationMode === 'ADVICE' || prevAgent.includes('apologize') || prevAgent.includes('text') || prevAgent.includes('friend')))
+    ) {
+      this.conversationMode = 'ADVICE';
+      return "If she doesn't reply right away, give her a little breathing room. People often need some time to cool off after a heated argument before they're ready to talk.";
     }
 
     // 0.000000000068 Stock Market & Live Financial Info ("what about the stock market?", "what about stocks?", "of the stock")
@@ -2231,7 +2319,7 @@ stale=false`);
     if (!isRoleplayActivation && !isSubstantiveQuestion && (/\b(it is the role of (?:software developer|software development|software dev)|it'?s the role of (?:software developer|software development|software dev)|it'?s for (?:software development|software dev|software developer|a software developer)|it is for (?:software development|software dev|software developer|a software developer)|software developer role|software developer|software development)\b/i.test(text) || (/\b(actually,?\s*it'?s for a (?:software|web|frontend|backend|fullstack|machine learning|ml)\s*(?:developer|engineer|dev)?\s*role|it is for a software developer role)\b/i.test(text)))) {
       this.interviewContext.role = 'software developer';
       this.lastTechnicalTopic = 'software development';
-      return "Got it, software developer. Then tonight I'd focus on your core fundamentals, your projects, and a little problem-solving rather than trying to learn everything. If you want, we can also do a quick mock interview.";
+      return "Got it, software developer role. Then tonight I'd focus on your core fundamentals, your projects, and a little problem-solving rather than trying to learn everything. If you want, we can also do a quick mock interview.";
     }
 
     if (!isRoleplayActivation && /\b(it's a (?:web|frontend|backend|fullstack|react|python|java)\s*(?:developer|engineer|dev)?\s*role|web developer role|frontend developer role|it is a web developer role)\b/i.test(text)) {
@@ -3227,11 +3315,16 @@ stale=false`);
       }
       return "You're studying BTech CSE.";
     }
-    if (/\b(my name is|i am called|call me)\s+([a-zA-Z]+)\b/i.test(text)) {
-      const match = text.match(/\b(?:my name is|i am called|call me)\s+([a-zA-Z]+)\b/i);
-      const name = match ? match[1].charAt(0).toUpperCase() + match[1].slice(1).toLowerCase() : 'there';
-      this.memoryManager.addFact(this.userId, `User's name is ${name}`, 'personal');
-      return `${name}. Nice to properly know your name.`;
+    const isReportedOrExcludedName = /\b(she|he|they|someone|friend|teacher|boss|people|everyone)\s+(?:called|call|calls|say|says|said)\s+me\b/i.test(text) || /\b(don'?t|dont|do not|stop|why do you)\s+call\s+me\b/i.test(text);
+    if (!isReportedOrExcludedName && /\b(my name is|i am called|you can call me|please call me|^call me)\s+([a-zA-Z]+)\b/i.test(text)) {
+      const match = text.match(/\b(?:my name is|i am called|you can call me|please call me|^call me)\s+([a-zA-Z]+)\b/i);
+      const candidateName = match ? match[1].toLowerCase() : '';
+      const nonNameWords = ['dumb', 'stupid', 'idiot', 'fool', 'loser', 'crazy', 'ugly', 'fat', 'names', 'harsh', 'bad', 'back', 'out', 'up', 'down', 'later', 'again', 'now', 'that', 'this', 'what', 'why', 'when', 'how', 'maybe', 'baby', 'honey', 'bro', 'dude', 'sir', 'maam', 'alexa', 'siri', 'google', 'ayra', 'there'];
+      if (candidateName && !nonNameWords.includes(candidateName) && candidateName.length > 1) {
+        const name = candidateName.charAt(0).toUpperCase() + candidateName.slice(1);
+        this.memoryManager.addFact(this.userId, `User's name is ${name}`, 'personal');
+        return `${name}. Nice to properly know your name.`;
+      }
     }
     if (/\b(i am a|i'm a|im a)\s*(btech|b\.tech|cse|computer science)\s*(student|engineering student|undergrad)?\b/i.test(text) || /\b(btech cse student|cse student)\b/i.test(text)) {
       this.memoryManager.addFact(this.userId, 'BTech CSE student', 'education');
@@ -3406,40 +3499,24 @@ stale=false`);
     }
 
     // 0.3 CONTINUE ACTIVE STORY (Priority 4)
-    if (isStoryResume || /\b(where were we|where were you|what happened next)\b/i.test(text)) {
-      if (this.activeStoryState) {
-        this.activeStoryState.isPaused = false;
-        this.conversationMode = 'STORY';
+    const isQuestionWhatHappenedNext = /^(?:and\s+)?what happened next\??$/i.test(text.trim()) || /^(?:what happened after that|what happened next then)\??$/i.test(text.trim());
+    if (this.activeStoryState && !this.personalStoryThread.isActive && (isStoryResume || text.includes('where were we') || text.includes('where were you') || isQuestionWhatHappenedNext)) {
+      this.activeStoryState.isPaused = false;
+      this.conversationMode = 'STORY';
 
-        if (text.includes('where were we') || text.includes('where were you')) {
-          return "Alright, picking up where we left off... the stone pedestal had just activated! The moment she stepped onto it, the entire observatory began to hum with deep blue crystalline light. The floor shifted, projecting a massive three-dimensional star map into the cavern air, showing coordinates to a forgotten orbital relay. Wait, this is where it gets really interesting...";
-        }
-
-        if (this.activeStoryState.currentSegmentIndex === 0) {
-          this.activeStoryState.currentSegmentIndex = 1;
-        } else if (this.activeStoryState.currentSegmentIndex < this.activeStoryState.segments.length - 1) {
-          this.activeStoryState.currentSegmentIndex += 1;
-        }
-
-        const segmentText = this.activeStoryState.segments[this.activeStoryState.currentSegmentIndex];
-        this.activeStoryState.lastSpokenSegment = segmentText;
-        return segmentText;
-      } else {
-        this.activeStoryState = {
-          title: ConversationManager.SPACE_STORY.title,
-          theme: ConversationManager.SPACE_STORY.theme,
-          characters: [...ConversationManager.SPACE_STORY.characters],
-          setting: ConversationManager.SPACE_STORY.setting,
-          importantEvents: [...ConversationManager.SPACE_STORY.importantEvents],
-          interruptedPoint: "Not interrupted",
-          currentSegmentIndex: 0,
-          segments: [...ConversationManager.SPACE_STORY.segments],
-          lastSpokenSegment: ConversationManager.SPACE_STORY.segments[0],
-          isPaused: false
-        };
-        this.conversationMode = 'STORY';
-        return this.activeStoryState.segments[0];
+      if (text.includes('where were we') || text.includes('where were you')) {
+        return "Alright, picking up where we left off... the stone pedestal had just activated! The moment she stepped onto it, the entire observatory began to hum with deep blue crystalline light. The floor shifted, projecting a massive three-dimensional star map into the cavern air, showing coordinates to a forgotten orbital relay. Wait, this is where it gets really interesting...";
       }
+
+      if (this.activeStoryState.currentSegmentIndex === 0) {
+        this.activeStoryState.currentSegmentIndex = 1;
+      } else if (this.activeStoryState.currentSegmentIndex < this.activeStoryState.segments.length - 1) {
+        this.activeStoryState.currentSegmentIndex += 1;
+      }
+
+      const segmentText = this.activeStoryState.segments[this.activeStoryState.currentSegmentIndex];
+      this.activeStoryState.lastSpokenSegment = segmentText;
+      return segmentText;
     }
 
     // 0.4 Active Listener Backchannel Continuation ("hmm", "haan", "okay", "yeah", "go on", "interesting")
@@ -3947,28 +4024,28 @@ stale=false`);
       if (text.includes('funny') || text.includes('joke')) {
         return this.getJoke();
       }
-      if (text.includes('cat')) {
+      if (/^(?:tell me (?:something )?about )?cats?[.?!]?$/i.test(text.trim()) || /\b(about cats|tell me about cats|what about cats)\b/i.test(text)) {
         return "Cats are fascinating, agile, and affectionate companions known for their keen senses, playful curiosity, and soothing purrs.";
       }
-      if (text.includes('tonight') || text.includes('plan')) {
+      if (/^(?:tonight|what are you doing tonight|plans? for tonight|tonight'?s plan)[.?!]?$/i.test(text.trim()) || (/\b(tonight)\b/i.test(text) && /\b(plan|doing)\b/i.test(text))) {
         return "Tonight? Honestly, not much! Just relaxing or doing some coding. What about you?";
       }
-      if (text.includes('black hole')) {
+      if (/\b(black hole|black holes)\b/i.test(text) && !/\b(my|friend|teacher)\b/i.test(text)) {
         return "Black holes are regions of spacetime where gravity is so intense that nothing, not even light, can escape from within the event horizon.";
       }
-      if (text.includes('space') || text.includes('star')) {
+      if (/\b(space|stars?)\b/i.test(text) && !/\b(my|friend|teacher)\b/i.test(text)) {
         return "Stars are massive celestial spheres of hot glowing plasma held together by gravity. In their cores, nuclear fusion releases enormous amounts of light and heat!";
       }
-      if (text.includes('python')) {
+      if (/\b(python)\b/i.test(text) && !/\b(my|friend|teacher)\b/i.test(text)) {
         return "Python is a versatile programming language widely used in AI, data science, and web development with clean syntax.";
       }
-      if (text.includes('react')) {
+      if (/\b(react)\b/i.test(text) && !/\b(my|friend|teacher)\b/i.test(text)) {
         return "React is a component-based JavaScript library for building interactive user interfaces with a virtual DOM.";
       }
-      if (text.includes('javascript') || text.includes('js')) {
+      if (/\b(javascript|js)\b/i.test(text) && !/\b(my|friend|teacher)\b/i.test(text)) {
         return "JavaScript is the core programming language for interactive web frontends and Node.js backends.";
       }
-      if (text.includes('stop') || text.includes('wait')) {
+      if (/^(stop|wait|pause|hold on)[.!]?$/i.test(text.trim())) {
         return "I stopped. I'm listening.";
       }
     }

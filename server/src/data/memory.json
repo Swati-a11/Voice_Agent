@@ -55,7 +55,7 @@
         "category": "profile",
         "confidence": 0.9,
         "createdAt": 1788631437624,
-        "lastMentionedAt": 1788683488862
+        "lastMentionedAt": 1788896470395
       },
       {
         "id": "73feac38-f9dc-4403-b2a7-29aa16e41d28",
@@ -64,7 +64,7 @@
         "category": "education",
         "confidence": 0.9,
         "createdAt": 1788631437627,
-        "lastMentionedAt": 1788683490219
+        "lastMentionedAt": 1788896471853
       },
       {
         "id": "88de87f5-ee36-4ccf-9414-313952a1a1ab",
@@ -73,7 +73,7 @@
         "category": "preference",
         "confidence": 0.9,
         "createdAt": 1788681707910,
-        "lastMentionedAt": 1788683681341
+        "lastMentionedAt": 1788896685480
       }
     ],
     "user-alice-isolated": [
@@ -84,7 +84,7 @@
         "category": "preference",
         "confidence": 0.9,
         "createdAt": 1788681712115,
-        "lastMentionedAt": 1788683682362
+        "lastMentionedAt": 1788896686437
       }
     ]
   },

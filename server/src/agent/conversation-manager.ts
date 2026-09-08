@@ -839,9 +839,9 @@ stale=false`);
 
     // 8. Fast-Path for Simple Greetings, Introductions, Goodbyes & Acknowledgements (<20ms TTFA)
     const isFastPath = (
-      (intent === 'GREETING' && /^(hi|hello|hey|hey ayra|hey there|what's up|kaise ho|namaste|good morning|good evening|good night)[.?!]?$/i.test(rawText)) ||
+      (intent === 'GREETING' && /^(hi|hello|hey|hey ayra|hey there|what's up|kaise ho|namaste|good morning|good evening)[.?!]?$/i.test(rawText)) ||
       (/^(who are you|what are you|tell me about yourself|introduce yourself|tell me something about yourself|about yourself)[.?!]?$/i.test(rawText)) ||
-      (/^(bye|goodbye|okay bye|ok bye|see you|talk later|see ya|bye bye|alvida|tata)[.?!]?$/i.test(rawText)) ||
+      (/^(bye|goodbye|okay bye|ok bye|see you|talk later|see ya|bye bye|alvida|tata|good night|goodnight)[.?!]?$/i.test(rawText)) ||
       (/^(thanks|thank you|thank you so much|thanks a lot|shukriya|dhanyawad)[.?!]?$/i.test(rawText)) ||
       (/^(that's nice|thats nice|that is nice|nice|cool|great|awesome|sahi hai|badhiya)[.?!]?$/i.test(rawText))
     ) && !this.isInterruptedFlag && !this.interviewState.active;
@@ -1881,11 +1881,17 @@ stale=false`);
       this.hasIntroducedSelf = true;
       return "I'm Ayra, a conversational AI built by Swati. I'm here to talk, help, brainstorm, explain things, and basically keep up with whatever you feel like talking about.";
     }
+    if (/\b(who (?:built|created|made|developed|programmed) you|who is your (?:creator|builder|developer|author)|tumhe kisne banaya|kisne banaya)\b/i.test(text)) {
+      return "I was built by Swati! She designed and developed me.";
+    }
+    if (/\b(proud.*(?:built|created|made) you|built you|created you)\b/i.test(text) && /\b(proud|myself|i built|i created)\b/i.test(text)) {
+      return "Ayy, as you should be! You put in the work to build me, so take full credit for that!";
+    }
 
     // ─────────────────────────────────────────────────────────────────────────
     // H0b — Fast-Path Greetings with Swati Branding on Initial Turn
     // ─────────────────────────────────────────────────────────────────────────
-    if (/^(hi|hello|hey|hey ayra|hey there|what's up|kaise ho|namaste|good morning|good evening|good night)[.!?]?$/i.test(text)) {
+    if (/^(hi|hello|hey|hey ayra|hey there|what's up|kaise ho|namaste|good morning|good evening)[.!?]?$/i.test(text)) {
       if (!this.hasIntroducedSelf && this.memoryManager.getRecentTurns().length <= 2) {
         this.hasIntroducedSelf = true;
         const lang = IntentClassifier.detectLanguageDominance(raw);
@@ -1895,6 +1901,22 @@ stale=false`);
         return "Hey! I'm Ayra, built by Swati. How are you doing?";
       }
       return "Hey! How's it going?";
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // H0b2 — Doing great + Helping Friend / Issue Resolution
+    // ─────────────────────────────────────────────────────────────────────────
+    if (
+      /\b(doing great|doing well|doing good|feeling great|i'm good|im good|i am good|great)\b/i.test(text) &&
+      /\b(solving|helping|working on|fixing|explaining|friend|dost|colleague|issue|problem|bug)\b/i.test(text)
+    ) {
+      const lang = IntentClassifier.detectLanguageDominance(raw);
+      if (lang === 'hindi') {
+        return "बहुत बढ़िया! और दोस्त की मदद करना तो अच्छी बात है। किस चीज़ में समस्या आ रही है उसे?";
+      } else if (lang === 'hinglish') {
+        return "Niceee! Glad to hear that. Aur dost ki help kar rahe ho, sahi hai yaar. Kya issue aa raha hai usko?";
+      }
+      return "That's great! And nice of you to help out your friend. What kind of issue are they running into?";
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -1918,6 +1940,17 @@ stale=false`);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // H0e0 — Interview Win & Celebration ("Interview went really well / answered everything")
+    // ─────────────────────────────────────────────────────────────────────────
+    if (/\b(interview)\b/i.test(text) && /\b(answered (?:everything|well|really well)|went (?:well|great|amazing)|cleared|did (?:well|great)|nailed it|crushed it)\b/i.test(text)) {
+      const lang = IntentClassifier.detectLanguageDominance(raw);
+      if (lang === 'hindi' || lang === 'hinglish') {
+        return "See! That's huge! Being nervous before it is totally normal, but you answered everything really well. You should be really proud of that win!";
+      }
+      return "See! That's huge! Being nervous beforehand is totally normal, but you answered everything really well. You should be genuinely proud of that win!";
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // H0e — Interview Stress & Anxiety Empathy
     // ─────────────────────────────────────────────────────────────────────────
     if (/\b(stressed|nervous|anxious|scared|worried|freaking out)\b/i.test(text) && /\b(interview|job interview|mock interview|tech interview|coding interview)\b/i.test(text)) {
@@ -1932,23 +1965,23 @@ stale=false`);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // H0f — Stress WITH REASON ("I'm stressed because I don't have good projects")
+    // H0f — Stress WITH REASON ("I'm stressed because I don't have good projects to get a referral")
     // Must come before story handlers to prevent mis-routing through narrative fallback
     // ─────────────────────────────────────────────────────────────────────────
     if (
-      /\b(stressed out|very stressed|so stressed|literally.*stressed|stressed)\b/i.test(text) &&
-      /\b(because|since|as|kyunki|isliye|coz|cause)\b/i.test(text) &&
-      /\b(project|reference|job|career|resume|placement|internship|work|portfolio|experience)\b/i.test(text)
+      /\b(stressed out|very stressed|so stressed|literally.*stressed|stressed|stress|anxious)\b/i.test(text) &&
+      /\b(because|since|as|kyunki|isliye|coz|cause|due to|for)\b/i.test(text) &&
+      /\b(projects?|referrals?|references?|jobs?|careers?|resumes?|placements?|internships?|works?|portfolios?|experience)\b/i.test(text)
     ) {
       this.conversationMode = 'ADVICE';
       this.personalStoryThread.isActive = false;
       const lang = IntentClassifier.detectLanguageDominance(raw);
       if (lang === 'hindi') {
-        return "अरे यार, मैं समझ सकती हूँ यह क्यों stress दे रहा है। जब लगे कि references के लिए strong projects नहीं हैं, यह सच में frustrating होता है। कौन सी field में references चाहिए?";
+        return "अरे यार, मैं समझ सकती हूँ यह क्यों stress दे रहा है। जब लगे कि referral या references के लिए strong projects नहीं हैं, यह सच में frustrating होता है। कौन सी field में references चाहिए?";
       } else if (lang === 'hinglish') {
-        return "Arre yaar, I get why that's stressing you out. Agar tumhe lag raha hai ki reference ke liye strong projects nahi hain, that can feel really frustrating. Kaunsi field mein references chahiye tumhe?";
+        return "Arre yaar, I get why that's stressing you out. Especially when you need to show good projects for a referral. Kaunse roles ya domain ke liye prepare kar rahe ho?";
       }
-      return "Yeah, I get why that's stressing you out. Not having strong projects when you need references for something can feel really frustrating. What field are you looking for references in?";
+      return "Arre yaar, I get why you're stressed. Especially when you need to show good projects for a referral. What kind of roles or domain are you targeting?";
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -3133,6 +3166,10 @@ stale=false`);
       return "TypeScript is a strongly typed, open-source programming language developed by Microsoft that builds on JavaScript by adding static type definitions, making large codebases easier to maintain, scale, and debug.";
     }
 
+    if (/\b(tell me about astra|what is astra|tell me about project astra|what is project astra|project astra|about astra)\b/i.test(text)) {
+      return "Project Astra is Google DeepMind's initiative to build universal AI assistants that can perceive the world in real time through continuous multimodal video, audio, and speech with ultra-low latency.";
+    }
+
     if (/\b(capital of france|what is the capital of france)\b/i.test(text)) {
       return "The capital of France is Paris.";
     }
@@ -4236,7 +4273,7 @@ stale=false`);
 
     // 0.11 Stress & Personalized Emotional Check-in
     if (/\b(stressed today|really stressed|very stressed|so stressed|i'm stressed|im stressed|i am stressed|feeling low|feeling down|feeling really low today)\b/i.test(text)) {
-      return "Arre yaar, what happened? College ka kuch scene hai? Assignment, exams, ya project?";
+      return "Arre yaar, I get why you're feeling stressed. What's going on?";
     }
     if (/\b(frustrated today|really frustrated|so frustrated|i'm frustrated|im frustrated|this is so annoying)\b/i.test(text)) {
       return "Okay, okay, I got you. Let me understand this properly. What's causing the frustration?";
@@ -4404,7 +4441,10 @@ stale=false`);
       return "Honestly, pretty good! Just chatting with people and helping with tech and ideas. You know how it goes! How did your day go?";
     }
     if (/\b(i am doing great|doing great|doing well|i am good|i'm good|i am very good)\b/i.test(text) && !text.includes('about') && !text.includes('story') && !text.includes('tell me')) {
-      return "Awesome, glad to hear that! What are you working on or thinking about today?";
+      if (/\b(friend|issue|solving|helping|working|bug|project)\b/i.test(text)) {
+        return "That's great! And nice of you to help out. What kind of issue is it?";
+      }
+      return "Awesome, glad to hear that! How's everything else going?";
     }
 
     // 17. Robots & Tech

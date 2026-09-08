@@ -386,6 +386,9 @@ export class IntentClassifier {
     normalized = normalized.replace(/\b(?:air|ae|aye)\s+engineer\s+(?:role|road|roll)\b/gi, 'AI engineer role');
     normalized = normalized.replace(/\bai\s+(?:road|roll)\b/gi, 'AI role');
     normalized = normalized.replace(/\bai\s+engineers?\s+(?:road|roll)\b/gi, 'AI engineer role');
+    normalized = normalized.replace(/\b(can you be my interview|be my interview)\b/gi, 'can you be my interviewer');
+    normalized = normalized.replace(/\bsee my interview\b/gi, 'take my interview');
+    normalized = normalized.replace(/\btroubling here\b/gi, 'troubling her');
     normalized = normalized.replace(/\b(want|need|get)\s+a\s+(?:refill|refil|referal)\b/gi, '$1 a referral');
     normalized = normalized.replace(/\b(?:refill|refil|referal)\s+for\s+(a\s+|the\s+|my\s+)?(company|job|role|internship|teacher)\b/gi, 'referral for $1$2');
     normalized = normalized.replace(/\bwant a refill for\b/gi, 'want a referral for');
@@ -514,14 +517,12 @@ export class IntentClassifier {
 
     // 1. Multi-turn Continuation within active personal story thread (e.g. "Professor called me" -> "Phir unhone...")
     if (context?.isStoryThreadActive) {
-      if (
-        /\b(phir unhone|unhone|usne|then she|then he|then they|and then|uske baad|phir kya hua|phir maine|phir usne|she called|he called|they called|i didn't answer|i didnt answer|didn't pick up|didnt pick up|phone nahi uthaya|usne call kiya|maine nahi uthaya|then i ordered another one|doosra mangwa liya|another one)\b/i.test(lower) ||
-        /^(she called me later|he called me later|i didn't answer|i didnt answer|i didn't pick up|usne phone kiya|maine phone nahi uthaya|and then|then she|then he|then we|phir humne|phir maine|phir unhone|unhone)[.!]?$/i.test(clean)
-      ) {
+      const isExit = /\b(stop|forget|exit|bye|good night|interview|teacher|girlfriend|boyfriend|react|weather|capital of|mona lisa|speed of light)\b/i.test(lower);
+      if (!isExit) {
         const details: string[] = ['story continuation'];
         const people: string[] = [];
         if (/unhone|professor|teacher/i.test(lower) || context.lastMentionedPerson?.includes('professor')) people.push('professor');
-        if (/she|he|usne|friend/i.test(lower)) people.push('friend');
+        if (/she|he|usne|friend|guy|ladka|banda|dost|girl/i.test(lower)) people.push('friend');
         return {
           ...emptyResult,
           isNarrative: true,

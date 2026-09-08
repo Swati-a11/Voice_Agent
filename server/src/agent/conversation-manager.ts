@@ -1382,6 +1382,7 @@ stale=false`);
     const lower = raw.toLowerCase();
     const clean = lower.replace(/[.,/#!$%^&*;:{}=\-_`~()?"']/g, ' ');
     const lang = IntentClassifier.detectLanguageDominance(raw);
+    const prevAgent = (params.previousAssistantMessage || '').toLowerCase();
     const thread = this.personalStoryThread;
     const turnNumber = thread.turnsCount || 1;
 
@@ -1834,6 +1835,48 @@ stale=false`);
       return "Wait, that's really concerning. What has he been doing to her?";
     }
 
+    // 24b. Harassment timeline / when it started ("it started from today morning itself", "today only")
+    if (
+      (this.personalStoryThread.isActive || prevAgent.includes('troubling') || prevAgent.includes('kab se') || prevAgent.includes('worrying')) &&
+      /\b(today only|from today|started from today|morning itself|today morning|aaj se|aaj subah se|just today|started for the morning)\b/i.test(lower)
+    ) {
+      const lang = IntentClassifier.detectLanguageDominance(raw);
+      if (lang === 'hindi') {
+        return "अच्छा, आज सुबह से ही? वो क्या कर रहा है—कॉल कर रहा है या मैसेज?";
+      } else if (lang === 'hinglish') {
+        return "Accha, aaj subah se hi? What exactly is he doing—calling her or messaging?";
+      }
+      return "Wait, just started this morning? What is he doing to her—calling or messaging?";
+    }
+
+    // 24c. Continuous calling / harassment actions ("he was actually calling her", "calling continuously", "many time")
+    if (
+      (this.personalStoryThread.isActive || prevAgent.includes('calling') || prevAgent.includes('troubling') || prevAgent.includes('worrying') || prevAgent.includes('messaging')) &&
+      /\b(calling her|calling|continuous calling|continuously calling|calls|calling again and again|phone kar raha|baar baar phone|many time|many times|nonstop|non-stop)\b/i.test(lower)
+    ) {
+      const lang = IntentClassifier.detectLanguageDominance(raw);
+      if (lang === 'hindi') {
+        return "बार-बार फोन कर रहा है? यह तो सच में बहुत अजीब और परेशान करने वाला है। क्या उसने उसका नंबर ब्लॉक किया?";
+      } else if (lang === 'hinglish') {
+        return "Wait, continuously calling her? That's so creepy and annoying. Has she blocked him yet or told him to back off?";
+      }
+      return "Calling her continuously? That is literally harassment. Did she tell him to stop or block his number?";
+    }
+
+    // 24d. Advised her to block / blocked him ("she blocked him", "I gave her advice to block him", "she have to block him")
+    if (
+      /\b(block him|blocked him|blocked|block kar diya|block kiya|block karne bola)\b/i.test(lower) ||
+      (/\b(advice|told her|advised)\b/i.test(lower) && /\b(block|him)\b/i.test(lower))
+    ) {
+      const lang = IntentClassifier.detectLanguageDominance(raw);
+      if (lang === 'hindi') {
+        return "हाहा, बिल्कुल सही सलाह दी तुमने! ऐसे लोगों को सीधे ब्लॉक करना ही सबसे अच्छा है। क्या ब्लॉक करने के बाद वो शांत हुआ?";
+      } else if (lang === 'hinglish') {
+        return "Haha, honestly valid! Sometimes peace of mind ke liye blocking is literally the best thing to do. Did he stop after she blocked him?";
+      }
+      return "Honestly, blocking him is the best first step. Did he stop after that or is he still trying to reach her?";
+    }
+
     // 25. Natural reaction pool (fallback — never use 'I'm following along!')
     const storyFallbacks = [
       "Haan, aage kya hua?",
@@ -2162,7 +2205,7 @@ stale=false`);
 
     // 0.00000 Explicit Topic Change / New Activity ("Actually no", "Actually forget that", "Okay forget that too", etc.)
 
-    const hasTopicSwitchCue = /\b(actually\s+forget\s+that|forget\s+that\s+too|okay\s+forget\s+that|forget\s+that|forget\s+it|never\s+mind|actually\s+no|tell\s+me\s+something\s+else|something\s+else|kuch\s+aur\s+baat|change\s+the\s+topic|let's\s+talk\s+about\s+something\s+else|kuch\s+aur\s+batao|kuch\s+aur\s+sunao|kuch\s+naya)\b/i.test(text);
+    const hasTopicSwitchCue = /\b(actually\s+forget\s+(?:that|this)|forget\s+(?:that|this)\s+too|okay\s+forget\s+(?:that|this)|forget\s+(?:that|this|it)|never\s+mind|actually\s+no|leave\s+(?:this|it|that)|tell\s+me\s+something\s+else|something\s+else|kuch\s+aur\s+baat|change\s+the\s+topic|let's\s+talk\s+about\s+something\s+else|kuch\s+aur\s+batao|kuch\s+aur\s+sunao|kuch\s+naya)\b/i.test(text);
     if (hasTopicSwitchCue) {
       this.conversationMode = 'GENERAL_CHAT';
       this.personalStoryThread.isActive = false;
@@ -2177,7 +2220,7 @@ stale=false`);
       }
 
       const hasSubstantiveTopic = /\b(birthday|janamdin|interview|crush|girlfriend|boyfriend|cat|cats|fight|friend|boss|teacher|slapped|hit|react|node|javascript|python|world|news|happening|happened|morning|exhausted|quote|joke|help|road\s*map|roadmap|software|developer|career|student|months?|dsa|preparation|prep|skills|mistakes?|stocks?|market|fever|flirt|story|dome)\b/i.test(text);
-      if (!hasSubstantiveTopic && text.replace(/\b(actually\s+forget\s+that|forget\s+that\s+too|okay\s+forget\s+that|forget\s+that|forget\s+it|never\s+mind|actually\s+no|tell\s+me\s+something\s+else|something\s+else|kuch\s+aur\s+baat|change\s+the\s+topic|let's\s+talk\s+about\s+something\s+else|kuch\s+aur\s+batao|kuch\s+aur\s+sunao|kuch\s+naya|okay|ok|haan|theek)\b/gi, '').trim().split(/\s+/).length < 4) {
+      if (!hasSubstantiveTopic && text.replace(/\b(actually\s+forget\s+(?:that|this)|forget\s+(?:that|this)\s+too|okay\s+forget\s+(?:that|this)|forget\s+(?:that|this|it)|never\s+mind|actually\s+no|leave\s+(?:this|it|that)|tell\s+me\s+something\s+else|something\s+else|kuch\s+aur\s+baat|change\s+the\s+topic|let's\s+talk\s+about\s+something\s+else|kuch\s+aur\s+batao|kuch\s+aur\s+sunao|kuch\s+naya|okay|ok|haan|theek)\b/gi, '').trim().split(/\s+/).length < 4) {
         const lang = IntentClassifier.detectLanguageDominance(raw);
         if (lang === 'hindi') {
           return "ज़रूर! बताओ किस बारे में बात करनी है?";
@@ -2693,6 +2736,9 @@ stale=false`);
 
         // Normal step progression
         if (this.interviewRoleplayStep === 1) {
+          if (/^(hello|hi|hey|can you hear me|test|hello hello|wait|haan)[.!?]?$/i.test(text.trim())) {
+            return "I can hear you loud and clear! Whenever you're ready, start by telling me a bit about yourself and your background.";
+          }
           this.interviewRoleplayStep = 2;
           return "Good start. Tell me about one technical project you've worked on, or how you handle asynchronous JavaScript and promises in your apps.";
         }

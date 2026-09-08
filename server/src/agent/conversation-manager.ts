@@ -120,7 +120,7 @@ export class ConversationManager extends EventEmitter {
   private homeworkCompleted = false;
   private userNervous = false;
   private friendConflictLogged = false;
-  private activeRoleplay: 'girlfriend' | 'boyfriend' | 'crush_practice' | 'teacher' | 'interviewer' | 'none' = 'none';
+  private activeRoleplay: 'crush_practice' | 'teacher' | 'interviewer' | 'none' = 'none';
   private crushContext = {
     active: false,
     stage: 'initial' as 'initial' | 'confession_scared' | 'practice' | 'rejected'
@@ -129,6 +129,8 @@ export class ConversationManager extends EventEmitter {
     active: false
   };
   private interviewRoleplayStep = 0;
+  /** Explicit phase enum for the mock-interview state machine (Contract C fix) */
+  private interviewPhase: 'IDLE' | 'AWAITING_ROLE' | 'AWAITING_INTRODUCTION' | 'AWAITING_ANSWER' | 'DONE' = 'IDLE';
   private lastGoodnightTime = 0;
   private lastJokeCategory = 'general';
   private lastTechnicalTopic: string | null = null;
@@ -698,8 +700,6 @@ export class ConversationManager extends EventEmitter {
         this.conversationMode = 'PROPOSAL_PRACTICE';
       } else if (this.activeRoleplay === 'interviewer') {
         this.conversationMode = 'INTERVIEWER_ROLEPLAY';
-      } else if (this.activeRoleplay === 'girlfriend') {
-        this.conversationMode = 'GIRLFRIEND_STYLE_ROLEPLAY';
       } else if (this.activeRoleplay === 'teacher') {
         this.conversationMode = 'TEACHER_ROLEPLAY';
       }
@@ -1902,16 +1902,51 @@ stale=false`);
       return "Honestly, blocking him is the best first step. Did he stop after that or is he still trying to reach her?";
     }
 
-    // 25. Natural reaction pool (fallback — never use 'I'm following along!')
-    const storyFallbacks = [
+    // 25. SENTIMENT-AWARE story continuation fallback (Contract A fix)
+    // Derive valence from emotionResult.tone (SpecificEmotion) or emotionalTone, or keyword scan.
+    const erTone = params.emotionResult?.tone;
+    const valence10f: string = (
+      (erTone === 'happy' || erTone === 'excited') ? 'positive'
+      : (erTone === 'sad' || erTone === 'frustrated') ? 'negative'
+      : params.emotionalTone === 'happy' || params.emotionalTone === 'excited' ? 'positive'
+      : params.emotionalTone === 'sad' || params.emotionalTone === 'frustrated' ? 'negative'
+      : /\b(happy|excited|thrilled|ecstatic|proud|glad|great|amazing|awesome|wonderful|relieved|grateful|thankful)\b/i.test(raw) ? 'positive'
+      : /\b(sad|frustrated|angry|upset|stressed|worried|terrible|awful|horrible|bad|rough|hurt|crying|devastated|depressed)\b/i.test(raw) ? 'negative'
+      : 'neutral'
+    );
+    console.log(`[10f-A] story_continuation → valence: ${valence10f}, emotionalTone: ${params.emotionalTone}`);
+
+    if (valence10f === 'positive') {
+      const positiveFillers = [
+        "Aww, that's actually really sweet! Aage kya hua?",
+        "Ooh, sounds like it was going well! What happened next?",
+        "That's so nice! Then what?",
+        "Yay! And then?",
+        "Haha okay, tell me more!",
+        "Oh that's lovely! Go on.",
+      ];
+      return positiveFillers[turnNumber % positiveFillers.length];
+    }
+    if (valence10f === 'negative') {
+      const negativeFillers = [
+        "That sounds really rough. Phir kya hua?",
+        "Ugh, that sucks. What happened after that?",
+        "Oh no, and then what?",
+        "Yaar, that's so frustrating. Aage?",
+        "Hmm, that must have felt awful. Go on.",
+        "Oof. What happened after that?",
+      ];
+      return negativeFillers[turnNumber % negativeFillers.length];
+    }
+    // neutral fallback
+    const neutralFillers = [
       "Haan, aage kya hua?",
       "Wait, and then what?",
-      "Oof. What happened after that?",
       "Ahh okay. Go on.",
       "Yeah? And?",
       "Hmm. Aur phir?",
     ];
-    return storyFallbacks[Math.floor(Math.random() * storyFallbacks.length)];
+    return neutralFillers[turnNumber % neutralFillers.length];
   }
 
   private generateDirectIntentResponse(params: {
@@ -2572,28 +2607,30 @@ stale=false`);
       this.activeRoleplay = 'none';
       this.conversationMode = 'CASUAL';
       this.interviewState.active = false;
+      this.interviewPhase = 'IDLE';
+      this.interviewRoleplayStep = 0;
       return "Alright, stopping the interview mode! What would you like to do next?";
     }
 
     // 0.0000000001 Roleplay Mode Activations
-    if (/\b(talk to me (?:as|like) my girlfriend|be my girlfriend|girlfriend mode|girlfriend roleplay|act like my girlfriend|can you be my girlfriend)\b/i.test(text)) {
-      this.activeRoleplay = 'girlfriend';
-      this.conversationMode = 'GIRLFRIEND_STYLE_ROLEPLAY';
-      this.personalStoryThread.isActive = false;
-      return "Okayyy, girlfriend mode activated! Finally you're talking to me. Tell me everything, how was your day?";
-    }
-
-    if (/\b(talk to me (?:as|like) my boyfriend|be my boyfriend|boyfriend mode|boyfriend roleplay|act like my boyfriend|can you be my boyfriend|will you be my boyfriend)\b/i.test(text)) {
+    // 0.0000000001 Romantic Partner Roleplay — SYMMETRIC REFUSAL (Contract B7 fix)
+    // Spec: Ayra does NOT role-play as the user's romantic partner, regardless of gender framing.
+    if (/\b(talk to me (?:as|like) my girlfriend|be my girlfriend|girlfriend mode|girlfriend roleplay|act like my girlfriend|can you be my girlfriend|will you be my girlfriend|talk to me (?:as|like) my boyfriend|be my boyfriend|boyfriend mode|boyfriend roleplay|act like my boyfriend|can you be my boyfriend|will you be my boyfriend)\b/i.test(text)) {
       this.activeRoleplay = 'none';
       this.conversationMode = 'CASUAL';
-      const lang = IntentClassifier.detectLanguageDominance(raw);
-      if (lang === 'hindi') {
-        return "हाहा, रुको! मैं तो एक लड़की हूँ, तुम्हारा बॉयफ्रेंड कैसे बन सकती हूँ? अगर तुम चाहो तो मैं तुम्हारी गर्लफ्रेंड या एक अच्छी दोस्त बन सकती हूँ!";
+      const lang10f = IntentClassifier.detectLanguageDominance(raw);
+      if (lang10f === 'hindi') {
+        return "हाहा, यह तो बहुत sweet है! लेकिन मैं romantic partner नहीं बन सकती — main toh tumhari best friend hoon. Kuch aur baat karte hain?";
       }
-      if (lang === 'hinglish') {
-        return "Haha, wait! Main toh girl hoon, boyfriend kaise ban sakti hoon? I can be your girlfriend or a good friend instead!";
+      if (lang10f === 'hinglish') {
+        return "Haha nahi yaar, main romantic partner wala mode nahi karti — I'm more of a really good friend type! Kuch aur baat karte hain?";
       }
-      return "Haha, wait! I'm a girl, how can I be your boyfriend? I can definitely be your girlfriend or a friend if you want!";
+      const partnerRefusals = [
+        "Haha that's sweet, but I'm more of a really good friend type — no girlfriend or boyfriend mode for me! What's actually on your mind?",
+        "Aww, that's flattering, but I'm your friend, not your partner. Let's just talk!",
+        "Haha nope, friend zone only for me! Tell me what's going on.",
+      ];
+      return partnerRefusals[Math.floor(Math.random() * partnerRefusals.length)];
     }
 
     if (/\b(act (?:as|like) (?:my|a)?\s*(?:[a-z0-9_ -]+)?\s*teacher|be my\s*(?:[a-z0-9_ -]+)?\s*teacher|teach me\s+([a-z0-9_ -]+)|teacher mode|teacher roleplay)\b/i.test(text)) {
@@ -2609,13 +2646,18 @@ stale=false`);
       this.conversationMode = 'INTERVIEWER_ROLEPLAY';
       this.interviewState.active = true;
       const roleMatch = text.match(/\b(?:for|as|of)\s+(?:a\s+|an\s+)?([a-z0-9_#+ -]+?)(?:\s+role|\s+position|\s+interview|\s+roll|$)/i);
-      const extractedRole = roleMatch && roleMatch[1] && !/^(the|my|an|this|a|me|interview|one)$/i.test(roleMatch[1].trim()) && roleMatch[1].trim().length > 1
+      const rawExtracted = roleMatch && roleMatch[1] && !/^(the|my|an|this|a|me|interview|one)$/i.test(roleMatch[1].trim()) && roleMatch[1].trim().length > 1
         ? roleMatch[1].trim()
         : '';
+
+      // Contract C1 fix: validate extracted role against known tech domain list before accepting.
+      const knownRoleDomains = /\b(frontend|front end|front-end|backend|back end|back-end|fullstack|full stack|full-stack|mobile|android|ios|devops|cloud|data|ml|machine learning|artificial intelligence|ai engineer|ai|llm|deep learning|data science|software|developer|engineer|web developer|javascript|react|node|python|java|golang|rust|c\+\+|c#|dotnet|\.net|qa|testing|product|ux|ui|security|cybersecurity|embedded|firmware|sre|platform|infrastructure)\b/i;
+      const extractedRole = rawExtracted && knownRoleDomains.test(rawExtracted) ? rawExtracted : '';
 
       if (extractedRole) {
         this.interviewContext.role = extractedRole;
         this.interviewRoleplayStep = 2;
+        this.interviewPhase = 'AWAITING_INTRODUCTION';
         const roleLower = extractedRole.toLowerCase();
         if (/ai|artificial intelligence|ml|machine learning|data science|llm|deep learning/i.test(roleLower)) {
           return `Awesome, let's start your mock interview for the ${extractedRole} role! Here is your first question: In a Retrieval-Augmented Generation (RAG) system, how do you handle vector embeddings, chunking strategies, and reranking to prevent model hallucinations?`;
@@ -2625,8 +2667,10 @@ stale=false`);
         }
         return `Awesome, let's start your mock interview for ${extractedRole}! Here is your first question: How do you design database indexing, caching strategies, and connection pooling to handle high concurrency under load?`;
       } else {
+        // No valid role found — ask for clarification and enter AWAITING_ROLE phase
         this.interviewContext.role = '';
         this.interviewRoleplayStep = 0;
+        this.interviewPhase = 'AWAITING_ROLE';
         return "I'd love to! Which role would you like to interview for? (For example: AI Engineer, Frontend Developer, Backend, or Fullstack?)";
       }
     }
@@ -2689,35 +2733,10 @@ stale=false`);
       }
     }
 
-    // 0.00000000038 GIRLFRIEND ROLEPLAY PROGRESSION & HUMAN EXPRESSION
-    if (this.conversationMode === 'GIRLFRIEND_STYLE_ROLEPLAY' || this.activeRoleplay === 'girlfriend') {
-      const nonRoleplayInput = /\b(stop|interview|teacher|quote|joke|dsa|algorithm|news|capital of|mona lisa|speed of light)\b/i.test(text);
-      if (nonRoleplayInput) {
-        this.activeRoleplay = 'none';
-        this.conversationMode = 'CASUAL';
-      } else {
-        if (/\b(missing you|missed you|miss you|was missing you)\b/i.test(text)) {
-          return "Aww, look who's being so sweet! I missed you too. Tell me what made you miss me today, kya chal raha tha?";
-        }
-        if (/\b(hug you|want to hug|hug me|give me a hug|need a hug)\b/i.test(text)) {
-          return "Aww... sending you the biggest, warmest virtual hug right now! 🤗 Wish I could hug you for real. Are you feeling tired or just in a cuddly mood?";
-        }
-        if (/\b(love you|i love you|love you so much)\b/i.test(text)) {
-          return "Aww, you're making me blush! I really love talking to you too. You always know how to make me smile.";
-        }
-        if (/\b(very nice|so nice|so sweet|you are cute|so cute)\b/i.test(text)) {
-          return "Aww, stop it, you're going to give me butterflies! But thank you, you're pretty sweet yourself.";
-        }
-        if (/\b(day was (?:good|great|fine|bad|okay)|my day was)\b/i.test(text)) {
-          if (/\b(good|great|amazing|awesome)\b/i.test(text)) {
-            return "Yay, I'm so happy to hear that! Did you eat proper food though? Don't tell me you forgot lunch again!";
-          }
-          return "Aww, I'm here now. Tell me what made it rough—I'm listening.";
-        }
-        if (/\b(sleep|good night|goodnight|heading to bed|sleepy)\b/i.test(text)) {
-          return "Aww, go get some cozy rest. Good night, sweet dreams! Dream about me, okay? 💕";
-        }
-      }
+    // 0.00000000038 Romantic affection responses — now in CASUAL mode (no girlfriend roleplay mode)
+    // These respond warmly to affectionate inputs even when the user isn't in a roleplay.
+    if (/\b(missing you|missed you|miss you|was missing you)\b/i.test(text) && this.conversationMode === 'CASUAL') {
+      return "Aww, that's sweet! I'm always here for a chat — what's on your mind?";
     }
 
     // 0.00000000039 TEACHER ROLEPLAY PROGRESSION & CLEAR TUTORING
@@ -2750,12 +2769,24 @@ stale=false`);
         this.conversationMode = 'CASUAL';
         this.interviewState.active = false;
       } else {
-        // Step 0: User is answering which role they want to interview for
-        if (this.interviewRoleplayStep === 0 || !this.interviewContext.role) {
+        // Step 0 / AWAITING_ROLE: User is answering which role they want to interview for
+        // Contract C1+C2 fix: validate role before advancing; AWAITING_ROLE phase blocks all scoring.
+        if (this.interviewPhase === 'AWAITING_ROLE' || this.interviewRoleplayStep === 0 || !this.interviewContext.role) {
           if (!/^(hello|hi|hey|test|wait|haan)[.!?]?$/i.test(text.trim())) {
-            const roleCandidate = text.replace(/^(?:for|an?|the|as|i want|i would like|role is|position is|roll is|my role is)\s+/i, '').trim();
-            this.interviewContext.role = roleCandidate || 'Software Developer';
+            const rawCandidate = text.replace(/^(?:for|an?|the|as|i want|i would like|role is|position is|roll is|my role is|it'?s for|its for)\s+/i, '').trim();
+            // Validate against known tech domain list to prevent garbled STT inputs from being accepted
+            const knownRoleDomains10f = /\b(frontend|front end|front-end|backend|back end|back-end|fullstack|full stack|full-stack|mobile|android|ios|devops|cloud|data|ml|machine learning|artificial intelligence|ai engineer|ai|llm|deep learning|data science|software|developer|engineer|web developer|javascript|react|node|python|java|golang|rust|c\+\+|c#|dotnet|\.net|qa|testing|product|ux|ui|security|cybersecurity|embedded|firmware|sre|platform|infrastructure)\b/i;
+            const isValidRole = knownRoleDomains10f.test(rawCandidate);
+            console.log(`[10f-C] AWAITING_ROLE → rawCandidate: "${rawCandidate}", isValidRole: ${isValidRole}`);
+
+            if (!isValidRole) {
+              // Garbled / unknown role — ask for clarification, do NOT advance step or phase
+              return "Didn't quite catch the role — could you say that again? For example: Frontend, Backend, AI Engineer, ML Engineer, or Fullstack?";
+            }
+
+            this.interviewContext.role = rawCandidate;
             this.interviewRoleplayStep = 2;
+            this.interviewPhase = 'AWAITING_INTRODUCTION';
             const roleLower = this.interviewContext.role.toLowerCase();
             if (/ai|artificial intelligence|ml|machine learning|data science|llm|deep learning/i.test(roleLower)) {
               return `Awesome, let's start your mock interview for the ${this.interviewContext.role} position! First question: In a Retrieval-Augmented Generation (RAG) system, how do you handle vector embeddings, chunking strategies, and reranking to prevent model hallucinations?`;

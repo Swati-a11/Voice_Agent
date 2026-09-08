@@ -10,7 +10,7 @@ export const config = {
   
   // Google Gemini API Configuration (Gemini Only)
   geminiApiKey: process.env.GEMINI_API_KEY || '',
-  geminiModel: process.env.GEMINI_MODEL || 'gemini-3.6-flash',
+  geminiModel: process.env.GEMINI_MODEL || 'gemini-3.7-flash',
   
   // Storage & Cloud Memory
   memoryStoragePath: process.env.MEMORY_STORAGE_PATH || path.resolve(process.cwd(), 'src/data/memory.json'),

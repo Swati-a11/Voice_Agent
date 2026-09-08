@@ -4429,9 +4429,17 @@ stale=false`);
       return "Photosynthesis is the process where green plants absorb sunlight, water, and carbon dioxide to create glucose for energy, releasing oxygen into the atmosphere as a byproduct.";
     }
 
+    // 12.5 Referral and Project Guidance
+    if (/\b(referral|refill)\b/i.test(text) && /\b(company|project|projects|teacher|job)\b/i.test(text)) {
+      return "Acha, got it! Getting a good referral is super valuable, and having the right projects will make a huge difference. What kind of role or company are you aiming for? We can brainstorm a couple of standout project ideas together!";
+    }
+
     // 13. Emotional Empathy
     if (/\b(sad|little sad|feeling down|unhappy|depressed|crying|upset|hurt|dukh|dukhi)\b/i.test(text)) {
-      return "Yeah... that sounds rough. I'm really sorry you're feeling that way. Want to talk about what's going on, or would you prefer a distraction?";
+      if (text.includes('morning') || text.includes('woke up')) {
+        return "Oh no... that's a tough way to start the day. What happened? Tell me what made you feel sad.";
+      }
+      return "Oh no... I'm really sorry you're feeling down. What happened? I'm right here if you want to talk about it.";
     }
     if (/\b(stressed|very stressed|nervous|anxious|scared|worried|overwhelmed)\b/i.test(text)) {
       return "Yeah, I get why you're stressed. Big challenges can definitely feel overwhelming, but taking it one step at a time makes a huge difference. What's stressing you out the most right now?";

@@ -5020,7 +5020,22 @@ reason: Input did not match specialized semantic routes or dynamic templates`);
       return "Acids release hydrogen ions (H⁺ or hydronium H₃O⁺) in solution with a pH below 7, while bases release hydroxide ions (OH⁻) or accept protons with a pH above 7. The pH scale is logarithmic: pH = -log[H⁺], where 7 is neutral.";
     }
 
-    // 5. Physics: Gravity, Relativity, Thermodynamics, Quantum
+    // 5. Physics: Gravity, Relativity, Thermodynamics, Quantum, Astronomy
+    if (/\b(moon|the moon|chand|chanda)\b/i.test(lower)) {
+      return "The Moon is Earth's only natural satellite, orbiting around 384,000 kilometers away. Its gravitational pull creates the ocean tides on Earth, and it rotates at the exact same rate it orbits, which is why we always see the same side from Earth.";
+    }
+    if (/\b(sun|the sun|surya|sooraj)\b/i.test(lower) && !/\b(sunday|sunglasses)\b/i.test(lower)) {
+      return "The Sun is the yellow dwarf star at the center of our solar system, containing over 99.8% of the total mass. In its core, nuclear fusion fuses millions of tons of hydrogen into helium every second, generating the light and warmth that makes life on Earth possible.";
+    }
+    if (/\b(earth|prithvi|our planet)\b/i.test(lower)) {
+      return "Earth is the third planet from the Sun and the only astronomical body known to harbor life. With a protective atmosphere rich in nitrogen and oxygen and liquid water covering over 70% of its surface, it's our vibrant home in the solar system.";
+    }
+    if (/\b(mars|red planet|mangal)\b/i.test(lower)) {
+      return "Mars is the fourth planet from the Sun, famous for its reddish tint caused by iron oxide (rust) on its surface. It's home to Olympus Mons, the largest volcano in the solar system, and ancient dried river valleys that hint at past water.";
+    }
+    if (/\b(stars?|sitare|tara|astronomy|galaxy|universe|solar system)\b/i.test(lower)) {
+      return "Stars are giant, glowing spheres of plasma held together by their own gravity, fueled by nuclear fusion in their cores. Our Sun is just one of hundreds of billions of stars in the Milky Way galaxy, which itself is one of trillions in the observable universe.";
+    }
     if (/\b(gravity|gravitation|general relativity|spacetime|newton's law of gravitation)\b/i.test(lower)) {
       return "Gravity is the fundamental force that attracts objects with mass or energy. In classical Newtonian physics, it is an attractive force proportional to masses and inversely proportional to the square of distance (F = G * m1*m2 / r²). In Einstein's General Relativity, gravity is the geometric curvature of 4D spacetime caused by mass and energy.";
     }
@@ -5086,7 +5101,7 @@ reason: Input did not match specialized semantic routes or dynamic templates`);
     const match = text.match(/^(?:what is|who is|what are|explain|tell me about|how does|why is|teach me|want to understand|can you explain)\s+(.+?)[.?!]?$/i);
     if (match && match[1]) {
       const topic = match[1].trim().replace(/^(?:a|an|the|about)\s+/i, '');
-      const nonConcepts = ['that', 'this', 'it', 'you', 'me', 'the other person', 'her', 'him', 'them', 'my friend', 'my story'];
+      const nonConcepts = ['that', 'this', 'it', 'you', 'me', 'the other person', 'her', 'him', 'them', 'my friend', 'my story', 'no', 'yes', 'not'];
       if (!nonConcepts.includes(topic.toLowerCase()) && topic.length >= 2) {
         if (/\b(weather|temperature|forecast|mausam)\b/i.test(topic)) {
           return isHinglish || isHindi
@@ -5094,12 +5109,13 @@ reason: Input did not match specialized semantic routes or dynamic templates`);
             : "Which city do you mean? Tell me the city name and I'll check the weather for you.";
         }
         if (isTeacher) {
-          return `Great question! ${topic.charAt(0).toUpperCase() + topic.slice(1)} is a core topic. In simple terms, it involves understanding its fundamental principles, how its components interact, and where it is applied in practice. Would you like to start with a high-level overview or dive straight into a practical example?`;
+          return `Great question! ${topic.charAt(0).toUpperCase() + topic.slice(1)} is a really interesting topic. In simple terms, it involves understanding its core principles and how it works in practice. Which part would you like to explore first?`;
         }
-        return `${topic.charAt(0).toUpperCase() + topic.slice(1)} is a key concept that connects fundamental principles with practical applications. Tell me what specific angle you'd like to explore—the foundational theory, how it works under the hood, or real-world examples!`;
+        return `${topic.charAt(0).toUpperCase() + topic.slice(1)} is a great topic! Tell me what specific part you're curious about, and let's break it down together.`;
       }
     }
 
     return null;
   }
 }
+

@@ -2,6 +2,11 @@ import dotenv from 'dotenv';
 import path from 'path';
 
 dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+dotenv.config({ path: path.resolve(process.cwd(), 'server/.env') });
+
+const rawModel = process.env.GEMINI_MODEL;
+const geminiModel = (!rawModel || rawModel.includes('3.6')) ? 'gemini-3.7-flash' : rawModel;
 
 export const config = {
   port: parseInt(process.env.PORT || '3001', 10),
@@ -10,7 +15,7 @@ export const config = {
   
   // Google Gemini API Configuration (Gemini Only)
   geminiApiKey: process.env.GEMINI_API_KEY || '',
-  geminiModel: process.env.GEMINI_MODEL || 'gemini-3.7-flash',
+  geminiModel,
   
   // Storage & Cloud Memory
   memoryStoragePath: process.env.MEMORY_STORAGE_PATH || path.resolve(process.cwd(), 'src/data/memory.json'),

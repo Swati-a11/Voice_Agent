@@ -59,6 +59,7 @@ export type DetailedIntent =
   | 'opinion_request'
   | 'girlfriend_roleplay'
   | 'boyfriend_roleplay'
+  | 'teacher_roleplay'
   | 'interviewer_roleplay'
   | 'interview_feedback'
   | 'social_teasing'

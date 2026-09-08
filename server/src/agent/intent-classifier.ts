@@ -1891,10 +1891,17 @@ export class IntentClassifier {
       return result;
     }
 
-    if (/\b(talk to me (?:as|like) my boyfriend|be my boyfriend|boyfriend mode|boyfriend roleplay|act like my boyfriend)\b/i.test(clean)) {
+    if (/\b(talk to me (?:as|like) my boyfriend|be my boyfriend|boyfriend mode|boyfriend roleplay|act like my boyfriend|can you be my boyfriend|will you be my boyfriend)\b/i.test(clean)) {
       result.intent = 'boyfriend_roleplay';
       result.userIntent = 'CREATIVE_REQUEST';
-      result.conversationMode = 'BOYFRIEND_STYLE_ROLEPLAY';
+      result.conversationMode = 'CASUAL';
+      return result;
+    }
+
+    if (/\b(act (?:as|like) (?:my|a)?\s*(?:[a-z0-9_ -]+)?\s*teacher|be my\s*(?:[a-z0-9_ -]+)?\s*teacher|teach me\s+([a-z0-9_ -]+)|teacher mode|teacher roleplay)\b/i.test(clean)) {
+      result.intent = 'teacher_roleplay';
+      result.userIntent = 'COMMAND';
+      result.conversationMode = 'TEACHER_ROLEPLAY';
       return result;
     }
 

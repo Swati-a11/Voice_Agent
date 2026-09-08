@@ -2516,18 +2516,32 @@ stale=false`);
     }
 
     // 0.0000000001 Roleplay Mode Activations
-    if (/\b(talk to me (?:as|like) my girlfriend|be my girlfriend|girlfriend mode|girlfriend roleplay|act like my girlfriend)\b/i.test(text)) {
+    if (/\b(talk to me (?:as|like) my girlfriend|be my girlfriend|girlfriend mode|girlfriend roleplay|act like my girlfriend|can you be my girlfriend)\b/i.test(text)) {
       this.activeRoleplay = 'girlfriend';
       this.conversationMode = 'GIRLFRIEND_STYLE_ROLEPLAY';
       this.personalStoryThread.isActive = false;
-      return "Okayyy, girlfriend mode activated. Now tell me, what have you been up to all day?";
+      return "Okayyy, girlfriend mode activated! Finally you're talking to me. Tell me everything, how was your day?";
     }
 
-    if (/\b(talk to me (?:as|like) my boyfriend|be my boyfriend|boyfriend mode|boyfriend roleplay|act like my boyfriend)\b/i.test(text)) {
-      this.activeRoleplay = 'boyfriend';
-      this.conversationMode = 'BOYFRIEND_STYLE_ROLEPLAY';
-      this.personalStoryThread.isActive = false;
-      return "Alright, boyfriend mode it is. Now come on, tell me what's going on.";
+    if (/\b(talk to me (?:as|like) my boyfriend|be my boyfriend|boyfriend mode|boyfriend roleplay|act like my boyfriend|can you be my boyfriend|will you be my boyfriend)\b/i.test(text)) {
+      this.activeRoleplay = 'none';
+      this.conversationMode = 'CASUAL';
+      const lang = IntentClassifier.detectLanguageDominance(raw);
+      if (lang === 'hindi') {
+        return "हाहा, रुको! मैं तो एक लड़की हूँ, तुम्हारा बॉयफ्रेंड कैसे बन सकती हूँ? अगर तुम चाहो तो मैं तुम्हारी गर्लफ्रेंड या एक अच्छी दोस्त बन सकती हूँ!";
+      }
+      if (lang === 'hinglish') {
+        return "Haha, wait! Main toh girl hoon, boyfriend kaise ban sakti hoon? I can be your girlfriend or a good friend instead!";
+      }
+      return "Haha, wait! I'm a girl, how can I be your boyfriend? I can definitely be your girlfriend or a friend if you want!";
+    }
+
+    if (/\b(act (?:as|like) (?:my|a)?\s*(?:[a-z0-9_ -]+)?\s*teacher|be my\s*(?:[a-z0-9_ -]+)?\s*teacher|teach me\s+([a-z0-9_ -]+)|teacher mode|teacher roleplay)\b/i.test(text)) {
+      this.activeRoleplay = 'teacher';
+      this.conversationMode = 'TEACHER_ROLEPLAY';
+      const subMatch = text.match(/\b(?:teach me|teacher of|teacher for|teach)\s+([a-z0-9_#+ -]+)/i);
+      const subject = subMatch ? subMatch[1].trim() : 'the subject';
+      return `Class is in session! I'll be your teacher for ${subject}. Let's make this easy and fun to understand. What specific topic or concept should we start with today?`;
     }
 
     if (/\b(pretend\s+(?:you'?re|your)\s+(?:my|an)?\s*interviewer|be\s+(?:an|my)?\s*interviewer\s*(?:and\s+take\s+my\s+interview)?|take\s+(?:my\s+)?interview|interview\s+me|start\s+(?:the|my|an)?\s*interview|interviewer\s+mode|mock\s+interview|act\s+(?:like|as)\s+(?:an|my)?\s*interviewer|ask\s+me\s+interview\s+questions|give\s+me\s+honest\s+(?:interview\s+)?feedback|take\s+my\s+interview\s+one\s+question\s+at\s+a\s+time)\b/i.test(text)) {
@@ -2535,10 +2549,10 @@ stale=false`);
       this.conversationMode = 'INTERVIEWER_ROLEPLAY';
       this.interviewState.active = true;
       this.interviewRoleplayStep = 1;
-      if (/\b(software developer|software dev|frontend|backend|fullstack|react)\b/i.test(text)) {
-        this.interviewContext.role = 'software developer';
-      }
-      return "Alright, let's do it properly as your interviewer. I'll ask one question at a time and I'll be honest with the feedback. Start by telling me about yourself.";
+      const roleMatch = text.match(/\b(?:for|as|of)\s+(?:a\s+|an\s+)?([a-z0-9_ -]+?)(?:\s+role|\s+position|\s+interview|$)/i);
+      const role = roleMatch ? roleMatch[1].trim() : 'software developer';
+      this.interviewContext.role = role;
+      return `Alright, let's do it properly as your interviewer for ${role}. I'll ask one question at a time and give you constructive feedback. Start by telling me about yourself and your background.`;
     }
 
     // 0.00000000014 Track nervous & conflict states for multi-topic synthesis

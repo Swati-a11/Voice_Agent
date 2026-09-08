@@ -1976,7 +1976,7 @@ stale=false`);
       if (lang === 'hindi' || lang === 'hinglish') return "Haan? Kya nahi hai?";
       return "Wait, what isn't there?";
     }
-    if (/^(i just|main bas|main sirf|bas|i was just)\s*[.…]?$/i.test(text.trim())) {
+    if (/^(i just|main bas|main sirf|bas|i was just)\s*([.\u2026]|\.{2,3})?\s*$/i.test(text.trim())) {
       const lang = IntentClassifier.detectLanguageDominance(raw);
       if (lang === 'hinglish') return "Haan? You just...?";
       if (lang === 'hindi') return "हाँ? तुम बस...?";

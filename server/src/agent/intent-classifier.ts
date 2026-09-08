@@ -16,7 +16,7 @@ export interface IntentClassificationContext {
 
 export interface NarrativeAnalysisResult {
   isNarrative: boolean;
-  type: 'day_experience' | 'childhood' | 'friend_conflict' | 'pain_bad_day' | 'embarrassing_moment' | 'work_college' | 'shopping_app' | 'milestone_achievement' | 'story_continuation' | 'story_end' | 'general_sharing' | 'animal_encounter' | 'none';
+  type: 'day_experience' | 'childhood' | 'friend_conflict' | 'friend_harassment_story' | 'pain_bad_day' | 'embarrassing_moment' | 'work_college' | 'shopping_app' | 'milestone_achievement' | 'story_continuation' | 'story_end' | 'general_sharing' | 'animal_encounter' | 'none';
   storyType: string;
   mainEvent: string;
   peopleMentioned: string[];
@@ -648,6 +648,32 @@ export class IntentClassifier {
       };
     }
 
+    // 3c. Friend Troubled, Harassed, or Blackmailed by Someone
+    const isFriendTroubledNarrative = (
+      /\b(friend|best friend|dost|saheli)\b/i.test(lower) &&
+      (/\b(troubling|blackmailing|harassing|disturbing|pestering|threatening|stalking|following|calling her|crying|pareshan|tang|blackmail)\b/i.test(lower))
+    ) || (
+      /\b(got a call from my best friend|got a call from my friend|my friend called me|called me and she was crying)\b/i.test(lower)
+    );
+
+    if (isFriendTroubledNarrative) {
+      return {
+        ...emptyResult,
+        isNarrative: true,
+        type: 'friend_harassment_story',
+        storyType: 'friend_troubled',
+        mainEvent: 'Friend called sharing that a guy is troubling or blackmailing her',
+        place: 'phone / call',
+        emotion: 'worried / concerned',
+        problem: 'A guy is harassing, calling, or blackmailing user\'s friend',
+        interestingDetail: lower,
+        details: ['friend troubled by a guy', 'phone call from friend'],
+        people: ['friend', 'guy'],
+        emotions: ['worried', 'concerned'],
+        confidence: 0.98
+      };
+    }
+
     // 4. College / School Funny Moments / Classroom Laughing / Surprise tests / Teacher Reprimand
     // Catches:
     // - "Kal college mein na ek bahut funny incident hua, phir mera friend literally floor pe gir gaya laughing."
@@ -975,7 +1001,7 @@ export class IntentClassifier {
   public static isAdviceIntent(text: string): { requestedAdvice: boolean; declinedAdvice: boolean } {
     const lower = text.toLowerCase().trim();
     const declinedAdvice = /(सलाह मत देना|कोई सलाह मत देना|सलाह नहीं चाहिए|सलाह मत दो|सिर्फ सुनो|बस सुनो|बताना चाहती हूँ|बताना चाहता हूँ)/.test(text) || /\b(advice mat dena|no advice|don't want advice|dont want advice|not looking for advice|no suggestions|i don't need advice|dont need advice|advice nahi chahiye|mat samjhao|just listen|just want to tell you|sirf suno)\b/i.test(lower);
-    const requestedAdvice = /(अगर तुम मेरी जगह|क्या करना चाहिए|क्या करूँ|क्या करूं|सलाह दो|मुझे बताओ क्या करूँ)/.test(text) || /\b(agar tum meri jagah hoti|agar tum meri jagah hote|what should i do|what would you do|what do you suggest|give me (?:some )?advice|you give me (?:some )?advice|give (?:some )?advice|need (?:some )?advice|mujhe kya karna chahiye|kya karu|kya karun|advice do|kuch advice do|suggest me something|tell me what to do|what to do)\b/i.test(lower);
+    const requestedAdvice = /(अगर तुम मेरी जगह|क्या करना चाहिए|क्या करूँ|क्या करूं|सलाह दो|मुझे बताओ क्या करूँ)/.test(text) || /\b(agar tum meri jagah hoti|agar tum meri jagah hote|what should i do|what would you do|what do you suggest|give me (?:some )?advice|you give me (?:some )?advice|give (?:some )?advice|need (?:some )?advice|mujhe kya karna chahiye|kya karu|kya karun|advice do|kuch advice do|suggest me something|tell me what to do|what to do|i don'?t know what to do|dont know what to do|give some advice|give advice)\b/i.test(lower);
     return { requestedAdvice, declinedAdvice };
   }
 

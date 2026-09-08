@@ -208,6 +208,7 @@ export type SocialSituation =
   | 'career_anxiety'
   | 'crush_situation'
   | 'breakup_situation'
+  | 'friend_troubled'
   | 'positive_event'
   | 'general_life';
 

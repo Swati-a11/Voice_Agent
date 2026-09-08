@@ -142,6 +142,30 @@ export class StoryEngine {
       };
     }
 
+    // 3.5 Friend Troubled / Harassed / Blackmailed
+    if (
+      (/\b(troubling|blackmailing|harassing|disturbing|pestering|threatening|stalking)\b/i.test(lower) &&
+      /\b(friend|best friend|dost|saheli|she|her)\b/i.test(lower)) ||
+      /\b(got a call from my best friend|got a call from my friend|my friend called me)\b/i.test(lower)
+    ) {
+      updated.situation = 'friend_troubled';
+      updated.people = ['user', 'friend', 'troubler'];
+      if (/\b(blackmail|blackmailing|threat|threatening)\b/i.test(lower)) {
+        updated.otherPersonActions.push('blackmailing friend');
+        return {
+          updatedStory: updated,
+          hasDirectResponse: true,
+          responseText: "Wait, that's really serious! What is he blackmailing her with? Is she safe right now?"
+        };
+      }
+      updated.otherPersonActions.push('troubling friend');
+      return {
+        updatedStory: updated,
+        hasDirectResponse: true,
+        responseText: "Wait, that's really worrying! What is he doing to her exactly? Is she safe right now?"
+      };
+    }
+
     // 4. "I called her stupid because she disagreed with me"
     if (/\b(called her (?:stupid|dumb|idiot)|called him (?:stupid|dumb|idiot))\b/i.test(lower) && /\b(disagreed|different opinion|disagreement)\b/i.test(lower)) {
       updated.situation = 'friendship_conflict';
@@ -515,7 +539,14 @@ export class StoryEngine {
     }
 
     // 10. Contextual "I don't know what to do" (Section 20)
-    if (/\b(i don'?t know what to do|don'?t know what to do|what should i do now|kya karu samajh nahi aa raha)\b/i.test(lower)) {
+    if (/\b(i don'?t know what to do|don'?t know what to do|what should i do now|kya karu samajh nahi aa raha|give some advice|give me some advice)\b/i.test(lower)) {
+      if (updated.situation === 'friend_troubled' || updated.otherPersonActions.some(a => a.includes('blackmail') || a.includes('troubl'))) {
+        return {
+          updatedStory: updated,
+          hasDirectResponse: true,
+          responseText: "If someone is blackmailing or troubling her, the most important thing is not to panic and NEVER give in to any demands. Make sure she takes screenshots and saves all evidence, and get family or authorities involved right away. Is she somewhere safe right now?"
+        };
+      }
       if (updated.situation === 'friendship_conflict') {
         return {
           updatedStory: updated,
@@ -523,11 +554,16 @@ export class StoryEngine {
           responseText: "Okay, let's slow it down. Do you want to fix things with her, or do you think you need some space first?"
         };
       }
-      if (context?.interviewContext?.hasUpcomingInterview) {
+      if (
+        context?.interviewContext?.hasUpcomingInterview ||
+        updated.situation === 'career_anxiety' ||
+        /\b(referral|refill|project|projects|resume|portfolio|job)\b/i.test(lower) ||
+        (context?.previousAgentText && /\b(referral|refill|project|projects|role)\b/i.test(context.previousAgentText))
+      ) {
         return {
           updatedStory: updated,
           hasDirectResponse: true,
-          responseText: "Okay, don't panic. We can prepare for the interview step by step. What topic do you want to start with?"
+          responseText: "Honestly, for a good referral you don't need a dozen projects. Just build one clean, end-to-end working project with a live demo that solves a real problem. That alone makes your profile stand out. Which specific role or stack are you targeting?"
         };
       }
       if (context?.breakupContext?.active || updated.situation === 'breakup_situation') {

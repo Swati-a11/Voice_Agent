@@ -1753,8 +1753,8 @@ stale=false`);
 
     // 17. Good food / great meal story
     if (
-      /\b(ate|had|got|eaten|ordered|khaaya|khaya|khana|meal|biryani|pizza|pasta|food|lunch|dinner|breakfast|chai|coffee|samosa|maggi|pani puri|ice cream|dessert|snack|restaurant|dhaba)\b/i.test(lower) &&
-      /\b(really good|so good|amazing|incredible|delicious|best|awesome|bahut achha|bahut acha|bahut accha|zyada acha|so nice|so tasty|great|yummy|soo good|fantastic|proper)\b/i.test(lower)
+      /\b(ate|eaten|ordered|khaaya|khaya|khana|meal|biryani|pizza|pasta|food|lunch|dinner|breakfast|chai|coffee|samosa|maggi|pani puri|ice cream|dessert|snack|restaurant|dhaba)\b/i.test(lower) &&
+      /\b(really good|so good|amazing|incredible|delicious|deliciously|tasty|bahut achha|bahut acha|bahut accha|zyada acha|so nice|so tasty|great food|great meal|yummy|soo good|fantastic)\b/i.test(lower)
     ) {
       if (lang === 'hindi') {
         return "यार, अच्छा खाना मिले तो दिन सच में बन जाता है! क्या खाया इतना अच्छा?";
@@ -1838,13 +1838,20 @@ stale=false`);
       return "Ohhh yeah, I remember you mentioning that! What's going on with it now?";
     }
 
-    // 24. Friend being troubled / harassed by someone (Test 1)
+    // 24. Friend being troubled / harassed / blackmailed by someone (Test 1)
     if (
-      /\b(troubling|bothering|harassing|disturbing|pestering|problem de raha|pareshan kar raha|tang kar raha)\b/i.test(lower) &&
-      /\b(friend|dost|saheli|yaar)\b/i.test(lower) &&
-      /\b(guy|someone|boy|person|man|ladka|banda)\b/i.test(lower)
+      /\b(troubling|bothering|harassing|disturbing|pestering|problem de raha|pareshan kar raha|tang kar raha|blackmail|blackmailing|threatening|stalking)\b/i.test(lower) &&
+      /\b(friend|dost|saheli|yaar)\b/i.test(lower)
     ) {
       const lang = IntentClassifier.detectLanguageDominance(raw);
+      if (/\b(blackmail|blackmailing|threat|threatening)\b/i.test(lower)) {
+        if (lang === 'hindi') {
+          return "रुको, यह तो बहुत गंभीर बात है! वो किस बात को लेकर ब्लैकमेल कर रहा है? क्या वो अभी सुरक्षित है?";
+        } else if (lang === 'hinglish') {
+          return "Wait, blackmail kar raha hai?! Yeh toh bohot serious hai. Kis cheez ko leke blackmail kar raha hai? Woh safe hai na?";
+        }
+        return "Wait, that's really serious! What is he blackmailing her with? Is she safe right now?";
+      }
       if (lang === 'hindi') {
         return "रुको, यह तो चिंताजनक है। वो उसे क्या कर रहा है?";
       } else if (lang === 'hinglish') {
@@ -2286,17 +2293,6 @@ stale=false`);
       return "Got it — one question at a time with honest feedback. Let's begin. Tell me about yourself and your background with software development.";
     }
 
-    // 0.000000000045 Interviewer Roleplay Activation ("pretend your my interviewer for a software developer role")
-    if (/\b(pretend\s+(?:you'?re|your)\s+(?:my|an)?\s*interviewer|be\s+(?:an|my)?\s*interviewer\s*(?:and\s+take\s+my\s+interview)?|take\s+(?:my\s+)?interview|interview\s+me|start\s+(?:the|my|an)?\s*interview|interviewer\s+mode|mock\s+interview|act\s+(?:like|as)\s+(?:an|my)?\s*interviewer|ask\s+me\s+interview\s+questions|give\s+me\s+honest\s+(?:interview\s+)?feedback|take\s+my\s+interview\s+one\s+question\s+at\s+a\s+time)\b/i.test(text)) {
-      this.activeRoleplay = 'interviewer';
-      this.conversationMode = 'INTERVIEWER_ROLEPLAY';
-      this.interviewState.active = true;
-      this.interviewRoleplayStep = 1;
-      if (/\b(software developer|software dev|web developer|frontend|backend|fullstack|react)\b/i.test(text)) {
-        this.interviewContext.role = 'software developer';
-      }
-      return "Alright, let's do it properly as your interviewer. I'll ask one question at a time and I'll be honest with the feedback. Start by telling me about yourself.";
-    }
 
     // 0.00000000005 Pending Question: Interview Role Resolution ("its for best lover roll" -> web developer role, software developer role)
     const isInterviewRoleQuestion = !/\b(pretend|act as|take my interview|mock interview|one question at a time|interviewer)\b/i.test(text) && (prevAgent.includes('what role') || this.pendingQuestion?.expectedInformation === 'interview_role');
@@ -2612,11 +2608,27 @@ stale=false`);
       this.activeRoleplay = 'interviewer';
       this.conversationMode = 'INTERVIEWER_ROLEPLAY';
       this.interviewState.active = true;
-      this.interviewRoleplayStep = 1;
-      const roleMatch = text.match(/\b(?:for|as|of)\s+(?:a\s+|an\s+)?([a-z0-9_ -]+?)(?:\s+role|\s+position|\s+interview|$)/i);
-      const role = roleMatch ? roleMatch[1].trim() : 'software developer';
-      this.interviewContext.role = role;
-      return `Alright, let's do it properly as your interviewer for ${role}. I'll ask one question at a time and give you constructive feedback. Start by telling me about yourself and your background.`;
+      const roleMatch = text.match(/\b(?:for|as|of)\s+(?:a\s+|an\s+)?([a-z0-9_#+ -]+?)(?:\s+role|\s+position|\s+interview|\s+roll|$)/i);
+      const extractedRole = roleMatch && roleMatch[1] && !/^(the|my|an|this|a|me|interview|one)$/i.test(roleMatch[1].trim()) && roleMatch[1].trim().length > 1
+        ? roleMatch[1].trim()
+        : '';
+
+      if (extractedRole) {
+        this.interviewContext.role = extractedRole;
+        this.interviewRoleplayStep = 2;
+        const roleLower = extractedRole.toLowerCase();
+        if (/ai|artificial intelligence|ml|machine learning|data science|llm|deep learning/i.test(roleLower)) {
+          return `Awesome, let's start your mock interview for the ${extractedRole} role! Here is your first question: In a Retrieval-Augmented Generation (RAG) system, how do you handle vector embeddings, chunking strategies, and reranking to prevent model hallucinations?`;
+        }
+        if (/frontend|front end|react|ui|web developer|javascript/i.test(roleLower)) {
+          return `Awesome, let's start your mock interview for ${extractedRole}! Here is your first question: How does React's Virtual DOM reconciliation diffing algorithm work, and how do you prevent unnecessary re-renders in large component trees?`;
+        }
+        return `Awesome, let's start your mock interview for ${extractedRole}! Here is your first question: How do you design database indexing, caching strategies, and connection pooling to handle high concurrency under load?`;
+      } else {
+        this.interviewContext.role = '';
+        this.interviewRoleplayStep = 0;
+        return "I'd love to! Which role would you like to interview for? (For example: AI Engineer, Frontend Developer, Backend, or Fullstack?)";
+      }
     }
 
     // 0.00000000014 Track nervous & conflict states for multi-topic synthesis
@@ -2738,25 +2750,55 @@ stale=false`);
         this.conversationMode = 'CASUAL';
         this.interviewState.active = false;
       } else {
+        // Step 0: User is answering which role they want to interview for
+        if (this.interviewRoleplayStep === 0 || !this.interviewContext.role) {
+          if (!/^(hello|hi|hey|test|wait|haan)[.!?]?$/i.test(text.trim())) {
+            const roleCandidate = text.replace(/^(?:for|an?|the|as|i want|i would like|role is|position is|roll is|my role is)\s+/i, '').trim();
+            this.interviewContext.role = roleCandidate || 'Software Developer';
+            this.interviewRoleplayStep = 2;
+            const roleLower = this.interviewContext.role.toLowerCase();
+            if (/ai|artificial intelligence|ml|machine learning|data science|llm|deep learning/i.test(roleLower)) {
+              return `Awesome, let's start your mock interview for the ${this.interviewContext.role} position! First question: In a Retrieval-Augmented Generation (RAG) system, how do you handle vector embeddings, chunking strategies, and reranking to prevent model hallucinations?`;
+            }
+            if (/frontend|front end|react|ui|web developer|javascript/i.test(roleLower)) {
+              return `Awesome, let's start your mock interview for ${this.interviewContext.role}! First question: How does React's Virtual DOM reconciliation diffing algorithm work, and how do you prevent unnecessary re-renders in large component trees?`;
+            }
+            return `Awesome, let's start your mock interview for ${this.interviewContext.role}! First question: How do you design database indexing, caching strategies, and connection pooling to handle high concurrency under load?`;
+          }
+          return "I can hear you! Which role would you like to interview for? (For example: AI Engineer, Frontend Developer, Backend, or Fullstack?)";
+        }
+
+        const roleLower = (this.interviewContext.role || '').toLowerCase();
+        const isAI = /ai|artificial intelligence|ml|machine learning|data science|llm|deep learning/i.test(roleLower);
+        const isFrontend = /frontend|front end|react|ui|web developer|javascript/i.test(roleLower);
+
         // Handle explicit "I don't know" / non-answers dynamically based on what was asked
-        if (/\b(don'?t know|dont know|no idea|can'?t remember|not sure|skip|pass|i have no idea)\b/i.test(text)) {
+        if (/\b(don'?t know|dont know|no idea|can'?t remember|not sure|skip this|skip question|i skip|pass this|i pass|i have no idea)\b/i.test(text)) {
           const sentences = prevAgent.split(/[.?!]/).filter(s => s.trim().length > 0);
           const lastQuestion = sentences.length > 0 ? sentences[sentences.length - 1] : prevAgent;
 
           if (/error handling|retries|llm|external ai|endpoints in production/i.test(lastQuestion) || this.interviewRoleplayStep >= 4) {
             this.interviewRoleplayStep = 5;
-            return "That's completely fine! For external AI endpoints, you typically implement exponential backoff with jitter, fallback models, and circuit breakers. Next question: How would you design caching with Redis or CDN to optimize read-heavy web applications?";
+            return "That's completely fine! For external AI endpoints, you typically implement exponential backoff with jitter, fallback models, and circuit breakers. Would you like to wrap up and get your overall feedback now?";
           }
-          if (/re-render|render frequently|usememo|state management/i.test(lastQuestion) || this.interviewRoleplayStep === 3) {
+          if (/re-render|render frequently|usememo|state management|transformer|vector|rag/i.test(lastQuestion) || this.interviewRoleplayStep === 3) {
             this.interviewRoleplayStep = 4;
+            if (isAI) {
+              return "No worries! In RAG systems, hallucinations are minimized by semantic chunking, cosine distance thresholds, and Cross-Encoder rerankers. Next question: How do you structure error handling and exponential retries with jitter when calling external LLMs in production?";
+            }
+            if (isFrontend) {
+              return "No problem! REST uses multiple fixed endpoints where the server defines the payload, while GraphQL exposes a single endpoint allowing the client to query exact fields. Next question: How do you optimize Core Web Vitals (LCP, INP) and manage async promises cleanly?";
+            }
             return "No worries at all! In React, frequent re-renders are optimized using memoization (like useMemo, useCallback, React.memo) and keeping state local. Next question: How would you structure error handling and retries when calling external AI or LLM endpoints in production?";
           }
-          if (/rest api|graphql|endpoint|differ from graphql/i.test(lastQuestion) || this.interviewRoleplayStep === 2) {
+          if (/rest api|graphql|endpoint|differ from graphql|websocket|latency|stt|tts|speech to text|voice agent/i.test(lastQuestion) || this.interviewRoleplayStep === 2) {
             this.interviewRoleplayStep = 3;
-            return "No problem! In short, REST uses multiple fixed endpoints where the server dictates the payload, whereas GraphQL uses a single endpoint allowing the client to query exact fields. Next question: How do you handle state management and performance optimization in React when components re-render frequently?";
-          }
-          if (/websocket|latency|stt|tts|speech to text|voice agent/i.test(lastQuestion) || /voice agent/i.test(prevAgent)) {
-            this.interviewRoleplayStep = 2;
+            if (isAI) {
+              return "No worries at all! For real-time voice agents, latency is minimized by streaming audio chunks over binary WebSockets and keeping VAD turnaround low. Next question: In a Retrieval-Augmented Generation (RAG) system, how do you handle vector embeddings and chunking to prevent model hallucinations?";
+            }
+            if (isFrontend) {
+              return "No worries! In React, Virtual DOM diffing reconciliation minimizes DOM updates, and memoization stops parent re-renders. Next question: Can you explain how REST APIs differ from GraphQL from a frontend perspective?";
+            }
             return "No worries at all! That's completely normal in a technical interview. For real-time voice agents, latency is minimized by streaming audio chunks over binary WebSockets and keeping VAD turnaround low. Let's try another question: Can you explain how REST APIs differ from GraphQL?";
           }
           this.interviewRoleplayStep++;
@@ -2768,33 +2810,71 @@ stale=false`);
           /\b(give me (?:the )?feedback|how was my interview|how did i do|give feedback|feedback please|overall feedback|can you keep my feedback|can you give feedback|give feedback on this interview|feedback of interview|feedback on (?:this|the)?\s*interview)\b/i.test(text) ||
           (/\bfeedback\b/i.test(text) && /\b(interview|how was|performance|give|share|keep)\b/i.test(text))
         ) {
-          return "Overall, you communicated your background and projects really well! You were clear and concise on your introduction. My main advice for tomorrow is to brush up on React optimization techniques and async state handling. Stay confident—you're in good shape!";
+          return `Overall, you communicated your background and technical concepts really well for the ${this.interviewContext.role} role! You were clear and concise on your introduction. My main advice for tomorrow is to brush up on architectural tradeoffs and real-world failure handling. Stay confident—you're in good shape!`;
         }
 
-        // Handle project explanation (e.g. Voice Agent)
-        if (/\b(voice agent|voice bot|ai agent|scratch|speech to text|stt|tts|rag|pipeline)\b/i.test(text)) {
+        // Handle candidate asking for more questions
+        if (/\b(more question|another question|ask another|next question|one more question|ask me another)\b/i.test(text)) {
+          if (isAI) {
+            this.interviewRoleplayStep = 4;
+            return "Awesome, let's do another AI question: How do you evaluate embedding models and measure retrieval quality using metrics like Mean Reciprocal Rank (MRR) or NDCG?";
+          }
+          if (isFrontend) {
+            this.interviewRoleplayStep = 4;
+            return "Great, next frontend question: How does the browser Event Loop coordinate the Call Stack, Microtask Queue (promises), and Macrotask Queue (timers)?";
+          }
+          this.interviewRoleplayStep = 4;
+          return "Great, next question: How would you design a distributed caching strategy using Redis to prevent cache stampedes and thundering herd problems?";
+        }
+
+        // Handle project explanation during introduction (e.g. Voice Agent)
+        if (/\b(built (a |an )?voice agent|built (a |an )?voice bot|created (a |an )?voice agent|worked on (a )?voice agent)\b/i.test(text) && this.interviewRoleplayStep === 1) {
+          this.interviewRoleplayStep = 2;
           return "Building a real-time voice agent from scratch is a solid project! How did you manage WebSocket state transitions and keep latency low between STT and TTS?";
         }
 
-        // Handle user clarifying role / asking next question
-        if (/\b(you (?:are|were) (?:the |my )?interview|ask me another question|next question|another question)\b/i.test(text)) {
-          return "Got it, back in interviewer mode! Let's dive in: For an AI Engineer role, how would you design a Retrieval-Augmented Generation (RAG) system to minimize model hallucinations?";
-        }
-
-        // Normal step progression
+        // Step 1: Candidate gave introduction
         if (this.interviewRoleplayStep === 1) {
-          if (/^(hello|hi|hey|can you hear me|test|hello hello|wait|haan)[.!?]?$/i.test(text.trim())) {
+          if (/^(hello|hi|hey|can you hear me|test|hello hello|wait|haan|roll|role)[.!?]?$/i.test(text.trim())) {
             return "I can hear you loud and clear! Whenever you're ready, start by telling me a bit about yourself and your background.";
           }
           this.interviewRoleplayStep = 2;
+          if (isAI) {
+            return "Good start! First technical question for AI Engineer: In real-time AI voice agents and LLM streaming pipelines, how do you manage WebSocket state transitions and keep latency low between STT, LLM generation, and TTS?";
+          }
+          if (isFrontend) {
+            return "Good start! First technical question for Frontend / React: How does React's Virtual DOM reconciliation diffing algorithm work, and how do you prevent unnecessary re-renders in large component trees?";
+          }
           return "Good start. Tell me about one technical project you've worked on, or how you handle asynchronous JavaScript and promises in your apps.";
         }
+
+        // Step 2: Candidate answered Q1 -> Provide feedback + Q2 + ask if they want more
         if (this.interviewRoleplayStep === 2) {
           this.interviewRoleplayStep = 3;
-          return "Solid explanation! Next question: How do you handle state management and performance optimization in React when components re-render frequently?";
+          if (isAI) {
+            return "Solid insights on streaming buffers and latency optimization! Next question: In a Retrieval-Augmented Generation (RAG) system, how do you handle vector embeddings, chunking strategies, and reranking to prevent model hallucinations? Would you like another question on AI engineering, or move to overall feedback?";
+          }
+          if (isFrontend) {
+            return "Solid explanation on component rendering! Next question: Can you explain how REST APIs differ from GraphQL from a frontend data-fetching perspective? Would you like another question or wrap up with feedback?";
+          }
+          return "Solid explanation! Next question: How do you handle state management and performance optimization in React when components re-render frequently? Would you like another question or move to feedback?";
         }
-        if (this.interviewRoleplayStep >= 3) {
-          return "Good points on that! Following up: how would you structure error handling and retries when calling external AI or LLM endpoints in production?";
+
+        // Step 3: Candidate answered Q2 -> Provide feedback + Q3 + ask if they want more
+        if (this.interviewRoleplayStep === 3) {
+          this.interviewRoleplayStep = 4;
+          if (isAI) {
+            return "Great points on semantic embeddings and reranking! Next: How do you structure error handling, rate limiting, and exponential retries with jitter when calling external LLM APIs in production? Would you like another question or your final feedback?";
+          }
+          if (isFrontend) {
+            return "Good points on network payload efficiency! Next: How do you optimize Core Web Vitals (LCP, INP) and manage async state in modern React apps? Would you like another question or your final feedback?";
+          }
+          return "Good points on that! Following up: how would you structure error handling and retries when calling external AI or LLM endpoints in production? Would you like another question or your final feedback?";
+        }
+
+        // Step 4+: Candidate answered Q3 -> Wrap up & offer feedback
+        if (this.interviewRoleplayStep >= 4) {
+          return "Excellent points on production resilience! That completes our technical questions for the role. Would you like your overall interview feedback now?";
         }
       }
     }
@@ -3157,15 +3237,32 @@ stale=false`);
       return "Got it, no advice at all. I'm just here listening, go ahead.";
     }
 
-    if (adviceIntent.requestedAdvice || (this.conversationMode === 'ADVICE' && /\b(give me some advice|give me advice|what to do|what should i do|you give me some advice)\b/i.test(text))) {
+    if (adviceIntent.requestedAdvice || (this.conversationMode === 'ADVICE' && /\b(give me some advice|give me advice|what to do|what should i do|you give me some advice|give some advice|i don't know what to do|i dont know what to do)\b/i.test(text))) {
       this.conversationMode = 'ADVICE';
       if (this.personalStoryThread.isActive) {
         this.personalStoryThread.userWantsAdvice = true;
       }
       const lang = IntentClassifier.detectLanguageDominance(raw);
+      const allContextText = [
+        text,
+        this.personalStoryThread.topic || '',
+        this.personalStoryThread.storyType || '',
+        ...(this.personalStoryThread.keyDetails || []),
+        ...this.memoryManager.getRecentTurns().slice(-6).map((t: any) => t.text || '')
+      ].join(' ').toLowerCase();
 
-      // Shopping / Impulse buy dilemma
-      if ((this.personalStoryThread.topic || '').includes('shopping') || (this.personalStoryThread.storyType || '').includes('shopping') || /\b(kharidna|shopping|buy|order|purchase)\b/i.test(text) || (this.personalStoryThread.keyDetails || []).some(d => d.includes('shopping') || d.includes('order'))) {
+      // 1. Blackmail / Harassment / Safety Situation
+      if (/\b(blackmail|blackmailing|harass|harassing|troubl|stalking|threat|threatening|threaten)\b/i.test(allContextText)) {
+        if (lang === 'hindi') {
+          return "अगर किसी को कोई परेशान या ब्लैकमेल कर रहा है, तो सबसे पहली बात—घबराना बिल्कुल नहीं है और उसकी किसी भी धमकी के आगे झुकना नहीं है! सारे मैसेजेस और कॉल्स के स्क्रीनशॉट सुरक्षित रखो और तुरंत किसी बड़े या पुलिस/साइबर सेल को बताओ। क्या तुम्हारी दोस्त अभी सेफ है?";
+        } else if (lang === 'hinglish') {
+          return "Dekho, if someone is blackmailing or troubling her, sabse important baat: bilkul panic nahi karna aur uski kisi demand ko accept mat karna. Saare chats aur calls ke screenshots aur evidence preserve karo, aur immediately kisi trusted family member ya cyber cell ko report karo. Is she safe right now?";
+        }
+        return "If someone is blackmailing or troubling her, the most important thing is not to panic and NEVER give in to any demands. Make sure she takes screenshots and saves all evidence, and get family or authorities involved right away. Is she somewhere safe right now?";
+      }
+
+      // 2. Shopping / Impulse buy dilemma
+      if (/\b(kharidna|shopping|buy|order|purchase)\b/i.test(allContextText)) {
         if (lang === 'hindi') {
           return "ईमानदारी से कहूँ तो, अगर मूड ठीक करने के लिए शॉपिंग करने का मन हो रहा है, तो पहले कार्ट में डालकर एक-दो घंटे रुक जाओ। अगर तब भी सच में ज़रूरत लगे तभी आर्डर करना, वरना बेवजह पैसे खर्च हो जाएँगे!";
         } else if (lang === 'hinglish') {
@@ -3174,20 +3271,33 @@ stale=false`);
         return "Honestly, if you're shopping to cheer yourself up, my advice is to add it to your cart and wait a couple of hours. If you genuinely still want it later, then go for it—otherwise you might end up regretting the impulse buy!";
       }
 
-      if ((this.personalStoryThread.topic || '').includes('friend') || (this.personalStoryThread.keyDetails || []).some(d => d.includes('friend') || d.includes('reply') || d.includes('fight'))) {
+      // 3. Referral / Project anxiety dilemma
+      if (/\b(referral|refill|project|projects|resume|portfolio|job)\b/i.test(allContextText) && /\b(show|give|refer|teacher|company|ai engineer|developer)\b/i.test(allContextText)) {
         if (lang === 'hindi') {
-          return "अगर मैं तुम्हारी जगह होती, तो मैं अभी तुरंत गुस्सा नहीं करती। थोड़ा टाइम देकर एक बार नॉर्मल मैसेज करके पूछती कि सब ठीक है ना।";
+          return "रेफरल के लिए दस प्रोजेक्ट्स की ज़रूरत नहीं होती। सिर्फ एक ऐसा सॉलिड, वर्किंग प्रोजेक्ट बनाओ जिसमें असली प्रॉब्लम सॉल्व हो रही हो—जैसे कोई एआई टूल या फुलस्टैक ऐप। क्या हम मिलकर एक अच्छा आइडिया सोचे?";
         } else if (lang === 'hinglish') {
-          return "Honestly, agar main tumhari jagah hoti toh main immediately react nahi karti. Thoda space dekar just casually check in karti ki everything is okay.";
+          return "Honestly, referral ke liye 5-10 projects nahi chahiye hote. Bas ek standout, working project banao jiska clean code aur live demo ho. Usse koi bhi referral dene mein confident feel karega. Konsi domain ya role target kar rahe ho?";
         }
-        return "If I were in your place, I wouldn't jump to conclusions just yet. I'd give it a little time and then send a simple, low-pressure check-in.";
+        return "Honestly, for a good referral you don't need a dozen projects. Just build one clean, end-to-end working project with a live demo that solves a real problem. That alone makes your profile stand out. Which specific role or stack are you targeting?";
       }
+
+      // 4. Friend fight / Misunderstanding
+      if (/\b(fight|argument|said something|not talking|ulta sidha|gussa|friend)\b/i.test(allContextText)) {
+        if (lang === 'hindi') {
+          return "गुस्से में दोनों तरफ से कड़वी बातें निकल जाती हैं। मेरी सलाह है कि थोड़ा वक्त दो ताकि दोनों का गुस्सा शांत हो, और फिर एक सिंपल मैसेज भेजो कि 'मुझे अपनी दोस्ती प्यारी है, क्या हम बात कर सकते हैं?'। क्या लगता है?";
+        } else if (lang === 'hinglish') {
+          return "Dekho, fight ke time par emotions high hote hain aur dono taraf se galti ho jaati hai. Thoda cool down hone ka time do, phir ek simple message drop karo ki 'hey, I value our friendship, let's sort this out'. Tab tak thoda chill karo.";
+        }
+        return "When tempers flare, both sides often say things they regret. Give it a little time for things to cool down, and then send a simple message saying you value the friendship and want to clear things up. How are you feeling about it right now?";
+      }
+
+      // 5. General overwhelm / feeling stuck
       if (lang === 'hindi') {
-        return "अगर मैं तुम्हारी जगह होती, तो पहले थोड़ा शांत होकर सोचती और फिर एक कदम आगे बढ़ाती।";
+        return "अगर मैं तुम्हारी जगह होती, तो सब कुछ एक साथ संभालने की जगह सिर्फ एक चीज़ चुनती जिसे मैं अभी कंट्रोल कर सकती हूँ। क्या चीज़ तुम्हें सबसे ज़्यादा परेशान कर रही है?";
       } else if (lang === 'hinglish') {
-        return "Dekho, agar main tumhari jagah hoti, toh pehle thoda deep breath leti and step by step handle karti.";
+        return "Dekho, agar main tumhari jagah hoti, toh sab kuch ek saath solve karne ki jagah bas agla ek single step leti. Sabse zyaada kis cheez ka stress lag raha hai abhi?";
       }
-      return "If I were in your place, I'd take a step back and tackle it one step at a time rather than stressing all at once.";
+      return "If I were in your place, I wouldn't try to solve everything at once. Pick just the next immediate step you can control and take it one piece at a time. What's weighing on your mind the most right now?";
     }
 
     // 0.000003 Personal Narrative & Active Listening Priority (CRITICAL)
@@ -4451,8 +4561,12 @@ stale=false`);
     }
 
     // 0.11 Stress & Personalized Emotional Check-in
-    if (/\b(stressed today|really stressed|very stressed|so stressed|i'm stressed|im stressed|i am stressed|feeling low|feeling down|feeling really low today)\b/i.test(text)) {
-      return "Arre yaar, I get why you're feeling stressed. What's going on?";
+    if (/\b(stressed|stress|nervous|anxious|overwhelmed|feeling low|feeling down)\b/i.test(text)) {
+      const hasSpecificReason = /\b(interview|project|projects|job|assignment|exam|referral|work|deadline|fight|money|boss|college)\b/i.test(text);
+      if (hasSpecificReason) {
+        return "Yeah, I get why you're stressed. Big challenges can definitely feel overwhelming, but taking it one step at a time makes a huge difference. What's stressing you out the most right now?";
+      }
+      return "Arre yaar, what happened? What's stressing you out today?";
     }
     if (/\b(frustrated today|really frustrated|so frustrated|i'm frustrated|im frustrated|this is so annoying)\b/i.test(text)) {
       return "Okay, okay, I got you. Let me understand this properly. What's causing the frustration?";
@@ -4607,7 +4721,11 @@ stale=false`);
       return "Oh no... I'm really sorry you're feeling down. What happened? I'm right here if you want to talk about it.";
     }
     if (/\b(stressed|very stressed|nervous|anxious|scared|worried|overwhelmed)\b/i.test(text)) {
-      return "Yeah, I get why you're stressed. Big challenges can definitely feel overwhelming, but taking it one step at a time makes a huge difference. What's stressing you out the most right now?";
+      const hasSpecificReason = /\b(interview|project|projects|job|assignment|exam|referral|work|deadline|fight|money|boss|college)\b/i.test(text);
+      if (hasSpecificReason) {
+        return "Yeah, I get why you're stressed. Big challenges can definitely feel overwhelming, but taking it one step at a time makes a huge difference. What's stressing you out the most right now?";
+      }
+      return "Arre yaar, what happened? What's stressing you out today?";
     }
     if (/\b(tired|exhausted|burned out|thak gaya)\b/i.test(text)) {
       return "Arre yaar, I get it. Grinding non-stop can be draining. Make sure you take a quick 15-minute break to hydrate and recharge your mind.";

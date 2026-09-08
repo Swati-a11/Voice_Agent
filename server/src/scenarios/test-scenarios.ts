@@ -1092,8 +1092,59 @@ export const TEST_SCENARIOS: ScenarioDefinition[] = [
     steps: [
       { action: 'user_speech', payload: { text: 'What is photosynthesis?' }, description: 'Conversational turn completes smoothly with local memory fallback' }
     ]
+  },
+  {
+    id: 'test_36_human_conversation_quality_regression',
+    name: 'TEST 36: Human Conversation Quality Regression Suite',
+    category: 'Human Conversation Quality',
+    description: 'Validates the 7 regression scenarios: (1) friend-troubling story → natural concern + contextual question, NOT "I\'m following along!", (2) stress+reason → acknowledge both, NOT re-ask cause, (3) birthday-not-wished → natural reaction NO "How did that make you feel?", (4) topic switch on "Forget that", (5) "Nahi hai" → clarification, NOT invented emotion, (6) "I just..." → natural prompt, NOT "could you finish your thought?", (7) STOP → immediate stop no Gemini.',
+    steps: [
+      // TEST 1: Friend-troubling story opener
+      {
+        action: 'user_speech',
+        payload: { text: 'Today when I woke up my friend messaged me that a guy is troubling her.' },
+        description: 'TEST 1: Friend-troubling story → natural concern + contextual question (NOT "I\'m following along! What happened next?")'
+      },
+      // TEST 2: Stress + reason topic switch
+      {
+        action: 'user_speech',
+        payload: { text: 'I am literally very stressed out because I don\'t have good projects to get reference.' },
+        description: 'TEST 2: Stress + reason → acknowledge BOTH, do NOT ask "Is it college? Exams? Assignment?" since reason was already stated'
+      },
+      // TEST 3: Birthday not wished — emotional reaction, no "how did that make you feel"
+      {
+        action: 'user_speech',
+        payload: { text: 'My friend didn\'t wish me on my birthday.' },
+        description: 'TEST 3: Birthday-not-wished → natural reaction ("Ouch. That actually hurts.") NOT "How did that make you feel?"'
+      },
+      // TEST 4: Topic switch on cue word
+      {
+        action: 'user_speech',
+        payload: { text: 'Forget that. Tell me about Astra.' },
+        description: 'TEST 4: Topic switch on "Forget that" → immediate release + answer Astra, NOT continue previous topic'
+      },
+      // TEST 5: Ambiguous statement — no invented emotion
+      {
+        action: 'user_speech',
+        payload: { text: 'Nahi hai.' },
+        description: 'TEST 5: Ambiguous "Nahi hai" → clarify ("Haan? Kya nahi hai?") NOT invent tiredness/sadness/stress'
+      },
+      // TEST 6: Incomplete utterance — natural prompt
+      {
+        action: 'user_speech',
+        payload: { text: 'I just...' },
+        description: 'TEST 6: Trailing "I just..." → "Yeah? You just what?" NOT "Could you please finish your thought?"'
+      },
+      // TEST 7: STOP command
+      {
+        action: 'user_speech',
+        payload: { text: 'STOP' },
+        description: 'TEST 7: STOP → immediate stop, short "Okay, stopping." ack, no Gemini call, no follow-up'
+      }
+    ]
   }
 ];
+
 
 export async function runScenario(scenario: ScenarioDefinition): Promise<{
   scenarioId: string;

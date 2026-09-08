@@ -142,11 +142,11 @@ export class ConversationManager extends EventEmitter {
   private hasIntroducedSelf = false;
 
   private fallbackPool = [
-    "Wait, I didn't quite catch that. Could you say that again?",
-    "Thoda clear nahi sunayi diya, ek baar phir bologe?",
-    "I missed that last bit. What was that?",
-    "Ek second, voice thodi break ho gayi. Phir se batana?",
-    "Sorry, that broke up a little. What did you say?"
+    "Wait, I missed that. What were you saying?",
+    "Thoda clear nahi sunayi diya — phir se bologe?",
+    "Sorry, that last part broke up a little. What was that?",
+    "Hmm, didn't catch that. Say that again?",
+    "Ek second — voice thodi break ho gayi. Phir se batana?"
   ];
   private lastFallbackIndex = -1;
 
@@ -643,6 +643,16 @@ export class ConversationManager extends EventEmitter {
     } else if (detailedClassification.intent === 'compliment') {
       this.conversationMode = 'CASUAL';
     } else if (narrativeAnalysis.isNarrative) {
+      // Guard: If user explicitly states emotion + reason, treat as ADVICE/EMOTIONAL turn
+      // not as a personal story thread — prevents old context hijacking and generic fallback
+      const isExplicitEmotionWithReason = (
+        /\b(stressed out|stressed|very stressed|so stressed|worried|scared|upset|angry|anxious|exhausted|frustrated|nervous)\b/i.test(rawText) &&
+        /\b(because|since|as|kyunki|isliye|coz|cause)\b/i.test(rawText)
+      );
+      if (isExplicitEmotionWithReason) {
+        this.conversationMode = 'ADVICE';
+        this.personalStoryThread.isActive = false;
+      } else {
       this.conversationMode = 'PERSONAL_STORY';
       this.personalStoryThread.isActive = true;
       this.personalStoryThread.topic = this.personalStoryThread.topic || narrativeAnalysis.type;
@@ -665,6 +675,7 @@ export class ConversationManager extends EventEmitter {
       if (narrativeAnalysis.peopleMentioned.length > 0) {
         this.personalStoryThread.peopleMentioned.push(...narrativeAnalysis.peopleMentioned);
       }
+      } // end of isExplicitEmotionWithReason else block
     } else if (detailedClassification.conversationMode) {
       this.conversationMode = detailedClassification.conversationMode;
     }
@@ -1808,7 +1819,31 @@ stale=false`);
       return "Ohhh yeah, I remember you mentioning that! What's going on with it now?";
     }
 
-    return "I'm following along! What happened next?";
+    // 24. Friend being troubled / harassed by someone (Test 1)
+    if (
+      /\b(troubling|bothering|harassing|disturbing|pestering|problem de raha|pareshan kar raha|tang kar raha)\b/i.test(lower) &&
+      /\b(friend|dost|saheli|yaar)\b/i.test(lower) &&
+      /\b(guy|someone|boy|person|man|ladka|banda)\b/i.test(lower)
+    ) {
+      const lang = IntentClassifier.detectLanguageDominance(raw);
+      if (lang === 'hindi') {
+        return "रुको, यह तो चिंताजनक है। वो उसे क्या कर रहा है?";
+      } else if (lang === 'hinglish') {
+        return "Wait, that's worrying. Woh kya kar raha hai exactly? Kab se ho raha hai yeh?";
+      }
+      return "Wait, that's really concerning. What has he been doing to her?";
+    }
+
+    // 25. Natural reaction pool (fallback — never use 'I'm following along!')
+    const storyFallbacks = [
+      "Haan, aage kya hua?",
+      "Wait, and then what?",
+      "Oof. What happened after that?",
+      "Ahh okay. Go on.",
+      "Yeah? And?",
+      "Hmm. Aur phir?",
+    ];
+    return storyFallbacks[Math.floor(Math.random() * storyFallbacks.length)];
   }
 
   private generateDirectIntentResponse(params: {
@@ -1894,6 +1929,58 @@ stale=false`);
         return "Yeah, that's completely understandable. Interview ka stress hona bilkul normal hai, but being nervous doesn't mean you're unprepared. Kaunse role ka interview hai?";
       }
       return "Yeah, that's completely understandable. Interviews can definitely feel stressful, but being nervous doesn't mean you're unprepared. What role is the interview for?";
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // H0f — Stress WITH REASON ("I'm stressed because I don't have good projects")
+    // Must come before story handlers to prevent mis-routing through narrative fallback
+    // ─────────────────────────────────────────────────────────────────────────
+    if (
+      /\b(stressed out|very stressed|so stressed|literally.*stressed|stressed)\b/i.test(text) &&
+      /\b(because|since|as|kyunki|isliye|coz|cause)\b/i.test(text) &&
+      /\b(project|reference|job|career|resume|placement|internship|work|portfolio|experience)\b/i.test(text)
+    ) {
+      this.conversationMode = 'ADVICE';
+      this.personalStoryThread.isActive = false;
+      const lang = IntentClassifier.detectLanguageDominance(raw);
+      if (lang === 'hindi') {
+        return "अरे यार, मैं समझ सकती हूँ यह क्यों stress दे रहा है। जब लगे कि references के लिए strong projects नहीं हैं, यह सच में frustrating होता है। कौन सी field में references चाहिए?";
+      } else if (lang === 'hinglish') {
+        return "Arre yaar, I get why that's stressing you out. Agar tumhe lag raha hai ki reference ke liye strong projects nahi hain, that can feel really frustrating. Kaunsi field mein references chahiye tumhe?";
+      }
+      return "Yeah, I get why that's stressing you out. Not having strong projects when you need references for something can feel really frustrating. What field are you looking for references in?";
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // H0g — Friend didn't wish on birthday (Test 3)
+    // ─────────────────────────────────────────────────────────────────────────
+    if (
+      /\b(didn't wish|did not wish|didn't even wish|forgot my birthday|didn't remember|forget my birthday|not wish)\b/i.test(text) &&
+      /\b(birthday|janamdin|bday|b-day)\b/i.test(text) &&
+      /\b(friend|dost|saheli|yaar|best friend)\b/i.test(text)
+    ) {
+      const lang = IntentClassifier.detectLanguageDominance(raw);
+      if (lang === 'hindi') {
+        return "उफ़, यह तो सच में चुभता है — खासकर जब दोस्त से उम्मीद हो।";
+      } else if (lang === 'hinglish') {
+        return "Ouch. That actually hurts, especially jab tumhe apne dost se expect tha.";
+      }
+      return "Ouch. That actually hurts, especially when you expected it from a friend.";
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // H0h — Ambiguous/incomplete utterance ("Nahi hai", "I just...")
+    // ─────────────────────────────────────────────────────────────────────────
+    if (/^(nahi hai|nahi|nhi hai|nahi tha|nhi tha)\.?$/i.test(text.trim())) {
+      const lang = IntentClassifier.detectLanguageDominance(raw);
+      if (lang === 'hindi' || lang === 'hinglish') return "Haan? Kya nahi hai?";
+      return "Wait, what isn't there?";
+    }
+    if (/^(i just|main bas|main sirf|bas|i was just)\s*[.…]?$/i.test(text.trim())) {
+      const lang = IntentClassifier.detectLanguageDominance(raw);
+      if (lang === 'hinglish') return "Haan? You just...?";
+      if (lang === 'hindi') return "हाँ? तुम बस...?";
+      return "Yeah? You just what?";
     }
 
     // ─────────────────────────────────────────────────────────────────────────

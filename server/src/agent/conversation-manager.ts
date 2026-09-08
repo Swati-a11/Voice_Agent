@@ -2852,7 +2852,7 @@ stale=false`);
         if (this.interviewRoleplayStep === 2) {
           this.interviewRoleplayStep = 3;
           if (isAI) {
-            return "Solid insights on streaming buffers and latency optimization! Next question: In a Retrieval-Augmented Generation (RAG) system, how do you handle vector embeddings, chunking strategies, and reranking to prevent model hallucinations? Would you like another question on AI engineering, or move to overall feedback?";
+            return "Solid insights on vector databases and embeddings! Next question: In real-time AI voice agents and LLM streaming pipelines, how do you manage WebSocket state transitions and keep latency low between STT, LLM generation, and TTS? Would you like another question on AI engineering, or move to overall feedback?";
           }
           if (isFrontend) {
             return "Solid explanation on component rendering! Next question: Can you explain how REST APIs differ from GraphQL from a frontend data-fetching perspective? Would you like another question or wrap up with feedback?";
@@ -2864,7 +2864,7 @@ stale=false`);
         if (this.interviewRoleplayStep === 3) {
           this.interviewRoleplayStep = 4;
           if (isAI) {
-            return "Great points on semantic embeddings and reranking! Next: How do you structure error handling, rate limiting, and exponential retries with jitter when calling external LLM APIs in production? Would you like another question or your final feedback?";
+            return "Great points on streaming buffers and latency optimization! Next: How do you structure error handling, rate limiting, and exponential retries with jitter when calling external LLM APIs in production? Would you like another question or your final feedback?";
           }
           if (isFrontend) {
             return "Good points on network payload efficiency! Next: How do you optimize Core Web Vitals (LCP, INP) and manage async state in modern React apps? Would you like another question or your final feedback?";
@@ -3317,7 +3317,7 @@ stale=false`);
     }
 
     // 0.000004 Single Word Contextual Resolution (Section 18: "Dubai", etc.)
-    if (/^[a-zA-Z\s]{2,15}$/.test(text) && !text.includes(' ') && !/\b(hi|hello|hey|yes|no|stop|sunao|continue|okay|haan|nahin|theek)\b/i.test(text)) {
+    if (/^[a-zA-Z\s]{2,15}$/.test(text) && !text.includes(' ') && !/\b(hi|hello|hey|yes|no|stop|top|sunao|continue|okay|haan|nahin|theek|from|to|the|of|for|and|in|at|on|by|an|a|roll|role|it|so|with|about|as|or|but|is|are|was|were)\b/i.test(text)) {
       if (prevAgent.includes('travel') || prevAgent.includes('place') || prevAgent.includes('warm') || prevAgent.includes('trip') || prevAgent.includes('vacation')) {
         return `${raw.charAt(0).toUpperCase() + raw.slice(1)} would actually fit that perfectly! Are you thinking of planning a trip there soon?`;
       }
@@ -4706,6 +4706,18 @@ stale=false`);
     }
     if (/\b(photosynthesis|how does photosynthesis work)\b/i.test(text)) {
       return "Photosynthesis is the process where green plants absorb sunlight, water, and carbon dioxide to create glucose for energy, releasing oxygen into the atmosphere as a byproduct.";
+    }
+    if (/\b(what is friction|friction|explain friction)\b/i.test(text) && !text.includes('friend')) {
+      return "Friction is the resisting force that opposes relative motion between two surfaces in contact. Microscopically, surface irregularities interlock, creating static friction (resisting start of sliding) and kinetic friction (acting during sliding). It's what allows us to walk, write, and stop moving cars!";
+    }
+    if (/\b(tell me about stars|what are stars|about stars|what is a star)\b/i.test(text) && !text.includes('friend') && !text.includes('movie')) {
+      return "Stars are massive celestial spheres of hot glowing plasma held together by their own gravity. In their cores, nuclear fusion fuses hydrogen into helium, generating immense light and heat—just like our own Sun! Want to know how stars are born, or how they eventually die?";
+    }
+    if (/\b(loop engineering|what is loop engineering|tell me about loop engineering)\b/i.test(text)) {
+      return "Loop engineering refers to systematically designing and optimizing iterative feedback loops—whether in software algorithms, machine learning model optimization (like human-in-the-loop and training loops), or control systems—to continuously refine outputs and prevent infinite cycles.";
+    }
+    if (/\b(name|list|tell me|give me)\s+(?:five|5|\w+)?\s*(?:names of\s+)?animals?\b/i.test(text) || /\b(animals name|animal names|names of animals|five animals|5 animals)\b/i.test(text)) {
+      return "Sure! Here are five animals: a golden retriever dog, a royal Bengal tiger, an African elephant, a playful dolphin, and a majestic bald eagle. Which one is your favorite?";
     }
 
     // 12.5 Referral and Project Guidance

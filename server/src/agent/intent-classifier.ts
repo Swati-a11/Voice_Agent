@@ -517,7 +517,10 @@ export class IntentClassifier {
 
     // 1. Multi-turn Continuation within active personal story thread (e.g. "Professor called me" -> "Phir unhone...")
     if (context?.isStoryThreadActive) {
-      const isExit = /\b(stop|forget|exit|bye|good night|interview|teacher|girlfriend|boyfriend|react|weather|capital of|mona lisa|speed of light)\b/i.test(lower);
+      const isExit = (
+        /\b(what is|what are|tell me about|can you tell me|who is|how does|why is|why does|explain|definition of|name \w+ animals|list \w+|difference between|how to|where is|when was|take my interview|mock interview|teacher|girlfriend|boyfriend|joke|react|stars?|friction|loop engineering|animals?|science|math|python|javascript|coding|code|stop|forget|exit|bye|good night|weather|capital of|mona lisa|speed of light)\b/i.test(lower) ||
+        /\b(stop|forget|exit|bye|good night|chup raho|quiet)\b/i.test(lower)
+      );
       if (!isExit) {
         const details: string[] = ['story continuation'];
         const people: string[] = [];

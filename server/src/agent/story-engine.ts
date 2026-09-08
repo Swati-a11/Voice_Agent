@@ -424,7 +424,10 @@ export class StoryEngine {
     }
 
     // Friend was rude to me (Opening or continuation)
-    if (/\b(my friend was (?:really )?rude(?: to me)?|friend was (?:really )?rude(?: to me)?|she was (?:being )?really rude|she was rude|she was being rude|he was being rude|rudely baat|rude thi)\b/i.test(lower)) {
+    if (
+      /\b(rude|disrespectful|harsh|mean|rudely)\b/i.test(lower) &&
+      (/\b(friend|she|he|dost|saheli|usne|was rude|being rude|actually very rude|so rude)\b/i.test(lower) || updated.situation === 'friendship_conflict')
+    ) {
       updated.situation = 'friendship_conflict';
       updated.people = ['user', 'friend'];
       updated.otherPersonActions.push('was being rude');
@@ -432,7 +435,7 @@ export class StoryEngine {
       return {
         updatedStory: updated,
         hasDirectResponse: true,
-        responseText: "Ugh, what did she say?"
+        responseText: "Arre yaar, that really sucks. It's okay, don't overthink it too much right now. What did she say to you?"
       };
     }
 

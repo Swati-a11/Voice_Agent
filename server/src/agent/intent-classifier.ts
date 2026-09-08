@@ -368,6 +368,19 @@ export class IntentClassifier {
     normalized = normalized.replace(/\b(what if she doesn'?t reply to me|what if she doesn'?t reply)\b/gi, "what if she doesn't reply");
     normalized = normalized.replace(/\b(food what would you recommend|and food what would you recommend)\b/gi, 'and what would you recommend');
     normalized = normalized.replace(/\bsoftware developer road\b/gi, 'software developer role');
+    normalized = normalized.replace(/\b(?:aur|or|and)\s+fir\b/gi, 'aur phir');
+    normalized = normalized.replace(/\band\s+phir\b/gi, 'aur phir');
+    normalized = normalized.replace(/\bjhagada\b/gi, 'jhagda');
+    // Additional STT repairs for new conversation patterns
+    normalized = normalized.replace(/\b(hey ira|hey era|hey aira|hi ira|hi era)\b/gi, 'Hey Ayra');
+    normalized = normalized.replace(/\b(i am very lucky today|am very lucky today|feeling very lucky today)\b/gi, 'I am very nervous today');
+    normalized = normalized.replace(/\b(set some really hard things|set very hard things|set hard things back|said very hard things back)\b/gi, 'said some really harsh things back');
+    normalized = normalized.replace(/\b(luck bench|luck bitch|back bench please)\b/gi, 'last bench');
+    normalized = normalized.replace(/\b(you know what have been thinking|you know what i am thinking|you know what i been thinking)\b/gi, "you know what I've been thinking");
+    normalized = normalized.replace(/\b(pata hai aaj kya hua|pata hai kya hua aaj)\b/gi, 'you know what happened today');
+    normalized = normalized.replace(/\b(mujhe ek news milna tha|ek news tha|ek important news)\b/gi, 'I have some news');
+    normalized = normalized.replace(/\b(i have something interesting to tell|i have something interesting|kuch interesting baat hai)\b/gi, 'I have something to tell you');
+    normalized = normalized.replace(/\b(i did eat really good|i ate really well today|i ate so good today)\b/gi, 'I ate really good food today');
     return normalized;
   }
 
@@ -400,9 +413,9 @@ export class IntentClassifier {
     const hinglishKeywords = [
       'aaj', 'subah', 'uth', 'uthte', 'mera', 'meri', 'mere', 'mereko', 'mujhko', 'mujhe',
       'tha', 'thi', 'the', 'hai', 'hain', 'kya', 'hua', 'kyun', 'kaise', 'kab', 'kahan',
-      'phir', 'usne', 'maine', 'humne', 'unhone', 'bola', 'boli', 'bole', 'bol', 'baat',
-      'pata', 'sun', 'suno', 'yaar', 'bhai', 'matlab', 'dekh', 'dekho', 'bachpan',
-      'kharaab', 'kharab', 'gussa', 'bura', 'laga', 'lagi', 'bohot', 'bahut', 'sabke',
+      'phir', 'fir', 'aur', 'usne', 'maine', 'humne', 'unhone', 'bola', 'boli', 'bole', 'bol', 'baat',
+      'pata', 'sun', 'suno', 'yaar', 'bhai', 'matlab', 'dekh', 'dekho', 'bachpan', 'jhagda', 'jhagada',
+      'kharaab', 'kharab', 'gussa', 'bura', 'laga', 'lagi', 'bohot', 'bahut', 'sabke', 'daanta', 'danta',
       'saamne', 'nahi', 'nahin', 'theek', 'gaya', 'gayi', 'gaye', 'ab', 'bata', 'batao',
       'agar', 'tum', 'hoti', 'hota', 'toh', 'karti', 'karta', 'chahiye', 'mat', 'dena',
       'kuch', 'bhi', 'pehle', 'baad', 'mein', 'me', 'se', 'ko', 'ki', 'ke', 'ka', 'yeh',
@@ -632,26 +645,34 @@ export class IntentClassifier {
     // - "Aaj college mein kuch weird hua." -> "Professor ne mujhe class ke saamne bula liya." -> "Phir unhone..."
     // - "I woke up late, missed breakfast, rushed to college, then my professor suddenly announced a test."
     // - "I was scolded by my teacher" -> "what happened next is that he said me to get out of the classroom"
+    // 4. College / School / Workplace / Authority Reprimands & Funny Incidents
     const isCollegeWorkIncident = (
-      /\b(college|school|class|classroom|campus|professor|teacher)\b/i.test(lower) &&
-      (/\b(funny incident|weird|floor pe gir gaya|floor pe|laughing|hasne laga|class ke saamne|bula liya|called in front|surprise test|announced a test|scolded|daanta|incident hua|so raha tha|get out|kicked me out|kicked out|told me to get out|said me to get out|asked me to leave)\b/i.test(lower))
+      /\b(college|school|class|classroom|campus|professor|teacher|boss|manager|office|workplace)\b/i.test(lower) &&
+      (/\b(funny incident|weird|floor pe gir gaya|floor pe|laughing|hasne laga|class ke saamne|bula liya|called in front|surprise test|announced a test|scolded|daanta|daant|incident hua|so raha tha|get out|kicked me out|kicked out|told me to get out|said me to get out|asked me to leave|humiliated|shouted|yelled|insulted|angry with me|mad at me)\b/i.test(lower))
     ) || (
       /\b(floor pe gir gaya laughing|floor pe gir gaya|literally fell on the floor laughing)\b/i.test(lower)
     ) || (
-      /\b(professor ne|teacher ne)\b/i.test(lower) && /\b(bula liya|class ke saamne|daanta|announced|called|nikal diya|bahar)\b/i.test(lower)
+      /\b(professor ne|teacher ne|boss ne|manager ne)\b/i.test(lower) && /\b(bula liya|class ke saamne|daanta|daant|announced|called|nikal diya|bahar|shouted|yelled)\b/i.test(lower)
     ) || (
-      /\b(scolded by (?:my )?teacher|scolded by teacher|teacher scolded me|professor scolded me)\b/i.test(lower)
+      /\b(scolded by (?:my )?(?:teacher|boss|manager)|scolded by (?:teacher|boss|manager)|(?:teacher|professor|boss|manager) scolded me)\b/i.test(lower)
+    ) || (
+      /\b(my boss scolded me|boss scolded me|boss ne daanta|boss humiliated me|boss shouted at me|boss yelled at me)\b/i.test(lower)
     ) || (
       /\b(get out of the classroom|get out of class|kicked me out|kicked out of the classroom|told me to get out|said me to get out)\b/i.test(lower)
     );
 
     if (isCollegeWorkIncident) {
       const details: string[] = [];
-      const people: string[] = ['teacher'];
+      const people: string[] = [];
       let emotion = 'upset / overwhelmed';
-      let mainEvent = 'Incident with teacher at school/college';
+      let mainEvent = 'Workplace/academic incident with authority figure';
 
-      if (/funny|laughing|floor pe|hasne/i.test(lower)) {
+      if (/boss|manager/i.test(lower)) {
+        details.push('scolded by boss/manager at work');
+        people.push('boss');
+        emotion = 'frustrated / upset';
+        mainEvent = 'Boss scolded user at work';
+      } else if (/funny|laughing|floor pe|hasne/i.test(lower)) {
         details.push('friend fell on floor laughing during funny incident');
         people.push('friend');
         emotion = 'hilarious / amused';
@@ -679,10 +700,10 @@ export class IntentClassifier {
         type: 'work_college',
         storyType: 'college_incident',
         mainEvent,
-        place: 'college / class',
+        place: /boss|manager/i.test(lower) ? 'office / work' : 'college / class',
         peopleMentioned: people,
         emotion,
-        interestingDetail: details[0] || 'College incident',
+        interestingDetail: details[0] || 'Workplace/college incident',
         details,
         people,
         emotions: [emotion],
@@ -753,24 +774,26 @@ export class IntentClassifier {
 
     // 6. Friend Conflict / Social Mystery / Ignored Without Reason
     // Catches:
+    // - "aaj mera best friend se jhagada ho gaya usne mujhe dumb bola"
     // - "Aaj meri friend ne mujhse baat nahi ki aur mujhe samajh hi nahi aa raha why."
     // - "Aaj mera friend mujhse bina reason ke gussa ho gaya."
     // - "Meri friend kal se mujhse baat nahi kar rahi..."
     // - "My friend hasn't replied to me for two days and normally we talk every day."
     const isFriendConflict = (
       /\b(friend|suno|pata hai|meri friend|mera friend|best friend|riya|rohit|dost|saheli)\b/i.test(lower) &&
-      (/\b(baat nahi ki|bina reason|bina kisi reason|gussa ho gaya|gussa|samajh hi nahi aa raha|hasn't replied|hasnt replied|not replying|stopped replying|had a fight|ladai hui|argument|ignore kar rahi|ignoring me|not talking)\b/i.test(lower))
+      (/\b(baat nahi ki|bina reason|bina kisi reason|gussa ho gaya|gussa|samajh hi nahi aa raha|hasn't replied|hasnt replied|not replying|stopped replying|had a fight|ladai hui|argument|ignore kar rahi|ignoring me|not talking|jhagada|jhagda|dumb bola|called me dumb)\b/i.test(lower))
     ) || (
-      /\b(my friend is ignoring me|friend ignoring me|friend not talking to me|friend is mad at me)\b/i.test(lower)
+      /\b(my friend is ignoring me|friend ignoring me|friend not talking to me|friend is mad at me|best friend se jhagada|best friend se jhagda|usne mujhe dumb bola)\b/i.test(lower)
     );
 
     if (isFriendConflict) {
-      const isFight = /\b(fight|had a fight|ladai|argument|disagreement)\b/i.test(lower);
+      const isFight = /\b(fight|had a fight|ladai|argument|disagreement|jhagada|jhagda)\b/i.test(lower);
+      const isInsult = /\b(dumb|stupid|insult|bad things|harsh)\b/i.test(lower);
       const isIgnoring = /\b(baat nahi ki|ignore|ignoring|not talking|silent)\b/i.test(lower);
       const isNoReply = /\b(hasn't replied|hasnt replied|not replying|stopped replying|two days|2 days)\b/i.test(lower);
 
-      const details: string[] = isFight ? ['had a fight with friend'] : isIgnoring ? ['friend not talking / ignoring'] : isNoReply ? ['friend hasn\'t replied'] : ['issue with friend'];
-      const mainEvent = isFight ? 'Had a fight with friend' : isIgnoring ? 'Friend not talking / ignoring' : 'Interpersonal conflict with friend';
+      const details: string[] = isInsult ? ['friend insulted user / called user dumb in argument'] : isFight ? ['had a fight with friend'] : isIgnoring ? ['friend not talking / ignoring'] : isNoReply ? ['friend hasn\'t replied'] : ['issue with friend'];
+      const mainEvent = isInsult ? 'Fight with friend where friend called user dumb' : isFight ? 'Had a fight with friend' : isIgnoring ? 'Friend not talking / ignoring' : 'Interpersonal conflict with friend';
       const problem = isFight ? 'Fight with friend' : isIgnoring ? 'Friend not talking' : isNoReply ? 'Friend not replying' : 'Friend conflict';
 
       return {
@@ -786,7 +809,7 @@ export class IntentClassifier {
         details,
         people: ['friend'],
         emotions: ['hurt', 'upset'],
-        confidence: 0.95
+        confidence: 0.98
       };
     }
 
@@ -818,14 +841,15 @@ export class IntentClassifier {
       };
     }
 
-    // 8. Milestones & Celebrations (Interview success, sister college, exam passed)
+    // 8. Milestones & Celebrations (Job offer, interview success, sister college, exam passed)
     // Catches:
+    // - "aaj mujhe job mil gayi!" / "I got the job!"
     // - "Aaj mera interview tha, main nervous thi, but somehow I answered everything really well."
     // - "My sister finally got the college she wanted."
     // - "My friend finally got the internship she wanted."
     // - "I finally submitted the project."
     const isMilestone = (
-      /\b(interview tha|answered really well|answered everything really well|got the college she wanted|got the college|got the internship|cleared my exam|passed my exam|finally submitted|submitted the project|got the offer)\b/i.test(lower)
+      /\b(aaj mujhe job mil gayi|mujhe job mil gayi|job mil gayi|i got the job|got the job|i got selected|selected for the job|cracked the interview|cleared the interview|i got the offer|got an offer|interview tha|answered really well|answered everything really well|got the college she wanted|got the college|got the internship|cleared my exam|passed my exam|finally submitted|submitted the project)\b/i.test(lower)
     );
 
     if (isMilestone) {
@@ -840,12 +864,12 @@ export class IntentClassifier {
         storyType: 'milestone_achievement',
         mainEvent: 'Milestone / success achieved',
         peopleMentioned: people,
-        emotion: 'proud / excited / relieved',
+        emotion: 'proud / excited / thrilled',
         outcome: 'Success achieved',
         details,
         people,
-        emotions: ['happy', 'relieved', 'proud'],
-        confidence: 0.96
+        emotions: ['excited', 'happy', 'proud'],
+        confidence: 0.98
       };
     }
 

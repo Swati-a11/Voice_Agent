@@ -322,8 +322,11 @@ export interface TurnMetrics {
   userSpeechEndTime: number;
   sttEndTime: number;
   sttLatencyMs: number;
+  intentResolvedTime?: number;
+  geminiRequestStartTime?: number;
   llmFirstTokenTime: number;
   llmTTFTMs: number;
+  geminiFirstChunkTime?: number;
   ttsFirstAudioTime: number;
   ttsTTFAMs: number;
   totalLatencyMs: number;

@@ -8,7 +8,10 @@ export class LatencyTracker extends EventEmitter {
     turnId: string;
     speechEnd: number;
     sttEnd: number;
+    intentResolved: number;
+    geminiRequestStart: number;
     llmFirstToken: number;
+    geminiFirstChunk: number;
     ttsFirstAudio: number;
     intent: UserIntent;
     languageMode: LanguageMode;
@@ -21,7 +24,10 @@ export class LatencyTracker extends EventEmitter {
       turnId,
       speechEnd: Date.now(),
       sttEnd: 0,
+      intentResolved: 0,
+      geminiRequestStart: 0,
       llmFirstToken: 0,
+      geminiFirstChunk: 0,
       ttsFirstAudio: 0,
       intent,
       languageMode,
@@ -42,9 +48,27 @@ export class LatencyTracker extends EventEmitter {
     }
   }
 
+  public recordIntentResolved(): void {
+    if (this.currentTurnTimestamps && this.currentTurnTimestamps.intentResolved === 0) {
+      this.currentTurnTimestamps.intentResolved = Date.now();
+    }
+  }
+
+  public recordGeminiRequestStart(): void {
+    if (this.currentTurnTimestamps && this.currentTurnTimestamps.geminiRequestStart === 0) {
+      this.currentTurnTimestamps.geminiRequestStart = Date.now();
+    }
+  }
+
   public recordLLMFirstToken(): void {
     if (this.currentTurnTimestamps && this.currentTurnTimestamps.llmFirstToken === 0) {
       this.currentTurnTimestamps.llmFirstToken = Date.now();
+    }
+  }
+
+  public recordGeminiFirstChunk(): void {
+    if (this.currentTurnTimestamps && this.currentTurnTimestamps.geminiFirstChunk === 0) {
+      this.currentTurnTimestamps.geminiFirstChunk = Date.now();
     }
   }
 
@@ -64,23 +88,31 @@ export class LatencyTracker extends EventEmitter {
     if (!this.currentTurnTimestamps) return null;
 
     const now = Date.now();
-    const sttEnd = this.currentTurnTimestamps.sttEnd || now;
-    const llmFirst = this.currentTurnTimestamps.llmFirstToken || now;
-    const ttsFirst = this.currentTurnTimestamps.ttsFirstAudio || now;
     const speechEnd = this.currentTurnTimestamps.speechEnd;
+    const sttEnd = this.currentTurnTimestamps.sttEnd || now;
+    const intentResolved = this.currentTurnTimestamps.intentResolved || sttEnd;
+    const geminiReqStart = this.currentTurnTimestamps.geminiRequestStart || intentResolved;
+    const llmFirst = this.currentTurnTimestamps.llmFirstToken || now;
+    const geminiChunk = this.currentTurnTimestamps.geminiFirstChunk || llmFirst;
+    const ttsFirst = this.currentTurnTimestamps.ttsFirstAudio || now;
 
     const sttLatencyMs = Math.max(10, sttEnd - speechEnd);
-    const llmTTFTMs = Math.max(15, llmFirst - sttEnd);
-    const ttsTTFAMs = Math.max(15, ttsFirst - llmFirst);
-    const totalLatencyMs = Math.max(30, ttsFirst - speechEnd);
+    const intentLatencyMs = Math.max(0, intentResolved - sttEnd);
+    const llmTTFTMs = Math.max(15, llmFirst - geminiReqStart);
+    const firstChunkLatencyMs = Math.max(0, geminiChunk - llmFirst);
+    const ttsTTFAMs = Math.max(15, ttsFirst - (geminiChunk || llmFirst));
+    const totalLatencyMs = Math.max(25, ttsFirst - speechEnd);
 
     const metric: TurnMetrics = {
       turnId: this.currentTurnTimestamps.turnId,
       userSpeechEndTime: speechEnd,
       sttEndTime: sttEnd,
       sttLatencyMs,
+      intentResolvedTime: intentResolved,
+      geminiRequestStartTime: geminiReqStart,
       llmFirstTokenTime: llmFirst,
       llmTTFTMs,
+      geminiFirstChunkTime: geminiChunk,
       ttsFirstAudioTime: ttsFirst,
       ttsTTFAMs,
       totalLatencyMs,
@@ -88,6 +120,8 @@ export class LatencyTracker extends EventEmitter {
       intent: this.currentTurnTimestamps.intent,
       languageMode: this.currentTurnTimestamps.languageMode
     };
+
+    console.log(`[LATENCY] STT: ${sttLatencyMs}ms | Intent: ${intentLatencyMs}ms | Gemini TTFT: ${llmTTFTMs}ms | First Chunk: ${firstChunkLatencyMs}ms | TTS TTFA: ${ttsTTFAMs}ms | TOTAL_TTFA: ${totalLatencyMs}ms`);
 
     this.metricsHistory.push(metric);
     if (this.metricsHistory.length > 50) {

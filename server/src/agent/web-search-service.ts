@@ -55,7 +55,11 @@ export class WebSearchService {
    */
   public static isCurrentInformationQuery(query: string): boolean {
     const q = query.trim().toLowerCase().replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, '"');
-    if (/\b(what'?s happening in (?:the )?world|what is happening in (?:the )?world|what'?s happening right now|what is happening right now|what happened today|what should i (?:actually )?know|what'?s going on|what is going on|latest news|today'?s news|recent news|recent developments|latest updates)\b/i.test(q)) {
+    // Guard against conversational suspense openers: "you know what happened today", "guess what happened today"
+    if (/\b(you know|guess what|pata hai|let me tell|going to tell|i'm going to tell|tell you a story|tell you what happened)\b/i.test(q)) {
+      return false;
+    }
+    if (/\b(what'?s happening in (?:the )?world|what is happening in (?:the )?world|what'?s happening right now|what is happening right now|what should i (?:actually )?know|what'?s going on in (?:the )?world|latest news|today'?s news|recent news|recent developments|latest updates)\b/i.test(q)) {
       return true;
     }
     return this.TIME_SENSITIVE_PATTERNS.some(pattern => pattern.test(q));
@@ -79,8 +83,9 @@ export class WebSearchService {
   ): boolean {
     const q = query.trim().toLowerCase();
 
-    // 0. Personal narratives, storytelling, social requests, advice must NEVER route to web search
+    // 0. Personal narratives, storytelling, social requests, advice, personal sharing must NEVER route to web search
     if (
+      /^(i ate|i had|i woke|i feel|i am feeling|i'm feeling|i cleaned|i watched|i just watched|i finished|my friend|my school|my teacher|in school|when i was|remember when|i have some news|can i ask|mujhe|aaj maine|subah)\b/i.test(q) ||
       IntentClassifier.isPersonalNarrative(query).isNarrative ||
       IntentClassifier.isSocialRequest(query).isSocial ||
       IntentClassifier.isAdviceIntent(query).requestedAdvice ||

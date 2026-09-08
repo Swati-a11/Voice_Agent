@@ -137,9 +137,18 @@ export class ConversationManager extends EventEmitter {
   private lastMeaningfulUserMessage: string = '';
   private conversationStory: ConversationStory = StoryEngine.createInitialStory();
 
-  // Story Mode Context Tracking & Multi-Story Catalogs
   private activeStoryState: ActiveStoryState | null = null;
   private lastJokeIndex = -1;
+  private hasIntroducedSelf = false;
+
+  private fallbackPool = [
+    "Wait, I didn't quite catch that. Could you say that again?",
+    "Thoda clear nahi sunayi diya, ek baar phir bologe?",
+    "I missed that last bit. What was that?",
+    "Ek second, voice thodi break ho gayi. Phir se batana?",
+    "Sorry, that broke up a little. What did you say?"
+  ];
+  private lastFallbackIndex = -1;
 
   private static DEVELOPER_JOKES = [
     "Why do programmers prefer dark mode? Because light attracts bugs!",
@@ -705,6 +714,7 @@ pendingFollowUp=${this.personalStoryThread.possibleFollowUp || 'none'}
 goal=${detailedClassification.intent}
 selectedPath=${detailedClassification.intent}
 stale=false`);
+    console.log(`[emotion: ${emotionResult.emotion}] → [response template/strategy: ${detailedClassification.intent || this.conversationMode}]`);
 
     if (detailedClassification.entity && !narrativeAnalysis.isNarrative) {
       this.lastMentionedEntity = detailedClassification.entity;
@@ -816,14 +826,21 @@ stale=false`);
       this.memoryManager.addMem0Memory(this.userId, rawText).catch(() => {});
     }
 
-    // 8. Fast-Path for Simple Greetings
-    const isSimpleGreeting = intent === 'GREETING' && /^(hi|hello|hey|hey there|what's up|kaise ho|namaste)[.?!]?$/i.test(rawText);
-    if (isSimpleGreeting && !this.isInterruptedFlag && !this.interviewState.active) {
+    // 8. Fast-Path for Simple Greetings, Introductions, Goodbyes & Acknowledgements (<20ms TTFA)
+    const isFastPath = (
+      (intent === 'GREETING' && /^(hi|hello|hey|hey ayra|hey there|what's up|kaise ho|namaste|good morning|good evening|good night)[.?!]?$/i.test(rawText)) ||
+      (/^(who are you|what are you|tell me about yourself|introduce yourself|tell me something about yourself|about yourself)[.?!]?$/i.test(rawText)) ||
+      (/^(bye|goodbye|okay bye|ok bye|see you|talk later|see ya|bye bye|alvida|tata)[.?!]?$/i.test(rawText)) ||
+      (/^(thanks|thank you|thank you so much|thanks a lot|shukriya|dhanyawad)[.?!]?$/i.test(rawText)) ||
+      (/^(that's nice|thats nice|that is nice|nice|cool|great|awesome|sahi hai|badhiya)[.?!]?$/i.test(rawText))
+    ) && !this.isInterruptedFlag && !this.interviewState.active;
+
+    if (isFastPath) {
       await this.executeFastPathResponse({
         turnId,
         generationId,
         userText: rawText,
-        intent: 'GREETING',
+        intent: intent || 'GREETING',
         lastMentionedEntity: this.lastMentionedEntity,
         emotionalTone,
         emotionResult,
@@ -989,7 +1006,24 @@ stale=false`);
     if (/\b(weather|temperature|forecast|barish|mausam)\b/i.test(userText)) {
       toolName = 'get_weather';
       const cityMatch = userText.match(/\b(?:in|at|for|mein|ka)\s+([a-zA-Z\s]+?)(?:\?|$|\.|\btonight\b|\btoday\b)/i);
-      args = { city: cityMatch ? cityMatch[1].trim() : 'Mumbai' };
+      const extractedCity = cityMatch ? cityMatch[1].trim() : '';
+      const isAmbiguousCity = !extractedCity || /^(the city|a city|city|this city|the town|town|the place|a place)$/i.test(extractedCity);
+      if (isAmbiguousCity) {
+        const isHinglish = languageMode === 'hinglish' || languageMode === 'hindi';
+        const promptText = isHinglish
+          ? "Kaunsi city ka mausam janna hai? City ka naam batao, main check karke batati hoon."
+          : "Which city do you mean? Tell me the city name and I'll check the weather for you.";
+        await this.executeDirectTextResponse({
+          turnId,
+          generationId,
+          userText,
+          responseText: promptText,
+          emotionalTone,
+          languageMode
+        });
+        return;
+      }
+      args = { city: extractedCity };
     } else if (/\b(remind|reminder|yaad)\b/i.test(userText)) {
       toolName = 'set_reminder';
       args = { text: userText, time: 'in 1 hour' };
@@ -1049,8 +1083,13 @@ stale=false`);
 
     this.emit('response_start', { turnId, generationId });
 
-    const contextualMemory = this.memoryManager.findContextualRecall(this.userId, params.userText);
-    const mem0Memories = await this.memoryManager.searchMem0Memories(this.userId, params.userText);
+    this.latencyTracker.recordIntentResolved();
+
+    const [contextualMemory, mem0Memories] = await Promise.all([
+      Promise.resolve(this.memoryManager.findContextualRecall(this.userId, params.userText)),
+      this.memoryManager.searchMem0Memories(this.userId, params.userText, 3).catch(() => [])
+    ]);
+
     const recentTurns = this.memoryManager.getRecentTurns().slice(-4).map(t => ({
       role: t.role as 'user' | 'agent',
       text: t.text,
@@ -1088,6 +1127,7 @@ stale=false`);
 
     try {
       if (this.geminiClient) {
+        this.latencyTracker.recordGeminiRequestStart();
         console.log(`[GEMINI] Streaming content with model ${config.geminiModel}...`);
 
         const historyContents = recentTurns.slice(0, -1).map(t => ({
@@ -1134,6 +1174,7 @@ stale=false`);
 
               if (!firstAudioSent) {
                 firstAudioSent = true;
+                this.latencyTracker.recordGeminiFirstChunk();
                 this.latencyTracker.recordTTSFirstAudio();
               }
 
@@ -1159,6 +1200,7 @@ stale=false`);
 
         fullResponseText = dynamicResponse;
         firstAudioSent = true;
+        this.latencyTracker.recordGeminiFirstChunk();
         this.latencyTracker.recordTTSFirstAudio();
 
         console.log(`[TTS] Synthesizing response: "${fullResponseText}"`);
@@ -1178,6 +1220,7 @@ stale=false`);
       if (finalRemaining && !this.activeAbortController?.signal.aborted && generationId === this.currentGenerationId) {
         if (!firstAudioSent) {
           firstAudioSent = true;
+          this.latencyTracker.recordGeminiFirstChunk();
           this.latencyTracker.recordTTSFirstAudio();
         }
         console.log(`[TTS] Flushing final speech chunk: "${finalRemaining}"`);
@@ -1436,8 +1479,21 @@ stale=false`);
     }
 
     // 5. Emotional Friend Conflict / Ignored Without Reason (Section 25 Test 4 & Advice tests)
+    // "aaj mera best friend se jhagada ho gaya usne mujhe dumb bola"
     // "Aaj meri friend ne mujhse baat nahi ki aur mujhe samajh hi nahi aa raha why."
     // "Aaj mera friend mujhse bina reason ke gussa ho gaya."
+    if (
+      /\b(aaj mera best friend se jhagada ho gaya usne mujhe dumb bola|best friend se jhagada ho gaya|best friend se jhagda ho gaya|friend se jhagda|friend se jhagada|usne mujhe dumb bola)\b/i.test(lower) ||
+      (/\b(best friend|friend)\b/i.test(lower) && /\b(jhagada|jhagda|fight|ladai)\b/i.test(lower) && /\b(dumb|stupid|usne)\b/i.test(lower))
+    ) {
+      if (lang === 'hindi') {
+        return "अरे यार, यह सुनकर सच में बहुत बुरा लगा। बेस्ट फ्रेंड से झगड़ा होना और ऊपर से उनका ऐसा बोलना बहुत दर्द देता है। तुम दोनों के बीच क्या हुआ था?";
+      } else if (lang === 'hinglish') {
+        return "Arre yaar, that really sucks. Having a fight with your best friend hurts, especially when they call you dumb. What happened between you two?";
+      }
+      return "Ouch, that's really hurtful. Getting into a fight with your best friend and having them call you dumb feels awful. What happened between you two?";
+    }
+
     if (
       (/\b(baat nahi ki|bina reason|bina kisi reason|gussa ho gaya|gussa|samajh hi nahi aa raha|ignoring me|not talking to me)\b/i.test(lower) && /\b(friend|meri friend|mera friend|dost|saheli)\b/i.test(lower)) ||
       (/\b(friend|best friend)\b/i.test(lower) && /\b(ignoring|not replying|silent|upset with me)\b/i.test(lower))
@@ -1448,6 +1504,16 @@ stale=false`);
         return "Oof, bina kisi reason ke suddenly kisi ka gussa ho jaana ya baat na karna is so confusing and draining. Did something happen the last time you two spoke, ya out of nowhere hua?";
       }
       return "Oof, someone suddenly going quiet or getting upset without any clear reason is so confusing and draining. Did anything seem off the last time you spoke, or was it completely out of nowhere?";
+    }
+
+    // 5b. Authority / Boss Reprimand ("my boss scolded me", "boss ne daanta")
+    if (/\b(my boss scolded me|boss scolded me|boss ne daanta|boss ne daant|manager scolded me|manager yelled at me|got scolded by my boss|boss was angry with me)\b/i.test(lower)) {
+      if (lang === 'hindi') {
+        return "उफ़, यह तो सच में बहुत खराब लगा होगा। क्या हुआ था? उन्होंने क्या बोला?";
+      } else if (lang === 'hinglish') {
+        return "Ugh, that's rough. What happened? Kya bola unhone?";
+      }
+      return "Ugh, that's rough. What happened? What did they say?";
     }
 
     // 6. Entity Inside Personal Story (Section 25 Test 8)
@@ -1518,10 +1584,19 @@ stale=false`);
       }
     }
 
-    // 8. Milestones & Celebrations (Section 25 Tests 14 & 15 - NO FORCED QUESTION)
+    // 8. Milestones & Celebrations (Job offer, interview success, sister college, exam passed)
+    // "aaj mujhe job mil gayi!" / "I got the job!"
     // "Aaj mera interview tha, main nervous thi, but somehow I answered everything really well."
     // "My sister finally got the college she wanted."
-    // "My friend finally got the internship she wanted."
+    if (/\b(aaj mujhe job mil gayi|mujhe job mil gayi|job mil gayi|i got the job|got the job|i got selected|selected for the job|cracked the interview|cleared the interview|i got the offer|got an offer)\b/i.test(lower)) {
+      if (lang === 'hindi') {
+        return "अरे वाह! यह तो बहुत बड़ी खुशखबरी है! पार्टी तो बनती है! बहुत-बहुत बधाई! सब कुछ बताओ कैसा रहा!";
+      } else if (lang === 'hinglish') {
+        return "Wait WHAT, that's huge! Party toh banti hai! Congratulations! Tell me all the details!";
+      }
+      return "Wait WHAT, that's huge! Congratulations! I'm so happy for you! Tell me all the details!";
+    }
+
     if (
       /\b(answered everything really well|answered really well|interview tha.*?well|cleared my exam)\b/i.test(lower) ||
       (/\b(interview)\b/i.test(lower) && /\b(nervous|answered|went well|succeeded|great)\b/i.test(lower))
@@ -1633,6 +1708,106 @@ stale=false`);
       }
     }
 
+    // 16. School Back-bencher / Last bench memories
+    if (
+      /\b(last bench|back bench|back seat|back row|peeche baith|peeche baithna|back of the class|back of class)\b/i.test(lower) &&
+      /\b(school|college|class|teacher|friend|yaar|dost)\b/i.test(lower)
+    ) {
+      if (lang === 'hindi') {
+        return "हाहा, लास्ट बेंच वाला? मुझे बिल्कुल ऐसा नहीं लग रहा था! क्या उन दिनों टीचर से बचते रहते थे?";
+      } else if (lang === 'hinglish') {
+        return "Wait, you were a back-bencher? I did NOT expect that from you. Kya tumhe baar baar teacher se bachna padta tha?";
+      }
+      return "Wait, you were a back-bencher? I did NOT expect that from you! What did you two usually get up to in the back row?";
+    }
+
+    // 17. Good food / great meal story
+    if (
+      /\b(ate|had|got|eaten|ordered|khaaya|khaya|khana|meal|biryani|pizza|pasta|food|lunch|dinner|breakfast|chai|coffee|samosa|maggi|pani puri|ice cream|dessert|snack|restaurant|dhaba)\b/i.test(lower) &&
+      /\b(really good|so good|amazing|incredible|delicious|best|awesome|bahut achha|bahut acha|bahut accha|zyada acha|so nice|so tasty|great|yummy|soo good|fantastic|proper)\b/i.test(lower)
+    ) {
+      if (lang === 'hindi') {
+        return "यार, अच्छा खाना मिले तो दिन सच में बन जाता है! क्या खाया इतना अच्छा?";
+      } else if (lang === 'hinglish') {
+        return "Okay, good food is literally the best mood fix! Kya khaaya itna amazing?";
+      }
+      return "Okay, good food is seriously one of the best things in life. What did you eat?";
+    }
+
+    // 18. Teacher embarrassed user in front of class (not kicked out — that's handled above)
+    if (
+      /\b(teacher|professor|sir|ma'am|madam|faculty|lecturer)\b/i.test(lower) &&
+      /\b(embarrassed me|embarrassed|called me out|made fun of me|singled me out|publicly|in front of|class ke saamne|sab ke saamne|sab ke samne|pointed at me|laughed at me)\b/i.test(lower)
+    ) {
+      if (lang === 'hindi') {
+        return "उफ़, यार! सबके सामने? यह तो सच में बहुत शर्मनाक होता है। ऐसा क्यों किया उन्होंने?";
+      } else if (lang === 'hinglish') {
+        return "Ohh no, in front of everyone? That must've felt so embarrassing yaar. What did they say or do?";
+      }
+      return "Ohh no, in front of the whole class? That's genuinely awful. What happened?";
+    }
+
+    // 19. Small personal wins — cleaned room, finished task, productive day
+    if (
+      /\b(cleaned my room|cleaned the room|finally cleaned|tidied up|organized my room|organized my desk|finished my assignment|completed my assignment|submitted my project|finally submitted|finished reading|completed the book|finished the chapter|done with my work|finished work today|productive day|khatam kiya|room saaf kiya|saaf kar diya)\b/i.test(lower)
+    ) {
+      if (lang === 'hindi') {
+        return "वाह, यार! यह तो छोटा लेकिन बहुत संतोषजनक काम है। अब कैसा लग रहा है?";
+      } else if (lang === 'hinglish') {
+        return "Okayyy, productive era activated! Feels good when you finally get that done, right?";
+      }
+      return "Okay, that is genuinely satisfying. How does it feel now that it's done?";
+    }
+
+    // 20. Good night's sleep / rest / nice start to day
+    if (
+      /\b(good sleep|slept really well|slept so well|had a great sleep|best sleep|nind achi aayi|achi nind aayi|neend acha tha|great rest|felt so rested|best morning|so refreshed|refreshed today)\b/i.test(lower)
+    ) {
+      if (lang === 'hindi') {
+        return "अरे, अच्छी नींद मिले तो पूरा दिन फर्क पड़ता है ना! आज का दिन अच्छा जाएगा फिर।";
+      } else if (lang === 'hinglish') {
+        return "Nicee! Good sleep genuinely changes the whole day. Aaj productive feel ho raha hai?";
+      }
+      return "Oh, good sleep is seriously underrated. Sounds like today's off to a good start then!";
+    }
+
+    // 21. Watched a great movie / show / funny video
+    if (
+      /\b(watched a great|watched this amazing|just watched|saw a great|saw this movie|great movie|amazing movie|funny movie|best movie|good movie|watched this show|great episode|binge watched|binge-watched|dekhna|dekhi|dekha|film dekhi|movie dekhi|episode dekha)\b/i.test(lower) &&
+      /\b(movie|film|episode|series|show|anime|documentary|video|reel|clip)\b/i.test(lower)
+    ) {
+      if (lang === 'hindi') {
+        return "अरे, कौन सी मूवी देखी? मुझे भी बताओ!";
+      } else if (lang === 'hinglish') {
+        return "Ooh, which movie? I need to know if it's actually worth watching!";
+      }
+      return "Ooh, which one? Was it actually good or are you just saying that?";
+    }
+
+    // 22. User disliking someone / frustrated with a person
+    if (
+      /\b(mujhe woh banda pasand nahi|mujhe woh ladka pasand nahi|mujhe woh ladki pasand nahi|mujhe woh person pasand nahi|i don't like that person|i don't like this person|i really don't like|bilkul pasand nahi|i hate that person|that person is so annoying|this person is so annoying|he is so annoying|she is so annoying|i can't stand this person|i cannot stand this person)\b/i.test(lower)
+    ) {
+      if (lang === 'hindi') {
+        return "हाहा, यार ऐसा क्यों? क्या किया उसने?";
+      } else if (lang === 'hinglish') {
+        return "Haan yaar, I can hear the frustration! Kya kiya unhone?";
+      }
+      return "Okay, what did they do? I'm listening.";
+    }
+
+    // 23. Memory recall — "I told you about X earlier" / "remember when I told you"
+    if (
+      /\b(remember when i told you|do you remember what i told you|i told you about|remember i said|didn't i tell you about|remember the thing i told you|remember that story i told you|told you about my|told you about this)\b/i.test(lower)
+    ) {
+      if (lang === 'hindi') {
+        return "हाँ, याद है! तुमने उसके बारे में बताया था। आगे क्या हुआ उसका?";
+      } else if (lang === 'hinglish') {
+        return "Ohhh yeah, I remember you mentioning that! Kya hua phir uska?";
+      }
+      return "Ohhh yeah, I remember you mentioning that! What's going on with it now?";
+    }
+
     return "I'm following along! What happened next?";
   }
 
@@ -1664,7 +1839,206 @@ stale=false`);
     const prevAgent = (params.previousAssistantMessage || '').toLowerCase();
     const isCancelled = params.isCancelled || (() => false);
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // H0 — Fast-Path Self-Introduction & Identity Branding ("Tell me about yourself")
+    // ─────────────────────────────────────────────────────────────────────────
+    if (/\b(tell me (?:about|something about) yourself|who are you|what are you|introduce yourself|apne baare mein batao|about yourself)\b/i.test(text)) {
+      this.hasIntroducedSelf = true;
+      return "I'm Ayra, a conversational AI built by Swati. I'm here to talk, help, brainstorm, explain things, and basically keep up with whatever you feel like talking about.";
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // H0b — Fast-Path Greetings with Swati Branding on Initial Turn
+    // ─────────────────────────────────────────────────────────────────────────
+    if (/^(hi|hello|hey|hey ayra|hey there|what's up|kaise ho|namaste|good morning|good evening|good night)[.!?]?$/i.test(text)) {
+      if (!this.hasIntroducedSelf && this.memoryManager.getRecentTurns().length <= 2) {
+        this.hasIntroducedSelf = true;
+        const lang = IntentClassifier.detectLanguageDominance(raw);
+        if (lang === 'hindi' || lang === 'hinglish') {
+          return "Hey! I'm Ayra, built by Swati. Kaise ho?";
+        }
+        return "Hey! I'm Ayra, built by Swati. How are you doing?";
+      }
+      return "Hey! How's it going?";
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // H0c — Fast-Path Goodbyes (Instant, Zero Gemini Call, Zero Trailing Question)
+    // ─────────────────────────────────────────────────────────────────────────
+    if (/^(bye|goodbye|okay bye|ok bye|see you|talk later|see ya|bye bye|tata|alvida|good night|goodnight)[.!?]?$/i.test(text)) {
+      if (/\b(good night|goodnight)\b/i.test(text)) {
+        return "Good night! Get some proper rest.";
+      }
+      return "Okayyy, bye! Take care.";
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // H0d — Fast-Path Acknowledgements & Thanks
+    // ─────────────────────────────────────────────────────────────────────────
+    if (/^(thanks|thank you|thank you so much|thanks a lot|shukriya|dhanyawad)[.!?]?$/i.test(text)) {
+      return "You're welcome! Anytime.";
+    }
+    if (/^(that's nice|thats nice|that is nice|nice|cool|great|awesome|sahi hai|badhiya)[.!?]?$/i.test(text)) {
+      return "Yeah, totally! Glad you like it.";
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // H0e — Interview Stress & Anxiety Empathy
+    // ─────────────────────────────────────────────────────────────────────────
+    if (/\b(stressed|nervous|anxious|scared|worried|freaking out)\b/i.test(text) && /\b(interview|job interview|mock interview|tech interview|coding interview)\b/i.test(text)) {
+      const lang = IntentClassifier.detectLanguageDominance(raw);
+      if (lang === 'hindi') {
+        return "हाँ, यह सच में बहुत तनावपूर्ण हो सकता है। लेकिन घबराने का मतलब यह नहीं है कि तैयारी नहीं है। किस रोल के लिए इंटरव्यू है?";
+      }
+      if (lang === 'hinglish') {
+        return "Yeah, that's completely understandable. Interview ka stress hona bilkul normal hai, but being nervous doesn't mean you're unprepared. Kaunse role ka interview hai?";
+      }
+      return "Yeah, that's completely understandable. Interviews can definitely feel stressful, but being nervous doesn't mean you're unprepared. What role is the interview for?";
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // H1 — Anticipatory / Suspense Openers ("you know what happened today?")
+    // ─────────────────────────────────────────────────────────────────────────
+    if (
+      /\b(you know what happened|guess what happened|pata hai aaj kya hua|pata hai kya hua|guess what|you know what happened today|tumhe pata hai kya hua|yaar sun|yaar suno|yaar suno na|sun na kuch bolunga|sun na kuch bolungi)\b/i.test(text) &&
+      !/\b(explain|tell me|what about|actually)\b/i.test(text)
+    ) {
+      const lang = IntentClassifier.detectLanguageDominance(raw);
+      this.conversationMode = 'ACTIVE_LISTENING';
+      this.personalStoryThread.isActive = true;
+      if (lang === 'hindi') return "क्या हुआ? बताओ!";
+      if (lang === 'hinglish') return "Uh-oh. Kya hua? Batao!";
+      return "Uh-oh. What happened? Tell me!";
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // H2 — Casual Conversation Openers ("can I ask you something?", "I have a question")
+    // ─────────────────────────────────────────────────────────────────────────
+    if (
+      /^(can i ask you something|can i ask something|i have a question for you|may i ask you something|can i ask|ek sawaal hai|ek baat batao|ek cheez poochh sakti hoon|ek cheez poochh sakta hoon|ek cheez poochh sakte ho|you know what i've been thinking|you know what i was thinking)[.!?]?$/i.test(text)
+    ) {
+      const lang = IntentClassifier.detectLanguageDominance(raw);
+      if (lang === 'hindi') return "हाँ, बिल्कुल! क्या बात है?";
+      if (lang === 'hinglish') return "Haan, bilkul! Kya baat hai?";
+      return "Of course! What's on your mind?";
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // H3 — News Announcement Openers ("I have some news", "I need to tell you something")
+    // ─────────────────────────────────────────────────────────────────────────
+    if (
+      /^(i have some news|i have news|i have big news|i have something to tell you|i need to tell you something|something happened|something interesting happened|something funny happened|kuch hua|kuch interesting hua|kuch bataana tha|ek news hai|mujhe kuch kehna tha)[.!?]?$/i.test(text)
+    ) {
+      const lang = IntentClassifier.detectLanguageDominance(raw);
+      if (lang === 'hindi') return "अच्छी खबर है या बुरी? बताओ!";
+      if (lang === 'hinglish') return "Ooh, good news ya bad news? Tell me!";
+      return "Ooh, good news or bad news? Tell me!";
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // H4 — School Back-bencher Memory (inside generateDirectIntentResponse)
+    // ─────────────────────────────────────────────────────────────────────────
+    if (
+      /\b(last bench|back bench|back seat|peeche baith|peeche baithna|back of the class)\b/i.test(text) &&
+      /\b(school|college|used to|bachpan|class|friend)\b/i.test(text)
+    ) {
+      const lang = IntentClassifier.detectLanguageDominance(raw);
+      this.conversationMode = 'ACTIVE_LISTENING';
+      this.personalStoryThread.isActive = true;
+      if (lang === 'hindi') return "हाहा! लास्ट बेंच वाला? मुझे बिल्कुल ऐसा नहीं लग रहा था तुमसे! वहाँ बैठकर क्या-क्या करते थे?";
+      if (lang === 'hinglish') return "Wait, you were a back-bencher? I did NOT expect that from you! Back bench pe kya-kya hota tha?";
+      return "Wait, you were a back-bencher? I genuinely did NOT see that coming. What did you guys usually get up to back there?";
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // H5 — Good Food / Great Meal ("I ate really good food today")
+    // ─────────────────────────────────────────────────────────────────────────
+    if (
+      /\b(ate really good|ate so good|had really good food|had great food|ate amazing food|had an amazing meal|best food|had the best|ate the best|so delicious|really tasty food|bahut achha khana khaya|bahut acha khana tha|today's food was amazing)\b/i.test(text) &&
+      !/\b(recipe|how to make|cook|recipe for)\b/i.test(text)
+    ) {
+      const lang = IntentClassifier.detectLanguageDominance(raw);
+      if (lang === 'hindi') return "अरे यार! अच्छा खाना हो तो दिन बन जाता है! क्या खाया?";
+      if (lang === 'hinglish') return "Okay, good food is literally the best feeling! Kya khaaya?";
+      return "Okay, good food seriously makes the whole day better. What did you eat?";
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // H6 — Memory Recall ("remember when I told you about X")
+    // ─────────────────────────────────────────────────────────────────────────
+    if (
+      /\b(remember when i told you|do you remember what i told you|i told you about|remember i said|didn't i tell you about|remember the thing i told you|remember that story i told you|told you about my school|told you about my friend|told you earlier)\b/i.test(text)
+    ) {
+      const lang = IntentClassifier.detectLanguageDominance(raw);
+      if (lang === 'hindi') return "हाँ, याद है! तुमने उसके बारे में बताया था। आगे क्या हुआ उसका?";
+      if (lang === 'hinglish') return "Ohhh yeah, I remember you mentioning that! Kya hua phir?";
+      return "Ohhh yeah, I remember you mentioning that! What's going on with it now?";
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // H7 — User Disliking Someone ("mujhe woh banda pasand nahi")
+    // ─────────────────────────────────────────────────────────────────────────
+    if (
+      /\b(mujhe woh banda pasand nahi|mujhe woh ladka pasand nahi|mujhe woh ladki pasand nahi|bilkul pasand nahi hai|i really don't like this person|i really don't like that person|i can't stand this person|i hate this person at my|this one person really annoys me)\b/i.test(text)
+    ) {
+      const lang = IntentClassifier.detectLanguageDominance(raw);
+      this.conversationMode = 'ACTIVE_LISTENING';
+      if (lang === 'hindi') return "यार ऐसा क्यों? क्या किया उसने?";
+      if (lang === 'hinglish') return "Haan yaar, I can hear the frustration! Kya kiya unhone exactly?";
+      return "Okay, what did they do? I'm listening.";
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // H8 — Small Wins ("I cleaned my room", "I had a good sleep")
+    // ─────────────────────────────────────────────────────────────────────────
+    if (
+      /\b(i cleaned my room|i finally cleaned|i tidied up my|i organized my room|i organized my desk|i had a really good sleep|slept really well last night|slept really well today|had a great sleep|i finally completed|i finally finished my assignment|submitted my project|room saaf kar diya|finally khatam kiya|saaf kar diya)\b/i.test(text) &&
+      !/\b(but|however|except|unfortunately|then|after that|aur phir|lekin)\b/i.test(text)
+    ) {
+      const lang = IntentClassifier.detectLanguageDominance(raw);
+      if (lang === 'hindi') {
+        if (/\b(nind|sleep|soyi|soya)\b/i.test(text)) return "अरे, अच्छी नींद मिले तो पूरा दिन सेट हो जाता है! आज कैसा लग रहा है?";
+        return "वाह, यह छोटा लेकिन बहुत अच्छा काम है! अब कैसा लग रहा है?";
+      }
+      if (lang === 'hinglish') {
+        if (/\b(sleep|nind|soyi|soya)\b/i.test(text)) return "Nicee! Good sleep genuinely changes the whole day. Productive feel ho raha hai?";
+        return "Okayyy, productive era activated! That feels so good when you finally get it done.";
+      }
+      if (/\b(sleep)\b/i.test(text)) return "Oh, a good night's sleep is so underrated. How are you feeling today?";
+      return "Okay, that is genuinely satisfying! How are you feeling now that it's done?";
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // H9 — Teacher Embarrassed User ("my teacher embarrassed me in front of the class")
+    // ─────────────────────────────────────────────────────────────────────────
+    if (
+      /\b(teacher embarrassed me|professor embarrassed me|sir embarrassed me|teacher called me out|professor called me out|teacher singled me out|teacher made fun of me|professor made fun of me|teacher pointed at me|sabke saamne embarrass kiya|sab ke saamne embarrass kiya|class mein sharminda kiya)\b/i.test(text)
+    ) {
+      const lang = IntentClassifier.detectLanguageDominance(raw);
+      this.conversationMode = 'ACTIVE_LISTENING';
+      this.personalStoryThread.isActive = true;
+      if (lang === 'hindi') return "उफ़, सबके सामने? यह तो सच में बहुत अजीब और शर्मनाक होता है! ऐसा क्यों किया उन्होंने?";
+      if (lang === 'hinglish') return "Ohh no, in front of everyone? That must've felt so embarrassing yaar. What did they say?";
+      return "Ohh no, in front of the whole class? That's genuinely horrible. What happened?";
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // H10 — Good Movie / Show Reaction ("I just watched this amazing movie")
+    // ─────────────────────────────────────────────────────────────────────────
+    if (
+      /\b(i just watched|just finished watching|just finished binge|just binge watched|watched this amazing movie|watched a really good movie|watched the best movie|saw this great film|watched an incredible|yaar maine dekhi|maine abhi dekhi|abhi dekhi|dekhi ek movie)\b/i.test(text) &&
+      /\b(movie|film|show|series|episode|anime|drama|documentary)\b/i.test(text) &&
+      !/\b(in the interview|for the interview|coding|technical|programming)\b/i.test(text)
+    ) {
+      const lang = IntentClassifier.detectLanguageDominance(raw);
+      this.conversationMode = 'ACTIVE_LISTENING';
+      if (lang === 'hindi') return "अरे, कौन सी मूवी देखी? मुझे भी बताओ!";
+      if (lang === 'hinglish') return "Ooh, which movie? Is it actually worth watching?";
+      return "Ooh, which one? What was it about?";
+    }
+
     // 0.00000 Explicit Topic Change / New Activity ("Actually no", "Actually forget that", "Okay forget that too", etc.)
+
     const hasTopicSwitchCue = /\b(actually\s+forget\s+that|forget\s+that\s+too|okay\s+forget\s+that|forget\s+that|forget\s+it|never\s+mind|actually\s+no|tell\s+me\s+something\s+else|something\s+else|kuch\s+aur\s+baat|change\s+the\s+topic|let's\s+talk\s+about\s+something\s+else|kuch\s+aur\s+batao|kuch\s+aur\s+sunao|kuch\s+naya)\b/i.test(text);
     if (hasTopicSwitchCue) {
       this.conversationMode = 'GENERAL_CHAT';
@@ -1796,6 +2170,62 @@ stale=false`);
       this.conversationStory.responsibility = 'shared';
       this.conversationMode = 'FRIEND_CONFLICT';
       return "Honestly, I think both of you contributed here. Her calling you dumb wasn't okay, but saying harsh things back escalated things. I'd apologize for your words without taking blame for her insult.";
+    }
+
+    // 0.0000000000615 Authority / Boss Reprimand ("my boss scolded me", "boss ne daanta")
+    if (/\b(my boss scolded me|boss scolded me|boss ne daanta|boss ne daant|manager scolded me|manager yelled at me|got scolded by my boss|boss was angry with me)\b/i.test(text)) {
+      this.conversationMode = 'CASUAL';
+      const lang = IntentClassifier.detectLanguageDominance(raw);
+      return lang === 'hindi'
+        ? "उफ़, यह तो सच में बहुत खराब लगा होगा। क्या हुआ था? उन्होंने क्या बोला?"
+        : lang === 'hinglish'
+        ? "Ugh, that's rough. What happened? Kya bola unhone?"
+        : "Ugh, that's rough. What happened? What did they say?";
+    }
+
+    // 0.0000000000616 Major Win / Job Celebration ("aaj mujhe job mil gayi!", "I got the job!")
+    if (/\b(aaj mujhe job mil gayi|mujhe job mil gayi|job mil gayi|i got the job|got the job|i got selected|selected for the job|cracked the interview|cleared the interview|i got the offer|got an offer)\b/i.test(text)) {
+      this.conversationMode = 'CASUAL';
+      const lang = IntentClassifier.detectLanguageDominance(raw);
+      return lang === 'hindi'
+        ? "अरे वाह! यह तो बहुत बड़ी खुशखबरी है! पार्टी तो बनती है! बहुत-बहुत बधाई! सब कुछ बताओ कैसा रहा!"
+        : lang === 'hinglish'
+        ? "Wait WHAT, that's huge! Party toh banti hai! Congratulations! Tell me all the details!"
+        : "Wait WHAT, that's huge! Congratulations! I'm so happy for you! Tell me all the details!";
+    }
+
+    // 0.0000000000617 Full Friend Conflict with Insult ("aaj mera best friend se jhagada ho gaya usne mujhe dumb bola")
+    if (
+      /\b(aaj mera best friend se jhagada ho gaya usne mujhe dumb bola|best friend se jhagada ho gaya|best friend se jhagda ho gaya|friend se jhagda|friend se jhagada|usne mujhe dumb bola)\b/i.test(text) ||
+      (/\b(best friend|friend)\b/i.test(text) && /\b(jhagada|jhagda|fight|ladai)\b/i.test(text) && /\b(dumb|stupid|usne)\b/i.test(text))
+    ) {
+      this.conversationStory.situation = 'friendship_conflict';
+      this.conversationStory.otherPersonActions.push('insulted user / called user dumb');
+      this.conversationMode = 'FRIEND_CONFLICT';
+      this.pendingQuestion = {
+        question: "What did you say back?",
+        expectedInformation: 'user_response',
+        topic: 'friend_conflict',
+        mode: 'FRIEND_CONFLICT',
+        turnId: params.turnId || '',
+        timestamp: Date.now()
+      };
+      const lang = IntentClassifier.detectLanguageDominance(raw);
+      return lang === 'hindi'
+        ? "अरे यार, यह सुनकर सच में बहुत बुरा लगा। बेस्ट फ्रेंड से झगड़ा होना और ऊपर से उनका ऐसा बोलना बहुत दर्द देता है। तुम दोनों के बीच क्या हुआ था?"
+        : lang === 'hinglish'
+        ? "Arre yaar, that really sucks. Having a fight with your best friend hurts, especially when they call you dumb. What happened between you two?"
+        : "Ouch, that's really hurtful. Getting into a fight with your best friend and having them call you dumb feels awful. What happened between you two?";
+    }
+
+    // 0.0000000000618 "Aur Phir" / "And Then" Continuation Handling ("Aur FIR", "aur phir")
+    if (/^(?:haan\s+)?(?:aur\s+phir|aur\s+fir|and\s+then|uske\s+baad)[.!?]?$/i.test(text.trim())) {
+      const lang = IntentClassifier.detectLanguageDominance(raw);
+      return lang === 'hindi'
+        ? "हाँ, और फिर क्या हुआ?"
+        : lang === 'hinglish'
+        ? "Haan, aur phir kya hua?"
+        : "Yeah, what happened after that?";
     }
 
     // 0.000000000062 Incomplete Utterance Handling
@@ -3202,7 +3632,7 @@ stale=false`);
       return "Hey there! How's it going?";
     }
     if (/\b(doing great|doing well|doing good)\b/i.test(text) && /\b(tell me about yourself|about yourself|who are you)\b/i.test(text)) {
-      return "I'm Ayra! I'm your conversational AI companion. We can talk about tech, projects, random ideas, stories, or literally whatever's on your mind!";
+      return "I'm Ayra, a conversational AI built by Swati. I'm here to talk, help, brainstorm, explain things, and basically keep up with whatever you feel like talking about.";
     }
     if (/\b(very bored today|so bored today|really bored today|i am very bored|im very bored|i'm very bored)\b/i.test(text)) {
       return "Uh-oh, boredom detected! Want a joke, an interesting story, or should we just chat about something random?";
@@ -3879,7 +4309,7 @@ stale=false`);
 
     // 15. Self-introduction
     if (/\b(tell me (about|something about) yourself|who are you|what are you|introduce yourself|apne baare mein batao|about you|about yourself)\b/i.test(text)) {
-      return "I'm Ayra. I'm your conversational AI companion. We can talk about tech, projects, random ideas, stories, or literally whatever's on your mind!";
+      return "I'm Ayra, a conversational AI built by Swati. I'm here to talk, help, brainstorm, explain things, and basically keep up with whatever you feel like talking about.";
     }
 
     // 16. Casual status / "How was your day" / "How are you"
@@ -4078,18 +4508,23 @@ stale=false`);
       return "Hey! How are you doing today?";
     }
 
-    // 28.5 Generic Knowledge / Concept Question Answering (Never fall back on valid recognizable questions)
+    // 28.5 Generic Knowledge / Concept Question Answering (Never invent fake encyclopedia definitions)
     const questionMatch = text.match(/^(?:what is|who is|what are|explain|tell me about|how does|why is|what was|who was|who painted|where is)\s+(.+?)[.?!]?$/i);
     if (questionMatch && questionMatch[1]) {
       const subject = questionMatch[1].trim();
       const nonQuestions = ['that', 'this', 'it', 'you', 'me', 'the other person', 'her', 'him', 'them'];
       if (!nonQuestions.includes(subject.toLowerCase())) {
-        const formatted = subject.charAt(0).toUpperCase() + subject.slice(1);
-        return `${formatted} is a notable concept and subject of interest. It plays a significant role in its respective domain. Would you like to explore a specific aspect of it?`;
+        if (/\b(weather|temperature|forecast|mausam)\b/i.test(subject)) {
+          const isHinglish = params.languageMode === 'hinglish' || params.languageMode === 'hindi';
+          return isHinglish
+            ? "Kaunsi city ka mausam janna hai? City ka naam batao, main check karke batati hoon."
+            : "Which city do you mean? Tell me the city name and I'll check the weather for you.";
+        }
+        return "I can't check live details on that right now, but tell me what specific part you're curious about!";
       }
     }
 
-    // 29. Direct Conversational Fallback (Used ONLY when input is truly ambiguous / unintelligible)
+    // 29. Direct Conversational Fallback (Rotating Pool without verbatim repetitions)
     console.log(`[FALLBACK DEBUG]
 turnId: ${params.previousAssistantMessage ? 'active' : 'turn'}
 transcript: "${raw}"
@@ -4100,6 +4535,7 @@ confidence: 0.5
 selectedResponsePath: generic_fallback
 reason: Input did not match specialized semantic routes or dynamic templates`);
 
-    return "I'm not sure what you mean by that. Can you say that again?";
+    this.lastFallbackIndex = (this.lastFallbackIndex + 1) % this.fallbackPool.length;
+    return this.fallbackPool[this.lastFallbackIndex];
   }
 }

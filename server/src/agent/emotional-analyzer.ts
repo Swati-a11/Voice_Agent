@@ -55,24 +55,43 @@ export class EmotionalAnalyzer {
       };
     }
 
-    // 2. EXCITED / BIG WIN / CELEBRATION (High Energy + Positive Words)
+    // 1b. AUTHORITY / WORKPLACE REPRIMAND (Boss Scolded, Manager Shouted, Teacher Scolded)
     if (
-      /\b(got the job|got an offer|cleared the interview|crushed it|passed|won|we did it|great news|big win|so excited|yay|promoted|yesss|i got selected|selected|let's go)\b/i.test(lower) ||
+      /\b(my boss scolded me|boss scolded me|boss ne daanta|boss ne daant|boss shouted|boss yelled|manager scolded|manager yelled|scolded by my boss|scolded by boss|boss was mad|boss was angry|teacher scolded|scolded by teacher|professor scolded)\b/i.test(lower)
+    ) {
+      return {
+        emotion: 'frustrated',
+        intensity: 0.88,
+        speakingStyle: 'emotional',
+        confidence: 0.95,
+        tone: 'serious',
+        ttsAdjustment: {
+          rate: 0.94,
+          pitch: 0.96,
+          volume: 0.95
+        },
+        strategyGuidance: 'Lead with sympathy and validation first ("Ugh, that is rough, what happened?" / "Yaar that sucks, kya bola usne?"). Do not lecture or analyze who was right unless asked.'
+      };
+    }
+
+    // 2. EXCITED / BIG WIN / CELEBRATION (Job Offers, Promotions, Big News)
+    if (
+      /\b(aaj mujhe job mil gayi|mujhe job mil gayi|job mil gayi|got the job|got an offer|got a job offer|cleared the interview|crushed it|passed|won|we did it|great news|big win|so excited|yay|promoted|yesss|i got selected|selected for the job|cracked the interview|let's go)\b/i.test(lower) ||
       (/\b(finally|made it|i did it|omg)\b/i.test(lower) && (isHighEnergy || hasExclamation))
     ) {
-      const intensity = isHighEnergy ? 0.95 : 0.85;
+      const intensity = isHighEnergy ? 0.98 : 0.92;
       return {
         emotion: 'excited',
         intensity,
         speakingStyle: 'rushed',
-        confidence: 0.95,
+        confidence: 0.98,
         tone: 'excited',
         ttsAdjustment: {
-          rate: 1.12,
-          pitch: 1.10,
+          rate: 1.15,
+          pitch: 1.12,
           volume: 1.0
         },
-        strategyGuidance: 'Match excitement and celebrate genuinely with high positive energy ("Wait, seriously?! That\'s amazing! Let\'s gooo!").'
+        strategyGuidance: 'Escalate energy and celebrate genuinely ("Wait WHAT, that\'s huge! Party toh banti hai! Congratulations!"). Scale response intensity to the big news.'
       };
     }
 

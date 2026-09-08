@@ -683,13 +683,14 @@ export class ConversationManager extends EventEmitter {
     // Roleplay & Mode Non-Stickiness (Section 3, 15, 21): A new explicit intent automatically replaces roleplay
     if (this.activeRoleplay !== 'none') {
       const isCrushPracticeDialogue = this.activeRoleplay === 'crush_practice' && ['crush', 'proposal_practice', 'compliment', 'casual_chat'].includes(detailedClassification.intent);
+      const isTeacherDialogue = this.activeRoleplay === 'teacher' && ['teacher_roleplay', 'explanation_request', 'casual_chat', 'question'].includes(detailedClassification.intent);
       const nonRoleplayIntents = [
         'crush', 'proposal_practice', 'rejection_support', 'breakup_support', 'reconciliation',
         'friendship_conflict', 'life_scenario', 'current_information', 'explanation_request',
         'goodbye', 'stop', 'topic_change', 'joke_request', 'story_request', 'boredom',
         'insult', 'compliment'
       ];
-      if (!isCrushPracticeDialogue && nonRoleplayIntents.includes(detailedClassification.intent) && detailedClassification.intent !== 'interviewer_roleplay' && detailedClassification.intent !== 'girlfriend_roleplay' && detailedClassification.intent !== 'boyfriend_roleplay') {
+      if (!isCrushPracticeDialogue && !isTeacherDialogue && nonRoleplayIntents.includes(detailedClassification.intent) && detailedClassification.intent !== 'interviewer_roleplay' && detailedClassification.intent !== 'girlfriend_roleplay' && detailedClassification.intent !== 'boyfriend_roleplay' && detailedClassification.intent !== 'teacher_roleplay') {
         this.activeRoleplay = 'none';
         this.interviewState.active = false;
         this.interviewRoleplayStep = 0;
@@ -699,6 +700,8 @@ export class ConversationManager extends EventEmitter {
         this.conversationMode = 'INTERVIEWER_ROLEPLAY';
       } else if (this.activeRoleplay === 'girlfriend') {
         this.conversationMode = 'GIRLFRIEND_STYLE_ROLEPLAY';
+      } else if (this.activeRoleplay === 'teacher') {
+        this.conversationMode = 'TEACHER_ROLEPLAY';
       }
     }
 
@@ -1546,7 +1549,12 @@ stale=false`);
     // Turn 1: "Aaj college mein kuch weird hua." -> "Acha? College mein kya hua, batao?"
     // Turn 2: "Professor ne mujhe class ke saamne bula liya." -> "Wait, professor ne class ke saamne bula liya? Did you know why, or was it a surprise?"
     // Turn 3: "Phir unhone..." -> Resolves "unhone" to the professor!
-    if (thread.isActive || /\b(professor|teacher|class ke saamne|unhone|classroom)\b/i.test(lower)) {
+    const isTeacherStory = thread.topic === 'teacher_incident' ||
+      (this.personalStoryThread.peopleMentioned && this.personalStoryThread.peopleMentioned.some(p => /teacher|professor|faculty|sir|ma'am/i.test(p))) ||
+      /\b(professor|teacher|classroom)\b/i.test(lower) ||
+      /\b(professor|teacher)\b/i.test(prevAgent);
+
+    if (isTeacherStory || /\b(class ke saamne|bula liya|called me in front)\b/i.test(lower)) {
       if (
         /\b(get out of the classroom|get out of class|kicked me out|kicked out of the classroom|told me to get out|said me to get out|asked me to leave the class|class se nikal diya|class se bahar)\b/i.test(lower) ||
         (/\b(what happened next is|what happened next was|uske baad kya hua ki|phir ye hua ki)\b/i.test(lower) && /\b(get out|classroom|class|teacher|professor|scolded|daanta)\b/i.test(lower))
@@ -1565,10 +1573,10 @@ stale=false`);
         } else if (lang === 'hinglish') {
           return "Oof, teacher ne kyun daanta? What happened in class?";
         }
-        return "I'm following along! What happened next?";
+        return "Oof, why did the teacher scold you? What happened in class?";
       }
 
-      if (/\b(phir unhone|unhone kya|unhone bola|unhone kaha|and then they|then he|then she)\b/i.test(lower)) {
+      if (isTeacherStory && /\b(phir unhone|unhone kya|unhone bola|unhone kaha|and then they|then he|then she)\b/i.test(lower)) {
         if (lang === 'hindi') {
           return "फिर प्रोफेसर ने क्या बोला सबके सामने? आगे क्या हुआ?";
         } else if (lang === 'hinglish') {
@@ -1585,15 +1593,25 @@ stale=false`);
         }
         return "Wait, the professor called you to the front of the whole class? Did you know why, or was it totally unexpected?";
       }
+    }
 
-      if (/\b(aaj college mein kuch weird hua|college mein kuch weird|something weird happened at college)\b/i.test(lower)) {
-        if (lang === 'hindi') {
-          return "अरे, कॉलेज में ऐसा क्या अजीब हो गया? बताओ?";
-        } else if (lang === 'hinglish') {
-          return "Acha? College mein kya hua, batao?";
-        }
-        return "Wait, what happened at college? Tell me!";
+    if (/\b(aaj college mein kuch weird hua|college mein kuch weird|something weird happened at college)\b/i.test(lower)) {
+      if (lang === 'hindi') {
+        return "अरे, कॉलेज में ऐसा क्या अजीब हो गया? बताओ?";
+      } else if (lang === 'hinglish') {
+        return "Acha? College mein kya hua, batao?";
       }
+      return "Wait, what happened at college? Tell me!";
+    }
+
+    // Friend not talking / silent treatment / argument continuation
+    if (/\b(not talking to me|she is not talking|he is not talking|baat nahi kar rahi|baat nahi kar raha|baat karna band|stopped talking|ignored me|ignoring me|blocked me|block kar diya)\b/i.test(lower)) {
+      if (lang === 'hindi') {
+        return "अरे यार, जब कोई खास दोस्त ऐसे बात करना बंद कर दे तो बहुत भारी लगता है। क्या तुम्हें लगता है वो थोड़ा शांत होने के बाद बात करेगी?";
+      } else if (lang === 'hinglish') {
+        return "Arre yaar, jab dost gusse mein baat karna band kar de toh bohot bura lagta hai. Kya usne message dekha ya abhi thoda space chahiye usse?";
+      }
+      return "Oof, when a close friend suddenly stops talking after an argument, it feels so heavy and draining. Do you think she just needs a little space to cool off, or did you try messaging her?";
     }
 
     // 8. Milestones & Celebrations (Job offer, interview success, sister college, exam passed)
@@ -2703,6 +2721,12 @@ stale=false`);
         if (/\b(got it|understood|makes sense|clear|samajh gaya|samajh gayi)\b/i.test(text)) {
           return "Awesome! Excellent job catching on quickly. Let's take it one step deeper: how would you apply this concept in a real problem?";
         }
+
+        // Direct subject / concept request inside teacher mode
+        const knowledgeAnswer = this.getUniversalKnowledgeResponse(text, params.languageMode, true);
+        if (knowledgeAnswer) {
+          return knowledgeAnswer;
+        }
       }
     }
 
@@ -2714,13 +2738,36 @@ stale=false`);
         this.conversationMode = 'CASUAL';
         this.interviewState.active = false;
       } else {
-        // Handle explicit "I don't know" / non-answers honestly
+        // Handle explicit "I don't know" / non-answers dynamically based on what was asked
         if (/\b(don'?t know|dont know|no idea|can'?t remember|not sure|skip|pass|i have no idea)\b/i.test(text)) {
-          return "No worries at all! That's completely normal in a technical interview. In short, optimization is usually handled with memoization (like useMemo and useCallback) or keeping state local. Let's try another question: Can you explain how REST APIs differ from GraphQL?";
+          const sentences = prevAgent.split(/[.?!]/).filter(s => s.trim().length > 0);
+          const lastQuestion = sentences.length > 0 ? sentences[sentences.length - 1] : prevAgent;
+
+          if (/error handling|retries|llm|external ai|endpoints in production/i.test(lastQuestion) || this.interviewRoleplayStep >= 4) {
+            this.interviewRoleplayStep = 5;
+            return "That's completely fine! For external AI endpoints, you typically implement exponential backoff with jitter, fallback models, and circuit breakers. Next question: How would you design caching with Redis or CDN to optimize read-heavy web applications?";
+          }
+          if (/re-render|render frequently|usememo|state management/i.test(lastQuestion) || this.interviewRoleplayStep === 3) {
+            this.interviewRoleplayStep = 4;
+            return "No worries at all! In React, frequent re-renders are optimized using memoization (like useMemo, useCallback, React.memo) and keeping state local. Next question: How would you structure error handling and retries when calling external AI or LLM endpoints in production?";
+          }
+          if (/rest api|graphql|endpoint|differ from graphql/i.test(lastQuestion) || this.interviewRoleplayStep === 2) {
+            this.interviewRoleplayStep = 3;
+            return "No problem! In short, REST uses multiple fixed endpoints where the server dictates the payload, whereas GraphQL uses a single endpoint allowing the client to query exact fields. Next question: How do you handle state management and performance optimization in React when components re-render frequently?";
+          }
+          if (/websocket|latency|stt|tts|speech to text|voice agent/i.test(lastQuestion) || /voice agent/i.test(prevAgent)) {
+            this.interviewRoleplayStep = 2;
+            return "No worries at all! That's completely normal in a technical interview. For real-time voice agents, latency is minimized by streaming audio chunks over binary WebSockets and keeping VAD turnaround low. Let's try another question: Can you explain how REST APIs differ from GraphQL?";
+          }
+          this.interviewRoleplayStep++;
+          return "No worries at all! That's completely normal in a technical interview. Let's pivot to another question: How would you handle asynchronous JavaScript and promise rejections cleanly in production code?";
         }
 
         // Handle candidate asking for feedback
-        if (/\b(give me (?:the )?feedback|how was my interview|how did i do|give feedback|feedback please|overall feedback)\b/i.test(text)) {
+        if (
+          /\b(give me (?:the )?feedback|how was my interview|how did i do|give feedback|feedback please|overall feedback|can you keep my feedback|can you give feedback|give feedback on this interview|feedback of interview|feedback on (?:this|the)?\s*interview)\b/i.test(text) ||
+          (/\bfeedback\b/i.test(text) && /\b(interview|how was|performance|give|share|keep)\b/i.test(text))
+        ) {
           return "Overall, you communicated your background and projects really well! You were clear and concise on your introduction. My main advice for tomorrow is to brush up on React optimization techniques and async state handling. Stay confident—you're in good shape!";
         }
 
@@ -4775,20 +4822,10 @@ stale=false`);
       return "Hey! How are you doing today?";
     }
 
-    // 28.5 Generic Knowledge / Concept Question Answering (Never invent fake encyclopedia definitions)
-    const questionMatch = text.match(/^(?:what is|who is|what are|explain|tell me about|how does|why is|what was|who was|who painted|where is)\s+(.+?)[.?!]?$/i);
-    if (questionMatch && questionMatch[1]) {
-      const subject = questionMatch[1].trim();
-      const nonQuestions = ['that', 'this', 'it', 'you', 'me', 'the other person', 'her', 'him', 'them'];
-      if (!nonQuestions.includes(subject.toLowerCase())) {
-        if (/\b(weather|temperature|forecast|mausam)\b/i.test(subject)) {
-          const isHinglish = params.languageMode === 'hinglish' || params.languageMode === 'hindi';
-          return isHinglish
-            ? "Kaunsi city ka mausam janna hai? City ka naam batao, main check karke batati hoon."
-            : "Which city do you mean? Tell me the city name and I'll check the weather for you.";
-        }
-        return "I can't check live details on that right now, but tell me what specific part you're curious about!";
-      }
+    // 28.5 Universal Academic & Concept Question Answering
+    const knowledgeAnswer = this.getUniversalKnowledgeResponse(text, params.languageMode, this.conversationMode === 'TEACHER_ROLEPLAY' || this.activeRoleplay === 'teacher');
+    if (knowledgeAnswer) {
+      return knowledgeAnswer;
     }
 
     // 29. Direct Conversational Fallback (Rotating Pool without verbatim repetitions)
@@ -4804,5 +4841,135 @@ reason: Input did not match specialized semantic routes or dynamic templates`);
 
     this.lastFallbackIndex = (this.lastFallbackIndex + 1) % this.fallbackPool.length;
     return this.fallbackPool[this.lastFallbackIndex];
+  }
+
+  /**
+   * Universal Academic & General Concept Explainer
+   * Provides student-friendly, crystal-clear explanations across Physics, Chemistry, Tech, Biology, and Maths
+   */
+  private getUniversalKnowledgeResponse(text: string, languageMode?: LanguageMode | string, isTeacher?: boolean): string | null {
+    const lower = text.toLowerCase().trim();
+    const isHindi = languageMode === 'hindi';
+    const isHinglish = languageMode === 'hinglish';
+
+    // 1. Friction & Classical Mechanics
+    if (/\b(friction|ghanshan|gharshan)\b/i.test(lower)) {
+      if (isTeacher) {
+        return "Friction is the contact force that resists relative motion between two sliding or rolling surfaces. Microscopically, it's caused by tiny irregularities (asperities) interlocking and forming micro-welds. The main types are static friction (which resists the start of motion), kinetic friction (which opposes ongoing sliding), and rolling friction (which is much lower). In daily life, friction is what lets our shoes grip the road and helps car brakes stop! Shall we look at a numerical problem or friction on inclined planes next?";
+      }
+      return "Friction is the resisting force that opposes the relative motion between two surfaces in contact. Microscopically, surfaces have tiny roughness peaks that interlock when pressed together. It has three main forms: static friction (stopping objects from sliding initially), kinetic friction (acting during sliding, where f = μN), and rolling friction. Friction is essential in everyday life—without it, walking, writing with a pen, or braking a car would be impossible!";
+    }
+
+    // 2. P-Block Elements (Chemistry)
+    if (/\b(p\s*block|p-block|group 13|group 14|group 15|group 16|group 17|group 18|boron family|carbon family|nitrogen family|oxygen family|halogens|noble gases)\b/i.test(lower)) {
+      if (isTeacher) {
+        return "In the periodic table, p-block elements occupy Groups 13 to 18. Their defining characteristic is that the outermost valence electrons enter the p-subshell, giving them the general configuration ns² np¹⁻⁶. It's the only block containing metals (like Al), non-metals (like C, N, O, halogens), and metalloids (like Si, Ge). As we move down heavier elements, they exhibit the inert pair effect and variable oxidation states. Which group would you like to explore first—Group 15 nitrogen family, Group 16 chalcogens, or Group 17 halogens?";
+      }
+      return "P-block elements are the elements located in Groups 13 through 18 of the periodic table, where the last valence electron enters the outermost p-orbital (ns² np¹⁻⁶). The p-block is unique because it contains all three categories of elements: metals, metalloids, and non-metals. It includes elements essential for organic life like Carbon, Nitrogen, and Oxygen, along with halogens and noble gases. Key trends include the inert pair effect in heavier elements, multiple oxidation states, and high electronegativity across periods.";
+    }
+
+    // 3. S-Block / D-Block / F-Block / Transition Metals / Periodic Table
+    if (/\b(d\s*block|d-block|transition metals?|transition elements?)\b/i.test(lower)) {
+      return "D-block elements (Groups 3 to 12) are transition metals where the differentiating electron enters the penultimate (n-1)d subshell. They are known for forming colored ions (due to d-d electronic transitions), displaying variable oxidation states, high melting points, and acting as excellent catalysts like Iron in the Haber process and Platinum in catalytic converters.";
+    }
+    if (/\b(s\s*block|s-block|alkali metals?|alkaline earth)\b/i.test(lower)) {
+      return "S-block elements comprise Group 1 (alkali metals) and Group 2 (alkaline earth metals). They have their valence electrons in the s-orbital (ns¹ or ns²), possess low ionization enthalpies, are highly electropositive and reactive, and form strong ionic compounds.";
+    }
+    if (/\b(periodic table|periodic trends?|electronegativity|ionization energy|atomic radius)\b/i.test(lower)) {
+      return "In the periodic table, atomic radius decreases across a period (due to increasing effective nuclear charge) and increases down a group. Electronegativity and ionization energy increase across a period from left to right and decrease down a group as shielding increases.";
+    }
+
+    // 4. Chemical Bonding & Organic Chemistry
+    if (/\b(chemical bonding|ionic bond|covalent bond|hydrogen bond|hybridization|vsepr)\b/i.test(lower)) {
+      return "Chemical bonding describes how atoms achieve stable octets: ionic bonds transfer electrons between metals and non-metals, covalent bonds share electron pairs through orbital overlap (sigma and pi bonds), and hydrogen bonds form strong dipole attractions. Hybridization (like sp, sp², sp³) explains molecular geometries like tetrahedral methane or planar ethylene.";
+    }
+    if (/\b(organic chemistry|hydrocarbon|alkane|alkene|alkyne|functional group|isomers?|isomerism)\b/i.test(lower)) {
+      return "Organic chemistry is the study of carbon compounds and their functional groups (alcohols, aldehydes, ketones, carboxylic acids, amines). Carbon's unique ability to form stable chains (catenation) and multiple covalent bonds allows millions of distinct structures and isomers.";
+    }
+    if (/\b(acid|base|ph scale|acids and bases|neutralization)\b/i.test(lower)) {
+      return "Acids release hydrogen ions (H⁺ or hydronium H₃O⁺) in solution with a pH below 7, while bases release hydroxide ions (OH⁻) or accept protons with a pH above 7. The pH scale is logarithmic: pH = -log[H⁺], where 7 is neutral.";
+    }
+
+    // 5. Physics: Gravity, Relativity, Thermodynamics, Quantum
+    if (/\b(gravity|gravitation|general relativity|spacetime|newton's law of gravitation)\b/i.test(lower)) {
+      return "Gravity is the fundamental force that attracts objects with mass or energy. In classical Newtonian physics, it is an attractive force proportional to masses and inversely proportional to the square of distance (F = G * m1*m2 / r²). In Einstein's General Relativity, gravity is the geometric curvature of 4D spacetime caused by mass and energy.";
+    }
+    if (/\b(newton's laws?|laws of motion|first law of motion|second law of motion|third law of motion)\b/i.test(lower)) {
+      return "Newton's three laws of motion are: 1) The Law of Inertia — an object stays at rest or in uniform motion unless acted on by an external force; 2) F = ma — acceleration is directly proportional to net force; 3) Action-Reaction — for every action, there is an equal and opposite reaction.";
+    }
+    if (/\b(thermodynamics|first law of thermodynamics|second law of thermodynamics|entropy|carnot)\b/i.test(lower)) {
+      return "Thermodynamics governs heat, work, and energy transformations: the 1st Law states energy cannot be created or destroyed (conservation of energy: ΔU = Q - W), the 2nd Law states the total entropy of an isolated system always increases over time, and the 3rd Law states entropy approaches zero as temperature reaches absolute zero.";
+    }
+    if (/\b(quantum mechanics|quantum physics|schrodinger|wave particle duality|heisenberg uncertainty)\b/i.test(lower)) {
+      return "Quantum mechanics describes the physical properties of nature at the atomic and subatomic scales. Key principles include wave-particle duality (light and matter exhibit both wave and particle behaviors), quantization of energy levels, and Heisenberg's uncertainty principle (you cannot simultaneously measure exact position and momentum).";
+    }
+    if (/\b(doppler effect|sound waves?|electromagnetic spectrum|speed of light|light speed)\b/i.test(lower)) {
+      return "The Doppler effect is the change in frequency or wavelength of a wave in relation to an observer moving relative to the wave source (like the pitch shift of a passing ambulance siren). The speed of light in vacuum is approximately 3 × 10⁸ meters per second, which is the universal speed limit.";
+    }
+
+    // 6. Computer Science & Software Engineering
+    if (/\b(react|reactjs|react js|virtual dom)\b/i.test(lower) && !/\b(my|friend|teacher|interview)\b/i.test(lower)) {
+      return "React is a popular component-based JavaScript library created by Meta for building dynamic user interfaces. It uses a declarative approach with JSX and maintains a Virtual DOM in memory; when state changes, React's reconciliation diffing algorithm computes minimal updates to the real browser DOM, ensuring fast rendering performance.";
+    }
+    if (/\b(javascript|node\.?js|event loop|async await|promises in js)\b/i.test(lower) && !/\b(interview)\b/i.test(lower)) {
+      return "JavaScript is a high-level, single-threaded, asynchronous programming language powering the modern web. Its concurrency model is driven by the event loop, which coordinates the call stack, microtask queue (promises), and macrotask queue (timers, I/O) without blocking execution.";
+    }
+    if (/\b(python|python programming)\b/i.test(lower)) {
+      return "Python is an interpreted, high-level, dynamically typed programming language renowned for its clean readability. It powers artificial intelligence, machine learning, data engineering, and backend development with rich libraries like NumPy, PyTorch, and FastAPI.";
+    }
+    if (/\b(rest api|rest apis|graphql|difference between rest and graphql)\b/i.test(lower)) {
+      return "REST (Representational State Transfer) exposes multiple resource endpoints with fixed response structures, while GraphQL provides a single endpoint allowing clients to query and mutate exact fields in a single network round-trip.";
+    }
+    if (/\b(websocket|websockets)\b/i.test(lower)) {
+      return "WebSocket is a computer communications protocol providing full-duplex, bidirectional, persistent communication channels over a single TCP connection, ideal for real-time chat, voice streaming, and live gaming.";
+    }
+    if (/\b(dns|domain name system|how does dns work)\b/i.test(lower)) {
+      return "DNS (Domain Name System) is the internet's phonebook: it translates human-friendly domain names (like google.com) into machine-readable IP addresses (like 142.250.190.46) through a hierarchical query chain across root servers, TLD servers, and authoritative nameservers.";
+    }
+    if (/\b(machine learning|artificial intelligence|neural network|neural networks|deep learning|llm|large language model)\b/i.test(lower)) {
+      return "Machine learning is a branch of AI where algorithms learn statistical patterns from data rather than being explicitly hardcoded. Deep learning uses multi-layer neural networks, while Large Language Models (LLMs) utilize transformer architectures with self-attention mechanisms to understand and generate natural language.";
+    }
+    if (/\b(data structures?|algorithms?|binary search|dynamic programming|big o|big-o)\b/i.test(lower)) {
+      return "Data structures organize and store data efficiently (like Arrays, Hash Tables, Binary Trees, and Graphs), while algorithms define step-by-step procedures to solve problems. Big-O notation measures computational complexity in terms of time and space as input size N scales.";
+    }
+
+    // 7. Biology & Life Sciences
+    if (/\b(photosynthesis|calvin cycle|chloroplast|chlorophyll)\b/i.test(lower)) {
+      return "Photosynthesis is the biochemical process by which green plants and algae convert sunlight, water, and carbon dioxide into glucose and oxygen (6CO₂ + 6H₂O + light → C₆H₁₂O₆ + 6O₂). It takes place in chloroplasts through light-dependent reactions in thylakoid membranes and the light-independent Calvin cycle in the stroma.";
+    }
+    if (/\b(dna|rna|genetics|replication|transcription|translation|gene)\b/i.test(lower)) {
+      return "DNA (deoxyribonucleic acid) stores genetic instructions in a double-helix composed of four nucleotide bases (Adenine, Thymine, Cytosine, Guanine). The Central Dogma describes how genetic code in DNA is transcribed into messenger RNA (mRNA), which is then translated by ribosomes into proteins.";
+    }
+    if (/\b(mitochondria|cell structure|nucleus|cell membrane)\b/i.test(lower)) {
+      return "The cell is the basic structural unit of life. The nucleus stores genetic material, the cell membrane regulates transport, and mitochondria generate ATP energy through cellular respiration, earning them the title of the powerhouse of the cell.";
+    }
+
+    // 8. Mathematics
+    if (/\b(calculus|derivative|derivatives|integral|integrals|integration|differentiation)\b/i.test(lower)) {
+      return "Calculus is the mathematical study of continuous change. Differentiation calculates derivatives (instantaneous rates of change, or slopes of tangent curves), while integration accumulates quantities (calculating the total area or volume under a curve). The Fundamental Theorem of Calculus connects both operations as inverses.";
+    }
+    if (/\b(linear algebra|matrices|matrix multiplication|eigenvalues?|vectors?)\b/i.test(lower)) {
+      return "Linear algebra studies vector spaces and linear transformations represented by matrices. Concepts like matrix multiplication, determinants, and eigenvalues/eigenvectors are fundamental across computer graphics, quantum mechanics, and machine learning neural network transformations.";
+    }
+
+    // 9. Generic Concept Matcher ("what is X", "explain X", "tell me about X")
+    const match = text.match(/^(?:what is|who is|what are|explain|tell me about|how does|why is|teach me|want to understand|can you explain)\s+(.+?)[.?!]?$/i);
+    if (match && match[1]) {
+      const topic = match[1].trim().replace(/^(?:a|an|the|about)\s+/i, '');
+      const nonConcepts = ['that', 'this', 'it', 'you', 'me', 'the other person', 'her', 'him', 'them', 'my friend', 'my story'];
+      if (!nonConcepts.includes(topic.toLowerCase()) && topic.length >= 2) {
+        if (/\b(weather|temperature|forecast|mausam)\b/i.test(topic)) {
+          return isHinglish || isHindi
+            ? "Kaunsi city ka mausam janna hai? City ka naam batao, main check karke batati hoon."
+            : "Which city do you mean? Tell me the city name and I'll check the weather for you.";
+        }
+        if (isTeacher) {
+          return `Great question! ${topic.charAt(0).toUpperCase() + topic.slice(1)} is a core topic. In simple terms, it involves understanding its fundamental principles, how its components interact, and where it is applied in practice. Would you like to start with a high-level overview or dive straight into a practical example?`;
+        }
+        return `${topic.charAt(0).toUpperCase() + topic.slice(1)} is a key concept that connects fundamental principles with practical applications. Tell me what specific angle you'd like to explore—the foundational theory, how it works under the hood, or real-world examples!`;
+      }
+    }
+
+    return null;
   }
 }

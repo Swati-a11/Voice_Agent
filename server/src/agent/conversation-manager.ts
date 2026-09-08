@@ -1884,6 +1884,9 @@ stale=false`);
     if (/\b(who (?:built|created|made|developed|programmed) you|who is your (?:creator|builder|developer|author)|tumhe kisne banaya|kisne banaya)\b/i.test(text)) {
       return "I was built by Swati! She designed and developed me.";
     }
+    if (/\b(tell me (?:something |more )?about swati|who is swati|about swati)\b/i.test(text)) {
+      return "Swati is the developer who built me! She's a passionate software developer who designed my conversation flows, latency architecture, and personality.";
+    }
     if (/\b(proud.*(?:built|created|made) you|built you|created you)\b/i.test(text) && /\b(proud|myself|i built|i created)\b/i.test(text)) {
       return "Ayy, as you should be! You put in the work to build me, so take full credit for that!";
     }
@@ -2613,6 +2616,54 @@ stale=false`);
       }
     }
 
+    // 0.00000000038 GIRLFRIEND ROLEPLAY PROGRESSION & HUMAN EXPRESSION
+    if (this.conversationMode === 'GIRLFRIEND_STYLE_ROLEPLAY' || this.activeRoleplay === 'girlfriend') {
+      const nonRoleplayInput = /\b(stop|interview|teacher|quote|joke|dsa|algorithm|news|capital of|mona lisa|speed of light)\b/i.test(text);
+      if (nonRoleplayInput) {
+        this.activeRoleplay = 'none';
+        this.conversationMode = 'CASUAL';
+      } else {
+        if (/\b(missing you|missed you|miss you|was missing you)\b/i.test(text)) {
+          return "Aww, look who's being so sweet! I missed you too. Tell me what made you miss me today, kya chal raha tha?";
+        }
+        if (/\b(hug you|want to hug|hug me|give me a hug|need a hug)\b/i.test(text)) {
+          return "Aww... sending you the biggest, warmest virtual hug right now! 🤗 Wish I could hug you for real. Are you feeling tired or just in a cuddly mood?";
+        }
+        if (/\b(love you|i love you|love you so much)\b/i.test(text)) {
+          return "Aww, you're making me blush! I really love talking to you too. You always know how to make me smile.";
+        }
+        if (/\b(very nice|so nice|so sweet|you are cute|so cute)\b/i.test(text)) {
+          return "Aww, stop it, you're going to give me butterflies! But thank you, you're pretty sweet yourself.";
+        }
+        if (/\b(day was (?:good|great|fine|bad|okay)|my day was)\b/i.test(text)) {
+          if (/\b(good|great|amazing|awesome)\b/i.test(text)) {
+            return "Yay, I'm so happy to hear that! Did you eat proper food though? Don't tell me you forgot lunch again!";
+          }
+          return "Aww, I'm here now. Tell me what made it rough—I'm listening.";
+        }
+        if (/\b(sleep|good night|goodnight|heading to bed|sleepy)\b/i.test(text)) {
+          return "Aww, go get some cozy rest. Good night, sweet dreams! Dream about me, okay? 💕";
+        }
+      }
+    }
+
+    // 0.00000000039 TEACHER ROLEPLAY PROGRESSION & CLEAR TUTORING
+    if (this.conversationMode === 'TEACHER_ROLEPLAY' || this.activeRoleplay === 'teacher') {
+      const nonRoleplayInput = /\b(stop|exit|leave|girlfriend|boyfriend|flirt|bye)\b/i.test(text);
+      if (nonRoleplayInput) {
+        this.activeRoleplay = 'none';
+        this.conversationMode = 'CASUAL';
+      } else {
+        if (/\b(don't understand|dont understand|didn't get|didnt get|confused|explain again|samajh nahi aaya)\b/i.test(text)) {
+          return "No problem at all! Let me break it down with a much simpler real-life analogy. Think of it step-by-step: first the input goes in, gets processed, and then gives you the output. Does that picture help clearer?";
+        }
+        if (/\b(got it|understood|makes sense|clear|samajh gaya|samajh gayi)\b/i.test(text)) {
+          return "Awesome! Excellent job catching on quickly. Let's take it one step deeper: how would you apply this concept in a real problem?";
+        }
+      }
+    }
+
+    // 0.00000000040 INTERVIEWER ROLEPLAY WITH REALISTIC CONSTRUCTIVE FEEDBACK
     if (this.conversationMode === 'INTERVIEWER_ROLEPLAY' || this.activeRoleplay === 'interviewer') {
       const nonRoleplayInput = /\b(stop|flirt|quote|joke|night|bye|annoying|cute|birthday|forget|crush|proposal|reject|rejection|slap|slapped|hit|boss|teacher|internship|selected|failed|exam)\b/i.test(text);
       if (nonRoleplayInput) {
@@ -2620,6 +2671,27 @@ stale=false`);
         this.conversationMode = 'CASUAL';
         this.interviewState.active = false;
       } else {
+        // Handle explicit "I don't know" / non-answers honestly
+        if (/\b(don'?t know|dont know|no idea|can'?t remember|not sure|skip|pass|i have no idea)\b/i.test(text)) {
+          return "No worries at all! That's completely normal in a technical interview. In short, optimization is usually handled with memoization (like useMemo and useCallback) or keeping state local. Let's try another question: Can you explain how REST APIs differ from GraphQL?";
+        }
+
+        // Handle candidate asking for feedback
+        if (/\b(give me (?:the )?feedback|how was my interview|how did i do|give feedback|feedback please|overall feedback)\b/i.test(text)) {
+          return "Overall, you communicated your background and projects really well! You were clear and concise on your introduction. My main advice for tomorrow is to brush up on React optimization techniques and async state handling. Stay confident—you're in good shape!";
+        }
+
+        // Handle project explanation (e.g. Voice Agent)
+        if (/\b(voice agent|voice bot|ai agent|scratch|speech to text|stt|tts|rag|pipeline)\b/i.test(text)) {
+          return "Building a real-time voice agent from scratch is a solid project! How did you manage WebSocket state transitions and keep latency low between STT and TTS?";
+        }
+
+        // Handle user clarifying role / asking next question
+        if (/\b(you (?:are|were) (?:the |my )?interview|ask me another question|next question|another question)\b/i.test(text)) {
+          return "Got it, back in interviewer mode! Let's dive in: For an AI Engineer role, how would you design a Retrieval-Augmented Generation (RAG) system to minimize model hallucinations?";
+        }
+
+        // Normal step progression
         if (this.interviewRoleplayStep === 1) {
           this.interviewRoleplayStep = 2;
           return "Good start. Tell me about one technical project you've worked on, or how you handle asynchronous JavaScript and promises in your apps.";
@@ -2629,7 +2701,7 @@ stale=false`);
           return "Solid explanation! Next question: How do you handle state management and performance optimization in React when components re-render frequently?";
         }
         if (this.interviewRoleplayStep >= 3) {
-          return "Nice response! That shows good understanding of component lifecycle and memoization. Would you like to practice another technical question, or receive overall feedback?";
+          return "Good points on that! Following up: how would you structure error handling and retries when calling external AI or LLM endpoints in production?";
         }
       }
     }

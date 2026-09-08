@@ -381,6 +381,11 @@ export class IntentClassifier {
     normalized = normalized.replace(/\b(mujhe ek news milna tha|ek news tha|ek important news)\b/gi, 'I have some news');
     normalized = normalized.replace(/\b(i have something interesting to tell|i have something interesting|kuch interesting baat hai)\b/gi, 'I have something to tell you');
     normalized = normalized.replace(/\b(i did eat really good|i ate really well today|i ate so good today)\b/gi, 'I ate really good food today');
+    normalized = normalized.replace(/\bswathi\b/gi, 'Swati');
+    normalized = normalized.replace(/\b(btech casey|b\.tech casey|btech cse|casey 4th year|casey student)\b/gi, 'BTech CSE');
+    normalized = normalized.replace(/\b(?:air|ae|aye)\s+engineer\s+(?:role|road|roll)\b/gi, 'AI engineer role');
+    normalized = normalized.replace(/\bai\s+(?:road|roll)\b/gi, 'AI role');
+    normalized = normalized.replace(/\bai\s+engineers?\s+(?:road|roll)\b/gi, 'AI engineer role');
     normalized = normalized.replace(/\b(want|need|get)\s+a\s+(?:refill|refil|referal)\b/gi, '$1 a referral');
     normalized = normalized.replace(/\b(?:refill|refil|referal)\s+for\s+(a\s+|the\s+|my\s+)?(company|job|role|internship|teacher)\b/gi, 'referral for $1$2');
     normalized = normalized.replace(/\bwant a refill for\b/gi, 'want a referral for');

@@ -392,7 +392,30 @@ export class IntentClassifier {
     normalized = normalized.replace(/\b(want|need|get)\s+a\s+(?:refill|refil|referal)\b/gi, '$1 a referral');
     normalized = normalized.replace(/\b(?:refill|refil|referal)\s+for\s+(a\s+|the\s+|my\s+)?(company|job|role|internship|teacher)\b/gi, 'referral for $1$2');
     normalized = normalized.replace(/\bwant a refill for\b/gi, 'want a referral for');
+    // Indian English & spoken variations STT repairs
+    normalized = normalized.replace(/\bwho build (?:you|ya)\b/gi, 'who built you');
+    normalized = normalized.replace(/\bwho make (?:you|ya)\b/gi, 'who built you');
+    normalized = normalized.replace(/\byou build by who\b/gi, 'who built you');
+    normalized = normalized.replace(/\bwho created you\b/gi, 'who built you');
+    normalized = normalized.replace(/\bwho made you\b/gi, 'who built you');
+    normalized = normalized.replace(/\bwhat you doing\b/gi, 'what are you doing');
+    normalized = normalized.replace(/\bmereko batao\b/gi, 'tell me');
+    normalized = normalized.replace(/\bmujhe batao\b/gi, 'tell me');
+    normalized = normalized.replace(/\btell me na\b/gi, 'tell me');
+    normalized = normalized.replace(/\bacha tell me\b/gi, 'tell me');
+    normalized = normalized.replace(/\btell me something about human brain\b/gi, 'tell me about the human brain');
+    normalized = normalized.replace(/\btell about yourself\b/gi, 'tell me about yourself');
     return normalized;
+  }
+
+  public static isGenuinelyUnintelligible(text: string): boolean {
+    const raw = text.trim();
+    if (!raw) return true;
+    const clean = raw.toLowerCase().replace(/[^a-z0-9\s]/g, '');
+    if (!clean || clean.length < 2) return true;
+    if (/^([a-z])\1{2,}$/i.test(clean)) return true;
+    if (/^(?:asdf|qwer|zxcv|ghjk|hjkl|dfgh)+$/i.test(clean)) return true;
+    return false;
   }
 
   public static isReportedSpeech(text: string): { isReported: boolean; speaker?: string; content?: string } {
@@ -2202,8 +2225,8 @@ export class IntentClassifier {
       return result;
     }
 
-    // 0.2 Compliment / "You are actually being nice today" / "I like you"
-    if (/\b(you are actually being nice today|you're actually being nice today|actually being nice today|being nice today|i like you|like you ayra|you're amazing|you are awesome|you are so nice|you have good vibes|love your voice|getting cute|getting cuter|you are cute|you're cute|you are a cutie|you're a cutie|cute at this)\b/i.test(clean)) {
+    // 0.2 Compliment / "You are actually being nice today" / "I like you" / "You are smart"
+    if (/\b(you are actually being nice today|you're actually being nice today|actually being nice today|being nice today|i like you|like you ayra|you're amazing|you are awesome|you are so nice|you have good vibes|love your voice|getting cute|getting cuter|you are cute|you're cute|you are a cutie|you're a cutie|cute at this|you are very smart|you're very smart|you are so smart|you're so smart|you are smart|you're smart|you are intelligent|you're intelligent|you are super smart|you're super smart|you are really smart|you're really smart)\b/i.test(clean)) {
       result.intent = 'compliment';
       result.userIntent = 'STATEMENT';
       result.conversationMode = 'CASUAL';

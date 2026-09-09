@@ -1980,11 +1980,11 @@ stale=false`);
     // ─────────────────────────────────────────────────────────────────────────
     // H0 — Fast-Path Self-Introduction & Identity Branding ("Tell me about yourself")
     // ─────────────────────────────────────────────────────────────────────────
-    if (/\b(tell me (?:about|something about) yourself|who are you|what are you|introduce yourself|apne baare mein batao|about yourself)\b/i.test(text)) {
+    if (/\b(tell me (?:about|something about) yourself|who are you|what are you|introduce yourself|apne baare mein batao|about yourself|tell about yourself|what is your purpose)\b/i.test(text)) {
       this.hasIntroducedSelf = true;
       return "I'm Ayra, a conversational AI built by Swati. I'm here to talk, help, brainstorm, explain things, and basically keep up with whatever you feel like talking about.";
     }
-    if (/\b(who (?:built|created|made|developed|programmed) you|who is your (?:creator|builder|developer|author)|tumhe kisne banaya|kisne banaya)\b/i.test(text)) {
+    if (/\b(who (?:built?|created?|made?|developed?|programmed?|builds?) (?:you|ya)|you (?:built|build|created) by who|who is your (?:creator|builder|developer|author)|tumhe kisne banaya|kisne banaya)\b/i.test(text)) {
       return "I was built by Swati! She designed and developed me.";
     }
     if (/\b(tell me (?:something |more )?about swati|who is swati|about swati)\b/i.test(text)) {
@@ -4453,8 +4453,8 @@ stale=false`);
     if (/\b(i love you|love you ayra)\b/i.test(text) || (text === 'love you')) {
       return "Aww... I know I'm pretty lovable.";
     }
-    if (/\b(you're so smart|you are so smart|you're smart|you are smart|you're intelligent)\b/i.test(text)) {
-      return "Obviously! Finally, someone with good taste.";
+    if (/\b(you're|you are)\s+(?:very\s+|so\s+|super\s+|really\s+)?(?:smart|intelligent)\b/i.test(text) || /\b(very smart|so smart|super smart)\b/i.test(text)) {
+      return "Haha, thank you! Basic math toh easy hai, but I'll happily take the compliment.";
     }
     if (/\b(you have good vibes|good vibes|such good vibes)\b/i.test(text)) {
       return "See? I told you I have good vibes.";
@@ -4975,7 +4975,14 @@ stale=false`);
       return "Music is such a vibe! Whether it's lo-fi while coding, acoustic for relaxation, or upbeat tracks on a drive, it transforms the moment. What kind of music do you listen to?";
     }
 
-    // 28. Casual "Talk" / Greetings
+    // 28. Casual "Talk" / Greetings / Status Questions
+    if (/\b(what you doing|what are you doing|kya kar rahi ho|kya kar rahe ho|kya chal raha hai|what you do)\b/i.test(text)) {
+      const lang = IntentClassifier.detectLanguageDominance(raw);
+      if (lang === 'hindi' || lang === 'hinglish') {
+        return "Kuch khas nahi, bas yahan baith ke tumse baat kar rahi hoon! Tum batao, kya chal raha hai?";
+      }
+      return "Just hanging out here with you! What are you up to?";
+    }
     if (/^(talk|let's talk|lets talk|talk to me|can we talk|kuch baat karo)[.!,?]?$/i.test(text)) {
       return "Sure, I'm right here! What would you like to talk about?";
     }
@@ -4989,7 +4996,7 @@ stale=false`);
       return knowledgeAnswer;
     }
 
-    // 29. Direct Conversational Fallback (Rotating Pool without verbatim repetitions)
+    // 29. Conversational Resolution before Fallback (Section 1 & 2 & 8 & 9)
     console.log(`[FALLBACK DEBUG]
 turnId: ${params.previousAssistantMessage ? 'active' : 'turn'}
 transcript: "${raw}"
@@ -5000,8 +5007,20 @@ confidence: 0.5
 selectedResponsePath: generic_fallback
 reason: Input did not match specialized semantic routes or dynamic templates`);
 
-    this.lastFallbackIndex = (this.lastFallbackIndex + 1) % this.fallbackPool.length;
-    return this.fallbackPool[this.lastFallbackIndex];
+    // Only return speech clarification ("Wait, I missed that...") if input is genuinely unintelligible noise!
+    if (IntentClassifier.isGenuinelyUnintelligible(raw)) {
+      this.lastFallbackIndex = (this.lastFallbackIndex + 1) % this.fallbackPool.length;
+      return this.fallbackPool[this.lastFallbackIndex];
+    }
+
+    // For intelligible speech that reaches fallback, respond naturally without asking user to repeat
+    const lang = IntentClassifier.detectLanguageDominance(raw);
+    if (lang === 'hindi') {
+      return "हाँ, बिल्कुल। इस बारे में तुम क्या सोचते हो?";
+    } else if (lang === 'hinglish') {
+      return "Acha, I see! Is baare mein aur kya soch rahe ho?";
+    }
+    return "Oh, I see! Tell me more about what you're thinking.";
   }
 
   /**
@@ -5012,6 +5031,28 @@ reason: Input did not match specialized semantic routes or dynamic templates`);
     const lower = text.toLowerCase().trim();
     const isHindi = languageMode === 'hindi';
     const isHinglish = languageMode === 'hinglish';
+
+    // 0. Simple Math Calculation ("20 + 30", "what is 50 * 2")
+    const mathMatch = text.match(/^(?:what is|calculate|evaluate)?\s*(\d+\s*[\+\-\*\/]\s*\d+)\s*[?.]?$/i);
+    if (mathMatch) {
+      try {
+        const expr = mathMatch[1].replace(/\s+/g, '');
+        const num1 = parseInt(expr.match(/^\d+/)?.[0] || '0', 10);
+        const op = expr.match(/[\+\-\*\/]/)?.[0];
+        const num2 = parseInt(expr.match(/\d+$/)?.[0] || '0', 10);
+        let ans = 0;
+        if (op === '+') ans = num1 + num2;
+        else if (op === '-') ans = num1 - num2;
+        else if (op === '*') ans = num1 * num2;
+        else if (op === '/') ans = num2 !== 0 ? num1 / num2 : 0;
+        return `${num1} ${op} ${num2} is ${ans}!`;
+      } catch (e) {}
+    }
+
+    // 0.5 Human Brain
+    if (/\b(human brain|the brain|brain|dimaag|dimag)\b/i.test(lower)) {
+      return "Ohh, the human brain is actually crazy. It controls basically everything we do — movement, memory, emotions, even automatic things like breathing. And the weird part is, we're still figuring out how a lot of it actually works.";
+    }
 
     // 1. Friction & Classical Mechanics
     if (/\b(friction|ghanshan|gharshan)\b/i.test(lower)) {

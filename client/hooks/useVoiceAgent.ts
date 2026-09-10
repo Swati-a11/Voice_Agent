@@ -92,7 +92,20 @@ export function useVoiceAgent() {
       return;
     }
 
-    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3001/ws';
+    const getWsUrl = (): string => {
+      if (process.env.NEXT_PUBLIC_WS_URL) {
+        return process.env.NEXT_PUBLIC_WS_URL;
+      }
+      if (typeof window !== 'undefined') {
+        const hostname = window.location.hostname;
+        if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+          return 'wss://voice-agent-t17g.onrender.com/ws';
+        }
+      }
+      return 'ws://localhost:3001/ws';
+    };
+
+    const wsUrl = getWsUrl();
 
     try {
       const ws = new WebSocket(wsUrl);

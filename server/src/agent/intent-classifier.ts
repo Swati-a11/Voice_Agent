@@ -371,8 +371,10 @@ export class IntentClassifier {
     normalized = normalized.replace(/\b(?:aur|or|and)\s+fir\b/gi, 'aur phir');
     normalized = normalized.replace(/\band\s+phir\b/gi, 'aur phir');
     normalized = normalized.replace(/\bjhagada\b/gi, 'jhagda');
-    // Additional STT repairs for new conversation patterns
     normalized = normalized.replace(/\b(hey ira|hey era|hey aira|hi ira|hi era)\b/gi, 'Hey Ayra');
+    normalized = normalized.replace(/\bwho build (you|ya)\b/gi, 'who built you');
+    normalized = normalized.replace(/\bwho make (you|ya)\b/gi, 'who made you');
+    normalized = normalized.replace(/\bwhat you doing\b/gi, 'what are you doing');
     normalized = normalized.replace(/\b(i am very lucky today|am very lucky today|feeling very lucky today)\b/gi, 'I am very nervous today');
     normalized = normalized.replace(/\b(set some really hard things|set very hard things|set hard things back|said very hard things back)\b/gi, 'said some really harsh things back');
     normalized = normalized.replace(/\b(luck bench|luck bitch|back bench please)\b/gi, 'last bench');
@@ -394,10 +396,9 @@ export class IntentClassifier {
     normalized = normalized.replace(/\bwant a refill for\b/gi, 'want a referral for');
     // Indian English & spoken variations STT repairs
     normalized = normalized.replace(/\bwho build (?:you|ya)\b/gi, 'who built you');
-    normalized = normalized.replace(/\bwho make (?:you|ya)\b/gi, 'who built you');
+    normalized = normalized.replace(/\bwho make (?:you|ya)\b/gi, 'who made you');
     normalized = normalized.replace(/\byou build by who\b/gi, 'who built you');
     normalized = normalized.replace(/\bwho created you\b/gi, 'who built you');
-    normalized = normalized.replace(/\bwho made you\b/gi, 'who built you');
     normalized = normalized.replace(/\bwhat you doing\b/gi, 'what are you doing');
     normalized = normalized.replace(/\bmereko batao\b/gi, 'tell me');
     normalized = normalized.replace(/\bmujhe batao\b/gi, 'tell me');
@@ -1019,6 +1020,40 @@ export class IntentClassifier {
       return { isSocial: true, type: 'talk_to_me' };
     }
     return { isSocial: false, type: 'none' };
+  }
+
+  /**
+   * Detect direct conversational action requests ("say all the best to me", "wish me luck", "motivate me", etc.)
+   */
+  public static isDirectSpeechAction(text: string): { isDirectAction: boolean; intent: DetailedIntent; mode: ConversationMode } {
+    const clean = text.trim().toLowerCase().replace(/[.,/#!$%^&*;:{}=\-_`~()?"']/g, '');
+
+    if (/\b(say all the best|wish me luck|all the best to me|wish me best of luck|say best of luck|wish me good luck|all the best|all the best me)\b/i.test(clean)) {
+      return { isDirectAction: true, intent: 'good_wish', mode: 'EMOTIONAL_SUPPORT' };
+    }
+    if (/\b(say something nice|say something nice to me|say nice things|say something positive|say something encouraging)\b/i.test(clean)) {
+      return { isDirectAction: true, intent: 'positive_reassurance', mode: 'EMOTIONAL_SUPPORT' };
+    }
+    if (/\b(motivate me|give me motivation|inspire me|say something motivational|kuch motivate karo)\b/i.test(clean)) {
+      return { isDirectAction: true, intent: 'motivation', mode: 'EMOTIONAL_SUPPORT' };
+    }
+    if (/\b(say happy birthday|wish me happy birthday|wish me a happy birthday|happy birthday to me|say happy birthday to me)\b/i.test(clean)) {
+      return { isDirectAction: true, intent: 'celebration', mode: 'CASUAL' };
+    }
+    if (/\b(say sorry|apologize to me|say sorry to me)\b/i.test(clean)) {
+      return { isDirectAction: true, intent: 'apology_action', mode: 'CASUAL' };
+    }
+    if (/\b(say thank you|say thanks)\b/i.test(clean)) {
+      return { isDirectAction: true, intent: 'gratitude_action', mode: 'CASUAL' };
+    }
+    if (/\b(say i love you|say you love me)\b/i.test(clean)) {
+      return { isDirectAction: true, intent: 'affection', mode: 'CASUAL' };
+    }
+    if (/\b(say good morning|say good evening|say good afternoon|say hello to me)\b/i.test(clean)) {
+      return { isDirectAction: true, intent: 'greeting_action', mode: 'CASUAL' };
+    }
+
+    return { isDirectAction: false, intent: 'casual_chat', mode: 'CASUAL' };
   }
 
   /**
@@ -1801,6 +1836,15 @@ export class IntentClassifier {
       result.intent = 'clarification';
       result.userIntent = 'CORRECTION';
       result.entity = null;
+      return result;
+    }
+
+    // Check for direct conversational action requests ("say all the best to me", "wish me luck", "motivate me")
+    const directAction = IntentClassifier.isDirectSpeechAction(clean);
+    if (directAction.isDirectAction) {
+      result.intent = directAction.intent;
+      result.userIntent = 'COMMAND';
+      result.conversationMode = directAction.mode;
       return result;
     }
 

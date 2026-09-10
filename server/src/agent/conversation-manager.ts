@@ -843,7 +843,7 @@ stale=false`);
     // 8. Fast-Path for Simple Greetings, Introductions, Goodbyes & Acknowledgements (<20ms TTFA)
     const isFastPath = (
       (intent === 'GREETING' && /^(hi|hello|hey|hey ayra|hey there|what's up|kaise ho|namaste|good morning|good evening)[.?!]?$/i.test(rawText)) ||
-      (/^(who are you|what are you|tell me about yourself|introduce yourself|tell me something about yourself|about yourself)[.?!]?$/i.test(rawText)) ||
+      (/^(who are you|what are you(?!\s*doing)|tell me about yourself|introduce yourself|tell me something about yourself|about yourself)[.?!]?$/i.test(rawText)) ||
       (/^(bye|goodbye|okay bye|ok bye|see you|talk later|see ya|bye bye|alvida|tata|good night|goodnight)[.?!]?$/i.test(rawText)) ||
       (/^(thanks|thank you|thank you so much|thanks a lot|shukriya|dhanyawad)[.?!]?$/i.test(rawText)) ||
       (/^(that's nice|thats nice|that is nice|nice|cool|great|awesome|sahi hai|badhiya)[.?!]?$/i.test(rawText))
@@ -1980,7 +1980,7 @@ stale=false`);
     // ─────────────────────────────────────────────────────────────────────────
     // H0 — Fast-Path Self-Introduction & Identity Branding ("Tell me about yourself")
     // ─────────────────────────────────────────────────────────────────────────
-    if (/\b(tell me (?:about|something about) yourself|who are you|what are you|introduce yourself|apne baare mein batao|about yourself|tell about yourself|what is your purpose)\b/i.test(text)) {
+    if (/\b(tell me (?:about|something about) yourself|who are you|what are you(?!\s*doing)|introduce yourself|apne baare mein batao|about yourself|tell about yourself|what is your purpose)\b/i.test(text)) {
       this.hasIntroducedSelf = true;
       return "I'm Ayra, a conversational AI built by Swati. I'm here to talk, help, brainstorm, explain things, and basically keep up with whatever you feel like talking about.";
     }
@@ -1992,6 +1992,55 @@ stale=false`);
     }
     if (/\b(proud.*(?:built|created|made) you|built you|created you)\b/i.test(text) && /\b(proud|myself|i built|i created)\b/i.test(text)) {
       return "Ayy, as you should be! You put in the work to build me, so take full credit for that!";
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // H0_DIRECT_ACTION — Direct Conversational Action Requests (Wishes, Reassurance, Motivation, Celebration)
+    // ─────────────────────────────────────────────────────────────────────────
+    if (params.intent === 'good_wish' || /\b(say all the best|wish me luck|all the best to me|wish me best of luck|say best of luck|wish me good luck|all the best|all the best me)\b/i.test(text)) {
+      const recentTurns = this.memoryManager.getRecentTurns().slice(-6);
+      const recentText = recentTurns.map(t => t.text.toLowerCase()).join(' ');
+
+      if (/\b(resume|release|launch|deploy)\b/i.test(recentText)) {
+        return "All the best! You've got this. Don't overthink it now — you've already put in the work!";
+      }
+      if (/\b(interview|job|role|tech interview|coding interview|placement)\b/i.test(recentText)) {
+        return "All the best! You've got this. Trust your preparation and go crush your interview!";
+      }
+      if (/\b(exam|test|paper|exam tomorrow|test tomorrow)\b/i.test(recentText)) {
+        return "All the best! You've got this. Stay calm and give it your best shot!";
+      }
+      return "Of course! All the best! You've got this. Go give it your best shot!";
+    }
+
+    if (params.intent === 'positive_reassurance' || /\b(say something nice|say something nice to me|say nice things|say something positive|say something encouraging)\b/i.test(text)) {
+      return "You are awesome, thoughtful, and capable of handling whatever comes your way today! Keep being amazing.";
+    }
+
+    if (params.intent === 'motivation' || /\b(motivate me|give me motivation|inspire me|say something motivational|kuch motivate karo)\b/i.test(text)) {
+      return "You've got so much potential! Don't let temporary stress or doubt pull you back. Push forward — you're capable of great things!";
+    }
+
+    if (params.intent === 'celebration' || /\b(say happy birthday|wish me happy birthday|wish me a happy birthday|happy birthday to me|say happy birthday to me)\b/i.test(text)) {
+      return "Happy Birthday! 🎉 Wishing you an incredible year ahead filled with success, joy, and great memories!";
+    }
+
+    if (params.intent === 'apology_action' || /\b(say sorry|apologize to me|say sorry to me)\b/i.test(text)) {
+      return "Aww, I'm really sorry! I never meant to cause any trouble or upset you.";
+    }
+
+    if (params.intent === 'gratitude_action' || /\b(say thank you|say thanks)\b/i.test(text)) {
+      return "You're so welcome! I'm always here for you.";
+    }
+
+    if (params.intent === 'affection' || /\b(say i love you|say you love me)\b/i.test(text)) {
+      return "Aww, you're so sweet! I really love talking with you too!";
+    }
+
+    if (params.intent === 'greeting_action' || /\b(say good morning|say good evening|say good afternoon|say hello to me)\b/i.test(text)) {
+      if (/\bgood morning\b/i.test(text)) return "Good morning! Hope you have a wonderful and productive day ahead!";
+      if (/\bgood evening\b/i.test(text)) return "Good evening! Hope you had a great day today!";
+      return "Hello there! Wishing you a fantastic day!";
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -4780,7 +4829,7 @@ stale=false`);
     }
 
     // 15. Self-introduction
-    if (/\b(tell me (about|something about) yourself|who are you|what are you|introduce yourself|apne baare mein batao|about you|about yourself)\b/i.test(text)) {
+    if (/\b(tell me (about|something about) yourself|who are you|what are you(?!\s*doing)|introduce yourself|apne baare mein batao|about you|about yourself)\b/i.test(text)) {
       return "I'm Ayra, a conversational AI built by Swati. I'm here to talk, help, brainstorm, explain things, and basically keep up with whatever you feel like talking about.";
     }
 

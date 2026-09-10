@@ -1,161 +1,152 @@
-# Truly Human-Like Real-Time Voice Agent (Ayra)
+# Ayra — A Real-Time Voice Agent You Can Actually Talk To
 
-A production-quality **real-time voice agent** engineered to simulate authentic human conversation dynamics. Rather than behaving like a turn-based chatbot, Ayra features **instant barge-in with acoustic noise discrimination, natural pause-cue backchanneling, incomplete-thought turn endpointing, first-class Hinglish code-switching, agentic tool execution with conversational in-flight fillers, explicit topic stack tracking with resumption, cross-session long-term memory, and an engineering-grade live latency dashboard.**
-
----
-
-## 🌟 Key Highlights & Capabilities
-
-### 1. Instant Barge-In & Interruption Robustness (Section 2 & 2a)
-- **Instant Audio Cutoff**: Playback, streaming synthesis, and in-flight token buffers are cancelled immediately (`stopAudioPlayback()`, `cancelCurrentTTS()`) upon user speech.
-- **Noise vs. Speech Discrimination**: Operates a confirmation window (~150–250ms) to distinguish real speech (>250ms with valid phonemes/tokens) from non-interruption transient noise (coughs, throat clears, solitary "uh"/"hmm", mic bumps).
-- **Rejected Noise Logging**: Every noise event evaluated and ignored during agent speech is logged to the Live Latency & Debug Dashboard for inspection.
-
-### 2. Natural Turn-Taking & Endpointing (Section 5)
-- Intelligent VAD endpoint detection distinguishes complete sentences from incomplete trailing thoughts (*"I was thinking because..."* $\rightarrow$ holds turn for ~750ms; *"I was thinking about dinner tonight."* $\rightarrow$ triggers immediate ~350ms response).
-
-### 3. Pause-Cue Backchanneling (Section 3)
-- When the user speaks continuously for $>8-15\text{s}$, the agent utters lightweight acknowledgements (*"Hmm."*, *"Yeah."*, *"Haan."*, *"Achha."*, *"Sahi hai."*) on natural pause cues without interrupting or taking over the turn.
-
-### 4. First-Class Hinglish Code-Switching (Section 2)
-- Seamlessly switches between Hindi and English mid-sentence based on how the user speaks (*"Yaar main aaj kaafi tired hoon, project deadline kal subah hai"* $\rightarrow$ mirrors natural Romanized Hinglish).
-- Applies phonetic transliteration normalization to ensure crisp pronunciation across TTS engines.
-
-### 5. Agentic Tools with Conversational In-Flight Fillers (Section 6)
-- Callable tools: `get_weather(city)`, `set_reminder(text, time)`, `search_fact(query)`.
-- **Zero Dead Air**: Emits an immediate natural spoken filler (*"Gimme a sec, checking that..."*, *"Ek second, dekh ke batati hoon..."*) while the tool executes asynchronously, then folds the result organically into speech.
-
-### 6. Explicit Topic Stack & Resumption (Section 7 & 8)
-- Maintains an explicit stack of suspended topics. When conversation shifts (*Topic A* $\rightarrow$ *Topic B*), Topic A is pushed onto the stack. Resumption cues (*"Anyway, coming back to my project..."*) pop and restore context naturally.
-
-### 7. Cross-Session Long-Term Memory (Section 8)
-- Keyed by user/device ID, storing stable facts, career context, preferences, and reminders.
-- Contextual recall re-surfaces remembered facts only when relevant (e.g. user mentions fatigue $\rightarrow$ agent organically relates it to prior interview preparation without robotic memory dumping).
-
-### 8. Live Latency & Debug Dashboard (Section 26)
-- Real-time gauge metrics for **STT Latency**, **LLM TTFT** (Time-to-First-Token), **TTS TTFA** (Time-to-First-Audio), and **Total Turn Latency** (Target: 300–1000ms).
-- Live rolling average latency chart across the last 10 turns and real vs. rejected interruption logs.
+Ayra is a voice agent built to feel like a real conversation, not a "press to talk, wait, get a reply" chatbot. You can interrupt it mid-sentence, it knows when you're just saying "hmm" versus actually asking something, it follows the conversation as you jump between topics, and it can switch naturally between Hindi and English the way people actually talk.
 
 ---
 
-## 🏛 Architecture Diagram
+## What it can do
+
+**You can interrupt it, and it actually stops.**
+If Ayra is talking and you start speaking, it stops immediately — no finishing its sentence, no talking over you. It's also smart about telling the difference between you actually interrupting and just coughing or saying "hmm" while it talks — those get ignored so it doesn't stop for no reason. Every time this happens, it gets logged so you can see it working (see the dashboard below).
+
+**It knows when you're done talking, not just when you pause.**
+"I was thinking because..." and "I was thinking about dinner tonight." sound different to Ayra — the first one is clearly unfinished, so it waits instead of jumping in too early.
+
+**It gives small "I'm listening" cues while you talk.**
+If you're mid-story for a while, it'll drop in a quiet "hmm" or "yeah" here and there — like a person nodding along — without cutting you off or taking over.
+
+**It speaks Hinglish naturally.**
+If you talk to it in a Hindi-English mix, it replies the same way, instead of forcing everything into one language.
+
+**It can actually do things, not just talk.**
+It can check the weather, set a reminder, or look something up for you mid-conversation. While it's doing that, it says something like "gimme a sec, checking that" instead of going silent and making it feel stuck.
+
+**It remembers what you were talking about.**
+If you switch topics and come back later ("anyway, back to what I was saying about my project..."), it picks the thread back up instead of losing track.
+
+**It remembers things across calls, too.**
+If you mention something important in one call, it can bring it up naturally in a later one — without dumping everything it remembers on you at once.
+
+**You can see exactly how fast it's responding.**
+There's a live dashboard showing how long each part of the pipeline takes — understanding your speech, generating a reply, and turning it back into audio — so you're not just guessing whether it "feels fast."
+
+---
+
+## How it's put together
 
 ```mermaid
 flowchart TD
-    subgraph Client ["Client Browser (React + Vite + Web Audio)"]
-        Mic[Microphone Input] --> VAD[Silero VAD / Energy Detector]
-        VAD --> BargeInDet[Barge-In Detector & Noise Filter]
-        BargeInDet --> WSClient[WebSocket Client / Audio Streamer]
-        WSClient --> AudioPlayer[Interruptible Audio Player / TTS]
-        CanvasOrb[Audio-Reactive Particle Orb]
-        Dashboard[Latency & Debug Dashboard]
+    subgraph Client ["Browser (React + Vite + Web Audio)"]
+        Mic[Microphone] --> VAD[Voice Activity Detection]
+        VAD --> BargeInDet[Interruption & Noise Filter]
+        BargeInDet --> WSClient[WebSocket Connection]
+        WSClient --> AudioPlayer[Audio Playback]
+        CanvasOrb[Animated Voice Orb]
+        Dashboard[Latency Dashboard]
     end
 
-    subgraph Server ["Node.js + Express + WebSocket Engine"]
-        WSServer[WebSocket Gateway]
-        WSServer --> StateMachine[11-State Conversation State Machine]
-        
-        StateMachine --> IntentClass[Intent Classifier & Turn Endpointing]
-        IntentClass --> HinglishMod[Hinglish Code-Switching Module]
-        
-        IntentClass --> TopicMgr[Topic Stack & Resumption Manager]
-        IntentClass --> MemoryMgr[Short-Term & Cross-Session Memory]
-        IntentClass --> ToolExec[Tool Executor: Weather, Reminder, Search]
-        
-        TopicMgr --> LLMStream[Streaming LLM Groq / Gemini]
+    subgraph Server ["Backend (Node.js + Express + WebSocket)"]
+        WSServer[WebSocket Server]
+        WSServer --> StateMachine[Conversation State Machine]
+
+        StateMachine --> IntentClass[Figures Out What You Meant]
+        IntentClass --> HinglishMod[Hinglish Handling]
+
+        IntentClass --> TopicMgr[Tracks the Conversation Topic]
+        IntentClass --> MemoryMgr[Short & Long-Term Memory]
+        IntentClass --> ToolExec[Weather / Reminders / Search]
+
+        TopicMgr --> LLMStream[LLM — Groq / Gemini]
         MemoryMgr --> LLMStream
         ToolExec --> LLMStream
-        
-        LLMStream --> LatencyTracker[Microsecond Latency Tracker]
-        LLMStream --> TTSStream[Streaming TTS & Hinglish Transliteration]
+
+        LLMStream --> LatencyTracker[Timing Tracker]
+        LLMStream --> TTSStream[Text-to-Speech]
         TTSStream --> WSServer
     end
 ```
 
+In short: your voice goes in, gets turned into text, the model figures out what you meant and generates a reply, and that reply gets turned back into audio — all streamed piece by piece so you're not waiting for the whole thing to finish before hearing anything.
+
 ---
 
-## ⚡ $0 Free Tech Stack Setup
+## What it's built with — and it's all free to run
 
-All components are configured to run on free tiers with no credit card required:
+You don't need to pay for anything to try this. Everything below runs on a free tier, no credit card required.
 
-| Component | Free Provider | Free Tier Allowance |
+| Part | What's used | Free tier |
 | :--- | :--- | :--- |
-| **STT** | Groq API (`whisper-large-v3-turbo`) | ~30 req/min, 14,400 req/day (Free) |
-| **STT Fallback** | Browser Web Speech API (`SpeechRecognition`) | 100% Free & Local in browser |
-| **LLM** | Groq API (`llama-3.3-70b-versatile` / `llama-3.1-8b-instant`) | Ultra-fast LPU inference (Free) |
-| **LLM Fallback** | Google Gemini API (`gemini-1.5-flash`) | 1,500 req/day (Free) |
-| **TTS** | Browser SpeechSynthesis / Web Audio API | Zero network latency (Free) |
-| **TTS Upgrade** | ElevenLabs Multilingual (Optional API Key) | High-fidelity voice cloning |
-| **VAD** | Web Audio API / RMS Energy & Speech Recognition | Client-side WASM & Web Audio (Free) |
-| **Memory** | Local Persistent JSON (`data/memory.json`) / MongoDB Atlas | Free tier |
+| Speech-to-text | Groq (Whisper large-v3-turbo) | ~30 requests/min, 14,400/day |
+| Speech-to-text (backup) | Browser's built-in speech recognition | Free, runs locally |
+| Reply generation | Groq (Llama 3.3 70B / 3.1 8B) | Free, very fast |
+| Reply generation (backup) | Google Gemini (1.5 Flash) | 1,500 requests/day |
+| Text-to-speech | Browser's built-in speech synthesis | Free, no network delay |
+| Text-to-speech (better quality) | ElevenLabs (optional, needs a key) | Higher-quality/cloned voice |
+| Voice detection | Web Audio API | Free, runs in your browser |
+| Memory | Local file, or MongoDB Atlas | Free tier |
 
 ---
 
-## 🚀 Quick Start & Local Run
+## Running it yourself
 
-### Prerequisites
-- Node.js $\ge$ 18.0.0
-- npm $\ge$ 9.0.0
+### You'll need
+- Node.js 18 or newer
+- npm 9 or newer
 
-### 1. Install Dependencies
+### 1. Install everything
 ```bash
 npm run install:all
 ```
 
-### 2. Configure Environment Variables
-Copy `server/.env.example` to `server/.env`:
+### 2. Set up your environment file
 ```bash
 cp server/.env.example server/.env
 ```
-*(Optional)* Add your free [Groq API Key](https://console.groq.com) or [Google Gemini API Key](https://aistudio.google.com). If left blank, the app runs in **Zero-Config Local Simulation Mode**.
+Add a free [Groq API key](https://console.groq.com) or [Gemini API key](https://aistudio.google.com) if you have one. If you skip this, it still runs — just in a simplified local mode without the real AI calls.
 
-### 3. Run Development Servers
-Start both backend and frontend concurrently:
+### 3. Start it up
 ```bash
 npm run dev
 ```
-- **Frontend**: `http://localhost:5173`
-- **Backend HTTP & WebSocket**: `http://localhost:3001` (WebSocket: `ws://localhost:3001/ws`)
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:3001` (WebSocket at `ws://localhost:3001/ws`)
 
-### 4. Run Automated Scenario Test Suite
-Verify all 10 master conversation scenarios:
+### 4. Run the test scenarios
 ```bash
 npm run test:scenarios
 ```
 
 ---
 
-## 🧪 10 Master Conversation Test Scenarios
+## Things to try once it's running
 
-The system includes an interactive test suite with one-click triggers directly in the UI and via automated CLI:
-
-1. **Normal Conversational Exchange**: Casual greeting and turn-taking banter.
-2. **Mid-Speech Barge-In (Interruption)**: User interrupts agent mid-thought $\rightarrow$ audio stops immediately, agent pivots cleanly.
-3. **Noise Robustness (Cough vs. Real Speech)**: Non-speech cough during playback is ignored and logged; real words trigger immediate barge-in.
-4. **Backchanneling Monologue**: User speaks for continuous $>8\text{s}$, agent utters natural pause-cue backchannels (*"Haan"*, *"Yeah"*).
-5. **Topic Stack Push & Resumption**: Topic shifts (Project $\rightarrow$ Weather), then returns (*"Anyway, coming back to my project..."* $\rightarrow$ restores context).
-6. **Hinglish Code-Switching**: Full mixed Hindi-English conversation with phonetic pronunciation.
-7. **Tool Calling: Weather with In-Flight Filler**: *"What's the weather in Mumbai?"* $\rightarrow$ filler utterance + spoken weather report.
-8. **Tool Calling: Set Reminder**: Schedules reminder into session and cross-session memory.
-9. **Cross-Session Memory Recall**: User mentions fatigue in a new call $\rightarrow$ agent contextually references prior interview prep fact.
-10. **Incomplete Thought Turn-Taking**: Trailing *"I was thinking because..."* holds turn; complete sentences trigger immediate reply.
+1. **Just talk to it normally** — say hi, see how it responds.
+2. **Interrupt it mid-sentence** — it should stop right away and follow what you just said.
+3. **Cough or say "hmm" while it's talking** — it should keep going, not stop.
+4. **Talk for a while without pausing** — listen for the small "hmm"/"yeah" check-ins.
+5. **Switch topics, then come back to an earlier one** — "anyway, back to what I was saying..." and see if it remembers.
+6. **Mix Hindi and English** — see if it replies in the same mix.
+7. **Ask it to check the weather or set a reminder** — listen for the filler while it's working.
+8. **Set a reminder, end the call, start a new one** — see if it remembers what you told it.
+9. **Mention something personal, end the call, start a new one, bring it up again indirectly** — see if it connects the dots.
+10. **Leave a sentence unfinished on purpose** ("I was thinking because...") — it should wait instead of jumping in.
 
 ---
 
-## 🌐 Deployment Guide
+## Putting it online
 
-### Deploy Frontend to Vercel
-1. Set root directory to `client`.
-2. Build command: `npm run build`.
-3. Output directory: `dist`.
+### Frontend → Vercel
+- Root directory: `client`
+- Build command: `npm run build`
+- Output directory: `dist`
 
-### Deploy Backend to Render / Railway
-1. Set root directory to `server`.
-2. Build command: `npm run build`.
-3. Start command: `npm run start`.
-4. Add environment variables (`GROQ_API_KEY`, `GEMINI_API_KEY`, `PORT=3001`).
+### Backend → Render or Railway
+- Root directory: `server`
+- Build command: `npm run build`
+- Start command: `npm run start`
+- Environment variables: `GROQ_API_KEY`, `GEMINI_API_KEY`, `PORT=3001`
 
 ---
 
-## 📜 License
-MIT License
+## License
+MIT

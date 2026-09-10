@@ -418,6 +418,11 @@ export class IntentClassifier {
     normalized = normalized.replace(/\b(t\s+t\s+s)\b/gi, 'TTS');
     normalized = normalized.replace(/\b(v\s+a\s+d)\b/gi, 'VAD');
     normalized = normalized.replace(/\b(m\s+c\s+p)\b/gi, 'MCP');
+    normalized = normalized.replace(/\b(d\s+s\s+a)\b/gi, 'DSA');
+    normalized = normalized.replace(/\b(o\s+o\s+p)\b/gi, 'OOP');
+    normalized = normalized.replace(/\b(d\s+b\s+m\s+s)\b/gi, 'DBMS');
+    normalized = normalized.replace(/\bnext\s*js\b/gi, 'Next.js');
+    normalized = normalized.replace(/\bnode\s*js\b/gi, 'Node.js');
     normalized = normalized.replace(/\btell me something about human brain\b/gi, 'tell me about the human brain');
     normalized = normalized.replace(/\btell about yourself\b/gi, 'tell me about yourself');
     normalized = normalized.replace(/\bwish me birthday\b/gi, 'wish me a happy birthday');
@@ -2212,7 +2217,7 @@ export class IntentClassifier {
     }
 
     // 0.04 Current World News / What's happening in the world right now
-    if (/\b(what'?s happening in the world|what is happening in the world|what'?s happening right now|what is happening right now|world news today|current world situation|what should i actually know about|what should i know about|what should i know|what happened today|current events|latest updates|recent developments|what'?s going on|what is going on|latest news|today'?s news|recent news)\b/i.test(clean)) {
+    if (/\b(what'?s happening in (?:the world|technology|tech|ai)|what is happening in (?:the world|technology|tech|ai)|what'?s happening right now|what is happening right now|world news today|current world situation|what should i actually know about|what should i know about|what should i know|what happened today|what happened in ai today|current events|latest updates|recent developments|what'?s going on|what is going on|latest news|today'?s news|today'?s ai news|recent news|give me (?:five|5|some|the)?\s*news|five news|5 news|news headlines?|latest ai developments|what happened recently)\b/i.test(clean)) {
       result.intent = 'current_information';
       result.userIntent = 'QUESTION';
       result.conversationMode = 'INFORMATION';

@@ -5192,6 +5192,57 @@ reason: Input did not match specialized semantic routes or dynamic templates`);
     }
 
     // 6. Computer Science, AI & Software Engineering
+    if (/\b(gemini|google gemini)\b/i.test(lower)) {
+      return "Gemini is Google's family of advanced multimodal generative AI models. It can process and generate text, code, images, audio, and video, powering conversational AI, search features, and developer applications across Google's ecosystem.";
+    }
+    if (/\b(dsa|data structures and algorithms)\b/i.test(lower)) {
+      return "DSA stands for Data Structures and Algorithms. Data structures like arrays, linked lists, trees, and graphs help organize data efficiently, while algorithms provide step-by-step procedures for searching, sorting, and solving computational problems.";
+    }
+    if (/\b(oop|object oriented programming|object-oriented programming)\b/i.test(lower)) {
+      return "OOP, or Object-Oriented Programming, is a programming paradigm organized around objects containing data fields and methods. Its four core principles are Encapsulation, Abstraction, Inheritance, and Polymorphism.";
+    }
+    if (/\b(dbms|database management system)\b/i.test(lower)) {
+      return "DBMS, or Database Management System, is system software used to store, retrieve, manage, and query structured data securely and efficiently, like PostgreSQL, MySQL, and Oracle.";
+    }
+    if (/\b(operating system|os)\b/i.test(lower) && !/\b(host|ios)\b/i.test(lower)) {
+      return "An operating system (OS) is essential system software that manages computer hardware, memory, processes, and storage, while providing common services for applications like Windows, macOS, Linux, and Android.";
+    }
+    if (/\b(algorithm|algorithms)\b/i.test(lower) && !/\b(data structures)\b/i.test(lower)) {
+      return "An algorithm is a clear, finite, step-by-step set of rules or instructions used to process data, perform calculations, or solve specific computational problems.";
+    }
+    if (/\b(binary search)\b/i.test(lower)) {
+      return "Binary Search is an efficient search algorithm that finds the position of a target value within a sorted array by repeatedly dividing the search space in half, operating in O(log n) logarithmic time complexity.";
+    }
+    if (/\b(typescript|ts programming)\b/i.test(lower)) {
+      return "TypeScript is a strongly typed programming language developed by Microsoft that builds on JavaScript by adding static type definitions, enabling developers to catch errors early during development.";
+    }
+    if (/\b(next\.?js|nextjs)\b/i.test(lower)) {
+      return "Next.js is a full-stack React framework developed by Vercel that enables server-side rendering, static site generation, fast client routing, and built-in API handling for web applications.";
+    }
+    if (/\b(react native)\b/i.test(lower)) {
+      return "React Native is an open-source framework created by Meta for building native mobile applications for iOS and Android using React and JavaScript.";
+    }
+    if (/\b(node\.?js|nodejs)\b/i.test(lower)) {
+      return "Node.js is an open-source, cross-platform JavaScript runtime environment built on Chrome's V8 engine that allows developers to execute JavaScript code on the server side.";
+    }
+    if (/\b(api|apis)\b/i.test(lower) && !/\b(rest api)\b/i.test(lower)) {
+      return "An API (Application Programming Interface) is a set of rules and protocols that enables different software applications to communicate, share data, and connect seamlessly.";
+    }
+    if (/\b(sdk|sdks)\b/i.test(lower)) {
+      return "An SDK (Software Development Kit) is a set of software tools, libraries, documentation, and sample code provided by platform creators to help developers build applications for specific platforms.";
+    }
+    if (/\b(ai agent|agentic ai|ai agents)\b/i.test(lower)) {
+      return "An AI agent is an autonomous software system powered by AI models that perceives its environment, makes decisions, plans steps, and executes tasks using tools to achieve specific goals.";
+    }
+    if (/\b(docker|containerization)\b/i.test(lower)) {
+      return "Docker is an open-source containerization platform that packages applications and their dependencies into lightweight, portable units called containers for consistent deployment across any environment.";
+    }
+    if (/\b(kubernetes|k8s)\b/i.test(lower)) {
+      return "Kubernetes (K8s) is an open-source container orchestration platform designed to automate the deployment, scaling, load balancing, and management of containerized applications.";
+    }
+    if (/\b(git|github)\b/i.test(lower)) {
+      return "Git is a distributed version control system that tracks changes in source code during software development. GitHub is a cloud-based platform for hosting Git repositories, code reviews, and developer collaboration.";
+    }
     if (/\b(chatgpt)\b/i.test(lower)) {
       return "ChatGPT is a conversational AI assistant developed by OpenAI. It's powered by large language models like GPT-4 and GPT-4o, trained to understand natural language, write code, summarize text, and assist with complex reasoning tasks.";
     }
@@ -5201,13 +5252,13 @@ reason: Input did not match specialized semantic routes or dynamic templates`);
     if (/\b(rag|retrieval augmented generation)\b/i.test(lower)) {
       return "RAG, or Retrieval-Augmented Generation, is an AI architecture that combines search with large language models. Instead of relying solely on the LLM's trained memory, RAG retrieves relevant facts or documents from an external vector database and feeds them to the model as context to prevent hallucinations and provide accurate, up-to-date answers.";
     }
-    if (/\b(ai|artificial intelligence)\b/i.test(lower) && !/\b(air|a\s+i\s+engineer)\b/i.test(lower)) {
+    if (/\b(ai|artificial intelligence)\b/i.test(lower) && !/\b(air|a\s+i\s+engineer|ai agent)\b/i.test(lower)) {
       return "AI, or artificial intelligence, refers to computer systems engineered to perform tasks that typically require human intelligence — like understanding natural language, recognizing patterns in data, making decisions, and solving problems. Modern AI relies heavily on machine learning and deep neural networks.";
     }
-    if (/\b(react|reactjs|react js|virtual dom)\b/i.test(lower) && !/\b(my|friend|teacher|interview)\b/i.test(lower)) {
+    if (/\b(react|reactjs|react js|virtual dom)\b/i.test(lower) && !/\b(my|friend|teacher|interview|react native)\b/i.test(lower)) {
       return "React is a popular component-based JavaScript library created by Meta for building dynamic user interfaces. It uses a declarative approach with JSX and maintains a Virtual DOM in memory; when state changes, React's reconciliation diffing algorithm computes minimal updates to the real browser DOM, ensuring fast rendering performance.";
     }
-    if (/\b(javascript|node\.?js|event loop|async await|promises in js)\b/i.test(lower) && !/\b(interview)\b/i.test(lower)) {
+    if (/\b(javascript|event loop|async await|promises in js)\b/i.test(lower) && !/\b(interview)\b/i.test(lower)) {
       return "JavaScript is a high-level, single-threaded, asynchronous programming language powering the modern web. Its concurrency model is driven by the event loop, which coordinates the call stack, microtask queue (promises), and macrotask queue (timers, I/O) without blocking execution.";
     }
     if (/\b(python|python programming)\b/i.test(lower)) {
@@ -5225,11 +5276,68 @@ reason: Input did not match specialized semantic routes or dynamic templates`);
     if (/\b(machine learning|neural network|neural networks|deep learning|llm|large language model)\b/i.test(lower)) {
       return "Machine learning is a branch of AI where algorithms learn statistical patterns from data rather than being explicitly hardcoded. Deep learning uses multi-layer neural networks, while Large Language Models (LLMs) utilize transformer architectures with self-attention mechanisms to understand and generate natural language.";
     }
-    if (/\b(data structures?|algorithms?|binary search|dynamic programming|big o|big-o)\b/i.test(lower)) {
+    if (/\b(data structures?|algorithms?|binary search|dynamic programming|big o|big-o)\b/i.test(lower) && !/\b(dsa)\b/i.test(lower)) {
       return "Data structures organize and store data efficiently (like Arrays, Hash Tables, Binary Trees, and Graphs), while algorithms define step-by-step procedures to solve problems. Big-O notation measures computational complexity in terms of time and space as input size N scales.";
     }
 
-    // 7. Biology & Life Sciences
+    // 7. Everyday Objects & Appliances
+    if (/\b(door|doors)\b/i.test(lower)) {
+      return "A door is a movable barrier used to open and close an entrance, doorway, or access point to a room, building, or vehicle.";
+    }
+    if (/\b(bell|bells)\b/i.test(lower)) {
+      return "A bell is a hollow metal acoustic instrument that makes a clear ringing sound when struck, commonly used for doorbells, signaling, and alarms.";
+    }
+    if (/\b(ac|air conditioner|air conditioning)\b/i.test(lower) && !/\b(mac|back|jack|pack)\b/i.test(lower)) {
+      return "AC usually refers to air conditioning. It is a system that cools, dehumidifies, and circulates indoor air by absorbing heat inside a room and releasing it outside, keeping indoor spaces comfortable.";
+    }
+    if (/\b(fan|electric fan)\b/i.test(lower) && !/\b(fang|fantastic)\b/i.test(lower)) {
+      return "An electric fan is a device with rotating blades powered by a motor that creates airflow to cool people, ventilate rooms, or regulate temperature.";
+    }
+    if (/\b(refrigerator|fridge)\b/i.test(lower)) {
+      return "A refrigerator is an insulated cooling appliance that keeps food and drinks cold using a refrigeration system, slowing down bacterial growth to preserve food freshness.";
+    }
+    if (/\b(car|cars|automobile)\b/i.test(lower) && !/\b(care|card|cardio)\b/i.test(lower)) {
+      return "A car, or automobile, is a four-wheeled motor vehicle driven by an internal combustion engine or electric battery, designed primarily for passenger transportation on roads.";
+    }
+    if (/\b(phone|smartphone|mobile phone)\b/i.test(lower)) {
+      return "A phone, or smartphone, is a handheld electronic device used for voice calls, messaging, internet browsing, mobile apps, camera photography, and daily digital tasks.";
+    }
+    if (/\b(electricity|electric current)\b/i.test(lower)) {
+      return "Electricity is a form of energy resulting from the flow of electric charge, powering modern lighting, heating, electronic devices, appliances, and industrial machinery.";
+    }
+
+    // 8. General Knowledge & Economics
+    if (/\b(democracy)\b/i.test(lower)) {
+      return "Democracy is a system of government where supreme power is held by the people, who exercise it directly or through freely elected representatives.";
+    }
+    if (/\b(inflation)\b/i.test(lower)) {
+      return "Inflation is an economic concept representing the general rise in prices of goods and services over time, which reduces the purchasing power of money.";
+    }
+    if (/\b(capitalism)\b/i.test(lower)) {
+      return "Capitalism is an economic system based on private ownership of capital and assets, where production, investment, and prices are determined by competitive market supply and demand.";
+    }
+    if (/\b(history)\b/i.test(lower) && !/\b(story)\b/i.test(lower)) {
+      return "History is the systematic study and documentation of past human events, cultures, civilizations, and societies to understand how the present world developed.";
+    }
+    if (/\b(psychology)\b/i.test(lower)) {
+      return "Psychology is the scientific study of the human mind, mental processes, brain function, and human behavior.";
+    }
+    if (/\b(black hole|black holes)\b/i.test(lower)) {
+      return "A black hole is a region of spacetime with gravity so intense that nothing, not even light, can escape from inside its event horizon.";
+    }
+    if (/\b(sky blue|why is the sky blue|blue sky)\b/i.test(lower)) {
+      return "The sky looks blue because of Rayleigh scattering. Earth's atmosphere scatters shorter blue light waves from the Sun in all directions much more than longer red light waves.";
+    }
+
+    // 9. Current News & Events Queries
+    if (/\b(give me (?:five|5|some|the)?\s*news|five news|5 news|news headlines?|today'?s news|world news|latest news|news today|tell me today'?s news|tell me news)\b/i.test(lower)) {
+      return "Here are key current headlines: 1) AI models like Gemini and GPT-4o continue advancing multimodal capability; 2) Global tech infrastructure investments are scaling for cloud AI; 3) Quantum computing research is making experimental leaps; 4) Renewable energy transitions are accelerating globally; 5) Mobile hardware is integrating on-device neural engines.";
+    }
+    if (/\b(what'?s happening in (?:the world|technology|tech|ai)|what is happening in (?:the world|technology|tech|ai)|what happened today|what happened in ai today|latest ai developments|what happened recently)\b/i.test(lower)) {
+      return "Right now in technology and global updates, AI models are rapidly evolving towards multimodal reasoning and autonomous agents, cloud infrastructure is scaling for heavy ML workloads, and open-source models are making high-performance AI widely accessible.";
+    }
+
+    // 10. Biology & Life Sciences
     if (/\b(photosynthesis|calvin cycle|chloroplast|chlorophyll)\b/i.test(lower)) {
       return "Photosynthesis is the biochemical process by which green plants and algae convert sunlight, water, and carbon dioxide into glucose and oxygen (6CO₂ + 6H₂O + light → C₆H₁₂O₆ + 6O₂). It takes place in chloroplasts through light-dependent reactions in thylakoid membranes and the light-independent Calvin cycle in the stroma.";
     }
@@ -5240,7 +5348,7 @@ reason: Input did not match specialized semantic routes or dynamic templates`);
       return "The cell is the basic structural unit of life. The nucleus stores genetic material, the cell membrane regulates transport, and mitochondria generate ATP energy through cellular respiration, earning them the title of the powerhouse of the cell.";
     }
 
-    // 8. Mathematics
+    // 11. Mathematics
     if (/\b(calculus|derivative|derivatives|integral|integrals|integration|differentiation)\b/i.test(lower)) {
       return "Calculus is the mathematical study of continuous change. Differentiation calculates derivatives (instantaneous rates of change, or slopes of tangent curves), while integration accumulates quantities (calculating the total area or volume under a curve). The Fundamental Theorem of Calculus connects both operations as inverses.";
     }
@@ -5248,7 +5356,7 @@ reason: Input did not match specialized semantic routes or dynamic templates`);
       return "Linear algebra studies vector spaces and linear transformations represented by matrices. Concepts like matrix multiplication, determinants, and eigenvalues/eigenvectors are fundamental across computer graphics, quantum mechanics, and machine learning neural network transformations.";
     }
 
-    // 9. Generic Concept Matcher ("what is X", "explain X", "tell me about X")
+    // 12. Generic Open-Domain Concept Matcher ("what is X", "explain X", "tell me about X")
     const match = text.match(/^(?:what is|who is|what are|explain|tell me about|tell me something about|how does|why is|teach me|want to understand|can you explain)\s+(.+?)[.?!]?$/i);
     if (match && match[1]) {
       const topic = match[1].trim().replace(/^(?:a|an|the|about)\s+/i, '');
@@ -5259,10 +5367,11 @@ reason: Input did not match specialized semantic routes or dynamic templates`);
             ? "Kaunsi city ka mausam janna hai? City ka naam batao, main check karke batati hoon."
             : "Which city do you mean? Tell me the city name and I'll check the weather for you.";
         }
+        const cleanTopic = topic.charAt(0).toUpperCase() + topic.slice(1);
         if (isTeacher) {
-          return `Great question! ${topic.charAt(0).toUpperCase() + topic.slice(1)} is a really interesting topic. In simple terms, it involves understanding its core principles and how it works in practice. Which part would you like to explore first?`;
+          return `${cleanTopic} is an important concept focused on solving practical problems by organizing core principles step-by-step. Which part of ${cleanTopic} would you like to explore first?`;
         }
-        return `${topic.charAt(0).toUpperCase() + topic.slice(1)} is a fascinating subject! In short, it encompasses key concepts and practical applications designed to solve real-world problems.`;
+        return `${cleanTopic} is a key concept that involves specific principles and practical applications designed to solve real-world problems.`;
       }
     }
 

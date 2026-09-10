@@ -2021,7 +2021,7 @@ stale=false`);
       return "You've got so much potential! Don't let temporary stress or doubt pull you back. Push forward — you're capable of great things!";
     }
 
-    if (params.intent === 'celebration' || /\b(say happy birthday|wish me happy birthday|wish me a happy birthday|happy birthday to me|say happy birthday to me)\b/i.test(text)) {
+    if (params.intent === 'celebration' || /\b(say happy birthday|wish me birthday|wish me happy birthday|wish me a happy birthday|happy birthday to me|say happy birthday to me)\b/i.test(text)) {
       return "Happy Birthday! 🎉 Wishing you an incredible year ahead filled with success, joy, and great memories!";
     }
 
@@ -2041,6 +2041,13 @@ stale=false`);
       if (/\bgood morning\b/i.test(text)) return "Good morning! Hope you have a wonderful and productive day ahead!";
       if (/\bgood evening\b/i.test(text)) return "Good evening! Hope you had a great day today!";
       return "Hello there! Wishing you a fantastic day!";
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // H0_AMBIGUOUS_REPAIR — Targeted concise clarification for ambiguous STT combinations
+    // ─────────────────────────────────────────────────────────────────────────
+    if (/\b(stock|stocks)\b/i.test(text) && /\b(rack|rag)\b/i.test(text)) {
+      return "I didn't quite catch that — did you mean RAG (Retrieval-Augmented Generation), or something about the stock market?";
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -3394,6 +3401,12 @@ stale=false`);
         previousAssistantMessage: params.previousAssistantMessage,
         previousUserMessage: params.previousUserMessage
       });
+    }
+
+    // 0.0000035 Universal Knowledge Check before Single Word Filler
+    const knowledgeEarly = this.getUniversalKnowledgeResponse(text, params.languageMode, false);
+    if (knowledgeEarly) {
+      return knowledgeEarly;
     }
 
     // 0.000004 Single Word Contextual Resolution (Section 18: "Dubai", etc.)
@@ -5081,6 +5094,11 @@ reason: Input did not match specialized semantic routes or dynamic templates`);
     const isHindi = languageMode === 'hindi';
     const isHinglish = languageMode === 'hinglish';
 
+    // Exclude meta/self/casual queries so they reach dedicated conversational routes
+    if (/\b(what are you doing|what you doing|what are you up to|what do you do|what can you do|who are you|what is your name|who built you|who created you|who made you|about yourself|tell me about yourself)\b/i.test(lower)) {
+      return null;
+    }
+
     // 0. Simple Math Calculation ("20 + 30", "what is 50 * 2")
     const mathMatch = text.match(/^(?:what is|calculate|evaluate)?\s*(\d+\s*[\+\-\*\/]\s*\d+)\s*[?.]?$/i);
     if (mathMatch) {
@@ -5173,7 +5191,19 @@ reason: Input did not match specialized semantic routes or dynamic templates`);
       return "The Doppler effect is the change in frequency or wavelength of a wave in relation to an observer moving relative to the wave source (like the pitch shift of a passing ambulance siren). The speed of light in vacuum is approximately 3 × 10⁸ meters per second, which is the universal speed limit.";
     }
 
-    // 6. Computer Science & Software Engineering
+    // 6. Computer Science, AI & Software Engineering
+    if (/\b(chatgpt)\b/i.test(lower)) {
+      return "ChatGPT is a conversational AI assistant developed by OpenAI. It's powered by large language models like GPT-4 and GPT-4o, trained to understand natural language, write code, summarize text, and assist with complex reasoning tasks.";
+    }
+    if (/\b(gpt)\b/i.test(lower)) {
+      return "GPT, which stands for Generative Pre-trained Transformer, is a family of state-of-the-art neural network models created by OpenAI. They use transformer self-attention mechanisms trained on vast text datasets to generate human-like text, understand context, and solve complex language tasks.";
+    }
+    if (/\b(rag|retrieval augmented generation)\b/i.test(lower)) {
+      return "RAG, or Retrieval-Augmented Generation, is an AI architecture that combines search with large language models. Instead of relying solely on the LLM's trained memory, RAG retrieves relevant facts or documents from an external vector database and feeds them to the model as context to prevent hallucinations and provide accurate, up-to-date answers.";
+    }
+    if (/\b(ai|artificial intelligence)\b/i.test(lower) && !/\b(air|a\s+i\s+engineer)\b/i.test(lower)) {
+      return "AI, or artificial intelligence, refers to computer systems engineered to perform tasks that typically require human intelligence — like understanding natural language, recognizing patterns in data, making decisions, and solving problems. Modern AI relies heavily on machine learning and deep neural networks.";
+    }
     if (/\b(react|reactjs|react js|virtual dom)\b/i.test(lower) && !/\b(my|friend|teacher|interview)\b/i.test(lower)) {
       return "React is a popular component-based JavaScript library created by Meta for building dynamic user interfaces. It uses a declarative approach with JSX and maintains a Virtual DOM in memory; when state changes, React's reconciliation diffing algorithm computes minimal updates to the real browser DOM, ensuring fast rendering performance.";
     }
@@ -5192,7 +5222,7 @@ reason: Input did not match specialized semantic routes or dynamic templates`);
     if (/\b(dns|domain name system|how does dns work)\b/i.test(lower)) {
       return "DNS (Domain Name System) is the internet's phonebook: it translates human-friendly domain names (like google.com) into machine-readable IP addresses (like 142.250.190.46) through a hierarchical query chain across root servers, TLD servers, and authoritative nameservers.";
     }
-    if (/\b(machine learning|artificial intelligence|neural network|neural networks|deep learning|llm|large language model)\b/i.test(lower)) {
+    if (/\b(machine learning|neural network|neural networks|deep learning|llm|large language model)\b/i.test(lower)) {
       return "Machine learning is a branch of AI where algorithms learn statistical patterns from data rather than being explicitly hardcoded. Deep learning uses multi-layer neural networks, while Large Language Models (LLMs) utilize transformer architectures with self-attention mechanisms to understand and generate natural language.";
     }
     if (/\b(data structures?|algorithms?|binary search|dynamic programming|big o|big-o)\b/i.test(lower)) {
@@ -5219,7 +5249,7 @@ reason: Input did not match specialized semantic routes or dynamic templates`);
     }
 
     // 9. Generic Concept Matcher ("what is X", "explain X", "tell me about X")
-    const match = text.match(/^(?:what is|who is|what are|explain|tell me about|how does|why is|teach me|want to understand|can you explain)\s+(.+?)[.?!]?$/i);
+    const match = text.match(/^(?:what is|who is|what are|explain|tell me about|tell me something about|how does|why is|teach me|want to understand|can you explain)\s+(.+?)[.?!]?$/i);
     if (match && match[1]) {
       const topic = match[1].trim().replace(/^(?:a|an|the|about)\s+/i, '');
       const nonConcepts = ['that', 'this', 'it', 'you', 'me', 'the other person', 'her', 'him', 'them', 'my friend', 'my story', 'no', 'yes', 'not'];
@@ -5232,7 +5262,7 @@ reason: Input did not match specialized semantic routes or dynamic templates`);
         if (isTeacher) {
           return `Great question! ${topic.charAt(0).toUpperCase() + topic.slice(1)} is a really interesting topic. In simple terms, it involves understanding its core principles and how it works in practice. Which part would you like to explore first?`;
         }
-        return `${topic.charAt(0).toUpperCase() + topic.slice(1)} is a great topic! Tell me what specific part you're curious about, and let's break it down together.`;
+        return `${topic.charAt(0).toUpperCase() + topic.slice(1)} is a fascinating subject! In short, it encompasses key concepts and practical applications designed to solve real-world problems.`;
       }
     }
 

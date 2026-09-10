@@ -404,8 +404,23 @@ export class IntentClassifier {
     normalized = normalized.replace(/\bmujhe batao\b/gi, 'tell me');
     normalized = normalized.replace(/\btell me na\b/gi, 'tell me');
     normalized = normalized.replace(/\bacha tell me\b/gi, 'tell me');
+    normalized = normalized.replace(/\bchat\s+gpt\b/gi, 'ChatGPT');
+    normalized = normalized.replace(/\b(red\s+r\s+a\s+g|red\s+ar\s+jay|red\s+rag)\b/gi, 'RAG');
+    normalized = normalized.replace(/\b(r\s+a\s+g)\b/gi, 'RAG');
+    normalized = normalized.replace(/\b(g\s+p\s+t)\b/gi, 'GPT');
+    normalized = normalized.replace(/\b(l\s+l\s+m)\b/gi, 'LLM');
+    normalized = normalized.replace(/\b(a\s+i)\b/gi, 'AI');
+    normalized = normalized.replace(/\b(m\s+l)\b/gi, 'ML');
+    normalized = normalized.replace(/\b(n\s+l\s+p)\b/gi, 'NLP');
+    normalized = normalized.replace(/\b(s\s+d\s+k)\b/gi, 'SDK');
+    normalized = normalized.replace(/\b(a\s+p\s+i)\b/gi, 'API');
+    normalized = normalized.replace(/\b(s\s+t\s+t)\b/gi, 'STT');
+    normalized = normalized.replace(/\b(t\s+t\s+s)\b/gi, 'TTS');
+    normalized = normalized.replace(/\b(v\s+a\s+d)\b/gi, 'VAD');
+    normalized = normalized.replace(/\b(m\s+c\s+p)\b/gi, 'MCP');
     normalized = normalized.replace(/\btell me something about human brain\b/gi, 'tell me about the human brain');
     normalized = normalized.replace(/\btell about yourself\b/gi, 'tell me about yourself');
+    normalized = normalized.replace(/\bwish me birthday\b/gi, 'wish me a happy birthday');
     return normalized;
   }
 
@@ -1037,7 +1052,7 @@ export class IntentClassifier {
     if (/\b(motivate me|give me motivation|inspire me|say something motivational|kuch motivate karo)\b/i.test(clean)) {
       return { isDirectAction: true, intent: 'motivation', mode: 'EMOTIONAL_SUPPORT' };
     }
-    if (/\b(say happy birthday|wish me happy birthday|wish me a happy birthday|happy birthday to me|say happy birthday to me)\b/i.test(clean)) {
+    if (/\b(say happy birthday|wish me happy birthday|wish me a happy birthday|happy birthday to me|say happy birthday to me|wish me birthday)\b/i.test(clean)) {
       return { isDirectAction: true, intent: 'celebration', mode: 'CASUAL' };
     }
     if (/\b(say sorry|apologize to me|say sorry to me)\b/i.test(clean)) {

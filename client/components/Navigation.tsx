@@ -66,7 +66,7 @@ export const Navigation: React.FC = () => {
                 href={item.href}
                 className={`px-3.5 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 transition-all ${
                   isActive
-                    ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
+                    ? 'bg-rose-600 text-white shadow-md shadow-rose-600/20'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.06]'
                 }`}
               >

@@ -4,12 +4,11 @@ import { useEffect, useState } from 'react';
 import { Moon, Sun } from 'lucide-react';
 
 export function ThemeToggle({ compact = false }: { compact?: boolean }) {
-  const [dark, setDark] = useState(true);
+  const [dark, setDark] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('ira-theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const next = saved ? saved === 'dark' : prefersDark;
+    const next = saved === 'dark';
     setDark(next);
     document.documentElement.dataset.theme = next ? 'dark' : 'light';
   }, []);

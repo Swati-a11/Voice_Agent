@@ -21,6 +21,8 @@ export const config = {
   memoryStoragePath: process.env.MEMORY_STORAGE_PATH || path.resolve(process.cwd(), 'src/data/memory.json'),
   mem0ApiKey: process.env.MEM0_API_KEY || process.env.Mem0_API_KEY || '',
   mongoUri: process.env.MONGODB_URI || '',
+  // A voice turn must never wait indefinitely for a remote model's first token.
+  firstTokenTimeoutMs: parseInt(process.env.FIRST_TOKEN_TIMEOUT_MS || '3500', 10),
 
   // Latency & Behavior Tuning
   vad: {

@@ -15,6 +15,8 @@ export class MemoryManager {
   private memoryData: StorageSchema = { factsByUser: {}, remindersByUser: {} };
   private shortTermTurns: ConversationTurn[] = [];
   private readonly maxShortTermTurns = 12;
+  private semanticMemoryCache = new Map<string, { memories: string[]; expiresAt: number }>();
+  private pendingSemanticRefreshes = new Set<string>();
   public mem0Service: Mem0Service;
 
   constructor(storagePath?: string, mem0Service?: Mem0Service) {
@@ -169,6 +171,33 @@ export class MemoryManager {
       return [];
     }
     return this.mem0Service.searchMemories(userId, query, limit);
+  }
+
+  /**
+   * Return the most recently useful cloud memories without delaying a live turn.
+   * A fresh semantic lookup continues in the background for a later reply.
+   */
+  public getCachedMem0Memories(userId: string, limit = 4): string[] {
+    const cached = this.semanticMemoryCache.get(userId);
+    if (!cached || cached.expiresAt <= Date.now()) return [];
+    return cached.memories.slice(0, limit);
+  }
+
+  public refreshMem0Memories(userId: string, query: string, limit = 4): void {
+    if (!this.mem0Service.isAvailable() || this.pendingSemanticRefreshes.has(userId)) return;
+
+    this.pendingSemanticRefreshes.add(userId);
+    this.mem0Service.searchMemories(userId, query, limit)
+      .then((memories) => {
+        if (memories.length > 0) {
+          this.semanticMemoryCache.set(userId, {
+            memories,
+            expiresAt: Date.now() + 5 * 60 * 1000
+          });
+        }
+      })
+      .catch(() => {})
+      .finally(() => this.pendingSemanticRefreshes.delete(userId));
   }
 
   /**

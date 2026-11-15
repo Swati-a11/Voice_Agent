@@ -14,7 +14,9 @@ export interface Mem0MemoryItem {
 export class Mem0Service {
   private client: MemoryClient | null = null;
   private isConfigured = false;
-  private searchTimeoutMs = 1200; // Fast timeout to protect voice latency
+  // Cloud memory is never awaited by the response path. Keep background refreshes
+  // short too, so an unhealthy provider cannot occupy sockets for long.
+  private searchTimeoutMs = 400;
 
   constructor(apiKey?: string) {
     const key = apiKey || config.mem0ApiKey;

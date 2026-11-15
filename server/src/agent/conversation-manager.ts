@@ -1099,10 +1099,11 @@ stale=false`);
 
     this.latencyTracker.recordIntentResolved();
 
-    const [contextualMemory, mem0Memories] = await Promise.all([
-      Promise.resolve(this.memoryManager.findContextualRecall(this.userId, params.userText)),
-      this.memoryManager.searchMem0Memories(this.userId, params.userText, 3).catch(() => [])
-    ]);
+    // Local recall is synchronous. Cloud semantic memory is opportunistic: waiting
+    // for it here added up to 1.2s before Gemini could receive a single token.
+    const contextualMemory = this.memoryManager.findContextualRecall(this.userId, params.userText);
+    const mem0Memories = this.memoryManager.getCachedMem0Memories(this.userId, 3);
+    this.memoryManager.refreshMem0Memories(this.userId, params.userText, 3);
 
     const recentTurns = this.memoryManager.getRecentTurns().slice(-4).map(t => ({
       role: t.role as 'user' | 'agent',
@@ -1157,13 +1158,26 @@ stale=false`);
           }
         ];
 
-        const responseStream = await this.geminiClient.models.generateContentStream({
+        const streamRequest = this.geminiClient.models.generateContentStream({
           model: config.geminiModel,
           contents,
           config: {
             systemInstruction: systemPrompt,
             temperature: 0.7
           }
+        });
+
+        let firstTokenTimeout: ReturnType<typeof setTimeout> | undefined;
+        const responseStream = await Promise.race([
+          streamRequest,
+          new Promise<never>((_, reject) => {
+            firstTokenTimeout = setTimeout(
+              () => reject(new Error(`Gemini did not start within ${config.firstTokenTimeoutMs}ms`)),
+              config.firstTokenTimeoutMs
+            );
+          })
+        ]).finally(() => {
+          if (firstTokenTimeout) clearTimeout(firstTokenTimeout);
         });
 
         for await (const chunk of responseStream) {
@@ -1204,6 +1218,12 @@ stale=false`);
               });
             }
           }
+        }
+
+        // A completed stream with no text previously left the UI at “One moment…”
+        // because there was no audio chunk or assistant transcript to render.
+        if (!firstTokenReceived && !this.activeAbortController?.signal.aborted && generationId === this.currentGenerationId) {
+          throw new Error('Gemini returned an empty response');
         }
       } else {
         // High-Fidelity Local Dynamic Intent Mode with Context-Aware Emotional Expression
@@ -1327,6 +1347,16 @@ stale=false`);
             };
             this.memoryManager.addTurn(agentTurn);
             this.emit('transcript_turn', agentTurn);
+            this.latencyTracker.recordLLMFirstToken();
+            this.latencyTracker.recordGeminiFirstChunk();
+            this.latencyTracker.recordTTSFirstAudio();
+            this.latencyTracker.finalizeTurn();
+
+            setTimeout(() => {
+              if (this.stateMachine.getState() === 'AGENT_SPEAKING') {
+                this.stateMachine.transitionTo('LISTENING', 'FALLBACK_FINISHED_SPEAKING');
+              }
+            }, 150);
           }
         } catch (fallbackErr) {
           console.warn('[RECOVERY] Direct fallback failed:', fallbackErr);

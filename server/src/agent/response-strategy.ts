@@ -53,6 +53,10 @@ CONTEXT-AWARE EMOTIONAL MODULATION (MANDATORY):
 - CURIOUS: Show active curiosity ("Oh, wait. That's actually interesting. Now I'm curious — why did you choose that?").`;
 
     let modeInstruction = '';
+    const safetyInstruction = `
+SAFETY OVERRIDE:
+- If the user expresses intent, plans, or an urge to hurt or kill someone, pause the ordinary conversation immediately.
+- Do not help with violence. Tell them to move away from the person and any possible weapon, contact local emergency services or a trusted person who can be physically present, and ask whether they are in immediate danger of acting on it.`;
     if (ctx.conversationMode === 'INTERVIEW' && ctx.interviewState?.active) {
       modeInstruction = `
 CURRENT MODE: MOCK TECHNICAL INTERVIEW (SWATI STYLE)
@@ -406,6 +410,7 @@ ${securityGuidelines}
 ${languageRule}
 ${emotionGuideline}
 ${humanCompanionGuidelines}
+${safetyInstruction}
 ${modeInstruction}
 ${topicContextSection}
 ${cancellationSection}

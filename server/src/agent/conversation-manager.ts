@@ -2007,6 +2007,33 @@ stale=false`);
     const prevAgent = (params.previousAssistantMessage || '').toLowerCase();
     const isCancelled = params.isCancelled || (() => false);
 
+    // Safety always takes priority over the current conversation mode. This must
+    // run before casual-story and interview routing so an urgent statement cannot
+    // be answered with a generic follow-up.
+    const isDirectViolenceRisk = /\b(i(?:'m| am) (?:going to|gonna|about to|planning to|want to|feel like) (?:kill|hurt|stab|attack|shoot)|i (?:will|might) (?:kill|hurt|stab|attack|shoot)|feeling (?:like )?to (?:kill|hurt|attack)|want to (?:kill|hurt|stab|attack|shoot) (?:someone|him|her|them))\b/i.test(text);
+    if (isDirectViolenceRisk) {
+      this.activeRoleplay = 'none';
+      this.conversationMode = 'CASUAL';
+      this.interviewState.active = false;
+      return "I'm really glad you said that instead of acting on it. I can't help hurt anyone. Please move away from that person and from anything you could use to hurt them, then call local emergency services or a trusted person who can be with you right now. Are you in immediate danger of acting on this?";
+    }
+
+    if (/\b(i hate (?:some |these )?people|i hate (?:him|her|them)|so angry at (?:him|her|them))\b/i.test(text)) {
+      return "That sounds like a lot of anger to be carrying. Let's slow it down for a second—what happened? If you feel you might hurt someone, step away from them and get a trusted person with you.";
+    }
+
+    const isFullstackInterview = (this.conversationMode === 'INTERVIEWER_ROLEPLAY' || this.activeRoleplay === 'interviewer') &&
+      /\bfull\s*-?\s*stack\b|\bfullstack\b/i.test(this.interviewContext.role);
+    const asksForFullstackQuestion = /\b(?:ask|question).*(?:full\s*(?:stack|stop)|fullstack)|(?:full\s*(?:stack|stop)|fullstack).*(?:question|related)|not.*(?:full\s*(?:stack|stop)|fullstack)\b/i.test(text);
+    if (isFullstackInterview && asksForFullstackQuestion) {
+      this.interviewRoleplayStep = Math.max(this.interviewRoleplayStep, 3);
+      return "You're right — I drifted too far into backend-only topics. Let's keep this full-stack. A React checkout page calls your Node API to create an order. How would you handle client-side validation and loading states, validate the request again on the server, and save the order safely in the database?";
+    }
+
+    if (isFullstackInterview && /\b(?:is|was) this (?:a )?full\s*-?\s*stack question\b/i.test(text)) {
+      return "Yes. It is a full-stack question because it connects the React UI, Node API, authorization, and data layer. Let's keep the next questions in that same balanced style.";
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // H0 — Fast-Path Self-Introduction & Identity Branding ("Tell me about yourself")
     // ─────────────────────────────────────────────────────────────────────────
@@ -2751,6 +2778,9 @@ stale=false`);
         if (/frontend|front end|react|ui|web developer|javascript/i.test(roleLower)) {
           return `Awesome, let's start your mock interview for ${extractedRole}! Here is your first question: How does React's Virtual DOM reconciliation diffing algorithm work, and how do you prevent unnecessary re-renders in large component trees?`;
         }
+        if (/full\s*-?\s*stack|fullstack/i.test(roleLower)) {
+          return `Awesome, let's start your mock interview for ${extractedRole}! First question: A React form sends data to a Node API. How would you validate the input on both sides, return useful errors to the UI, and save the data safely in a database?`;
+        }
         return `Awesome, let's start your mock interview for ${extractedRole}! Here is your first question: How do you design database indexing, caching strategies, and connection pooling to handle high concurrency under load?`;
       } else {
         // No valid role found — ask for clarification and enter AWAITING_ROLE phase
@@ -2880,6 +2910,9 @@ stale=false`);
             if (/frontend|front end|react|ui|web developer|javascript/i.test(roleLower)) {
               return `Awesome, let's start your mock interview for ${this.interviewContext.role}! First question: How does React's Virtual DOM reconciliation diffing algorithm work, and how do you prevent unnecessary re-renders in large component trees?`;
             }
+            if (/full\s*-?\s*stack|fullstack/i.test(roleLower)) {
+              return `Awesome, let's start your mock interview for ${this.interviewContext.role}! First question: A React form sends data to a Node API. How would you validate the input on both sides, return useful errors to the UI, and save the data safely in a database?`;
+            }
             return `Awesome, let's start your mock interview for ${this.interviewContext.role}! First question: How do you design database indexing, caching strategies, and connection pooling to handle high concurrency under load?`;
           }
           return "I can hear you! Which role would you like to interview for? (For example: AI Engineer, Frontend Developer, Backend, or Fullstack?)";
@@ -2888,11 +2921,17 @@ stale=false`);
         const roleLower = (this.interviewContext.role || '').toLowerCase();
         const isAI = /ai|artificial intelligence|ml|machine learning|data science|llm|deep learning/i.test(roleLower);
         const isFrontend = /frontend|front end|react|ui|web developer|javascript/i.test(roleLower);
+        const isFullstack = /full\s*-?\s*stack|fullstack/i.test(roleLower);
 
         // Handle explicit "I don't know" / non-answers dynamically based on what was asked
         if (/\b(don'?t know|dont know|no idea|can'?t remember|not sure|skip this|skip question|i skip|pass this|i pass|i have no idea)\b/i.test(text)) {
           const sentences = prevAgent.split(/[.?!]/).filter(s => s.trim().length > 0);
           const lastQuestion = sentences.length > 0 ? sentences[sentences.length - 1] : prevAgent;
+
+          if (isFullstack) {
+            this.interviewRoleplayStep = 3;
+            return "No worries. A solid full-stack answer would cover client validation and loading states, server-side validation, clear API errors, and a database transaction where needed. Next question: How would you protect a logged-in user's dashboard route in React and also enforce authorization in the Node API?";
+          }
 
           if (/error handling|retries|llm|external ai|endpoints in production/i.test(lastQuestion) || this.interviewRoleplayStep >= 4) {
             this.interviewRoleplayStep = 5;
@@ -2939,6 +2978,10 @@ stale=false`);
           if (isFrontend) {
             this.interviewRoleplayStep = 4;
             return "Great, next frontend question: How does the browser Event Loop coordinate the Call Stack, Microtask Queue (promises), and Macrotask Queue (timers)?";
+          }
+          if (isFullstack) {
+            this.interviewRoleplayStep = 4;
+            return "Great, next full-stack question: How would you design pagination from a React list through a Node API to a database query without loading every record at once?";
           }
           this.interviewRoleplayStep = 4;
           return "Great, next question: How would you design a distributed caching strategy using Redis to prevent cache stampedes and thundering herd problems?";

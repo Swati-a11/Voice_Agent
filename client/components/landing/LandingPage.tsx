@@ -34,7 +34,7 @@ export const LandingPage: React.FC = () => {
             <div className="hero-footnote"><span className="online-dot" /> <span>{status}</span><span className="footnote-divider" /> <span>Natural conversation, at your pace.</span></div>
           </div>
           <div className="hero-art">
-            <div className="journal-orbit orbit-back" /><div className="journal-cutout" />
+            <div className="journal-orbit orbit-back" /><div className="anime-ray-field" aria-hidden="true" /><div className="journal-cutout" />
             <div className="hero-side-note"><span>IRA'S FRIENDS</span><b>DORAEMON<br />& NOBITA</b><small>ALWAYS IN GOOD COMPANY</small></div>
             <motion.div className="hero-portrait-sheet" animate={{ y: [0, -7, 0], rotate: [-1.2, -.2, -1.2] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}>
               <Image src="/ira-nobita-doraemon.png" alt="Doraemon and Nobita, smiling together" width={1024} height={1024} priority className="hero-duo-image" />

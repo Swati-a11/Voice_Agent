@@ -89,7 +89,7 @@ export const ConversationTranscript: React.FC<ConversationTranscriptProps> = ({
                     ) : (
                       <>
                         <Bot size={13} className="text-purple-400" />
-                        <span className="text-purple-300">Ayra</span>
+                        <span className="text-purple-300">Ira</span>
                       </>
                     )}
                   </div>

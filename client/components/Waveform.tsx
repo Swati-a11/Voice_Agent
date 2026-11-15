@@ -44,8 +44,8 @@ export const Waveform: React.FC<WaveformProps> = ({ analyser, state, isActive })
       const centerY = canvas.height / 2;
 
       // Color based on conversation state
-      let gradStart = '#6366f1';
-      let gradEnd = '#ec4899';
+      let gradStart = '#29a9e6';
+      let gradEnd = '#f2bb48';
       if (state === 'LISTENING' || state === 'USER_SPEAKING') {
         gradStart = '#06b6d4';
         gradEnd = '#10b981';
@@ -53,8 +53,8 @@ export const Waveform: React.FC<WaveformProps> = ({ analyser, state, isActive })
         gradStart = '#ef4444';
         gradEnd = '#f59e0b';
       } else if (state === 'PROCESSING') {
-        gradStart = '#a855f7';
-        gradEnd = '#6366f1';
+        gradStart = '#168fc9';
+        gradEnd = '#f2bb48';
       }
 
       const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);

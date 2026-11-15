@@ -33,7 +33,7 @@ export interface TTSProvider {
 // Global active utterance store to prevent Chromium Garbage Collection bug
 const activeUtterancesSet = new Set<SpeechSynthesisUtterance>();
 
-// Male voice keywords to strictly avoid for female Ayra persona
+// Male voice keywords to strictly avoid for female Ira persona
 const MALE_VOICE_KEYWORDS = [
   'male', 'man', 'guy', 'boy', 'rishi', 'daniel', 'george', 'david', 'mark',
   'alex', 'fred', 'tom', 'oliver', 'arthur', 'aaron', 'albert', 'bruce',
@@ -42,7 +42,7 @@ const MALE_VOICE_KEYWORDS = [
   'jorge', 'juan', 'paolo', 'stefan', 'thomas', 'karl'
 ];
 
-// Female voice keywords for Ayra persona priority
+// Female voice keywords for Ira persona priority
 const FEMALE_VOICE_KEYWORDS = [
   'female', 'woman', 'girl', 'neerja', 'heera', 'veena', 'samantha', 'victoria',
   'karen', 'tessa', 'moira', 'fiona', 'serena', 'kate', 'ava', 'allison',
@@ -124,7 +124,7 @@ export class BrowserTTSProvider implements TTSProvider {
       return this.cachedVoice;
     }
 
-    // 1. Natural / Neural en-IN Indian English Female Voice (Ayra Top Priority)
+    // 1. Natural / Neural en-IN Indian English Female Voice (Ira Top Priority)
     const indianFemale = voices.find(
       (v) =>
         (v.lang === 'en-IN' || v.lang.startsWith('en-IN') || v.name.toLowerCase().includes('india')) &&

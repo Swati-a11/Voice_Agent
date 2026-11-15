@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState } from 'react';
-import { MessageSquare, Database, Activity, Cpu, Sparkles, User, Bot, Trash2, Send, Clock, Target, Plus, BookOpen, Briefcase, Heart } from 'lucide-react';
+import { MessageSquare, Database, Activity, Cpu, Sparkles, User, Bot, Trash2, Send, Clock, Target, Plus, BookOpen, Briefcase, Heart, Radio, LoaderCircle, AudioLines, X, Circle } from 'lucide-react';
 import { useVoiceContext } from '../context/VoiceAgentContext';
-import { VisualizerOrb } from './VisualizerOrb';
+import { DuoVisualizer } from './DuoVisualizer';
 import { Waveform } from './Waveform';
 import { CallControls } from './CallControls';
 import { ConversationTranscript } from './ConversationTranscript';
@@ -54,33 +54,33 @@ export const VoiceInterface: React.FC = () => {
   const getStateBadge = () => {
     switch (state) {
       case 'LISTENING':
-        return <span className="badge badge-listening animate-pulse">● Listening...</span>;
+        return <span className="badge badge-listening animate-pulse"><Radio size={13} /> Listening...</span>;
       case 'USER_SPEAKING':
-        return <span className="badge badge-listening">● You are speaking</span>;
+        return <span className="badge badge-listening"><Radio size={13} /> You are speaking</span>;
       case 'PROCESSING':
-        return <span className="badge badge-processing animate-spin">⟳ Thinking...</span>;
+        return <span className="badge badge-processing"><LoaderCircle size={13} className="animate-spin" /> Thinking...</span>;
       case 'AGENT_SPEAKING':
-        return <span className="badge badge-speaking">▲ Speaking...</span>;
+        return <span className="badge badge-speaking"><AudioLines size={13} /> Speaking...</span>;
       case 'INTERRUPTED':
-        return <span className="badge badge-interrupted">✕ Interrupted (Listening to you)</span>;
+        return <span className="badge badge-interrupted"><X size={13} /> Interrupted (Listening to you)</span>;
       case 'TOOL_CALLING':
-        return <span className="badge badge-tool animate-pulse">⚙ Processing request...</span>;
+        return <span className="badge badge-tool animate-pulse"><Cpu size={13} /> Processing request...</span>;
       case 'IDLE':
       default:
-        return <span className="badge bg-white/5 text-slate-400 border border-white/10">● Standby</span>;
+        return <span className="badge bg-white/5 text-slate-400 border border-white/10"><Circle size={10} /> Standby</span>;
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-between max-w-4xl mx-auto space-y-6 w-full px-2 sm:px-4 pb-12">
+    <div className="ira-agent flex flex-col items-center justify-between max-w-5xl mx-auto space-y-6 w-full px-3 sm:px-6 pb-12">
       {/* Center Stage: Interactive Orb & Conversation Core */}
-      <main className="w-full flex flex-col items-center justify-center my-2 relative">
+      <main className="agent-center-stage w-full flex flex-col items-center justify-center my-2 relative">
         {/* Status Pill & Topic */}
         <div className="mb-3 flex flex-wrap items-center justify-center gap-2">
           {getStateBadge()}
           {currentTopic && (
-            <span className="text-xs px-3 py-1 rounded-full bg-purple-950/40 text-purple-300 border border-purple-500/20 font-medium">
-              💬 Topic: {currentTopic.name}
+            <span className="agent-topic text-xs px-3 py-1 rounded-full font-medium">
+              <MessageSquare size={13} /> Topic: {currentTopic.name}
             </span>
           )}
         </div>
@@ -94,8 +94,8 @@ export const VoiceInterface: React.FC = () => {
         )}
 
         {/* Visualizer Orb */}
-        <div className="relative py-2">
-          <VisualizerOrb
+          <div className="relative py-2">
+          <DuoVisualizer
             state={state}
             audioLevel={audioLevel}
             isPlaying={isPlayingTTS}
@@ -126,7 +126,7 @@ export const VoiceInterface: React.FC = () => {
       </main>
 
       {/* Clean Companion Insights Tabs (Transcript, Memory, Speed) */}
-      <section className="w-full space-y-3 pt-2">
+      <section className="agent-insights w-full space-y-3 pt-4">
         {/* Segmented Tab Switcher */}
         <div className="flex items-center justify-center gap-1.5 p-1 rounded-full bg-white/[0.03] border border-white/[0.08] max-w-md mx-auto">
           <button
@@ -134,7 +134,7 @@ export const VoiceInterface: React.FC = () => {
             onClick={() => setActiveTab('transcript')}
             className={`flex-1 py-2 px-3 rounded-full text-xs font-medium flex items-center justify-center gap-1.5 transition-all ${
               activeTab === 'transcript'
-                ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
+                ? 'agent-tab-active bg-sky-600 text-white shadow-md shadow-sky-600/30'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
             }`}
           >
@@ -147,7 +147,7 @@ export const VoiceInterface: React.FC = () => {
             onClick={() => setActiveTab('memory')}
             className={`flex-1 py-2 px-3 rounded-full text-xs font-medium flex items-center justify-center gap-1.5 transition-all ${
               activeTab === 'memory'
-                ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
+                ? 'agent-tab-active bg-sky-600 text-white shadow-md shadow-sky-600/30'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
             }`}
           >
@@ -160,7 +160,7 @@ export const VoiceInterface: React.FC = () => {
             onClick={() => setActiveTab('performance')}
             className={`flex-1 py-2 px-3 rounded-full text-xs font-medium flex items-center justify-center gap-1.5 transition-all ${
               activeTab === 'performance'
-                ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
+                ? 'agent-tab-active bg-sky-600 text-white shadow-md shadow-sky-600/30'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
             }`}
           >

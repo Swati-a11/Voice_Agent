@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "skills": {
+    "ai-avatar-video": {
+      "source": "qu-skills/superpowers",
+      "sourceType": "github",
+      "skillPath": "tools/video/ai-avatar-video/SKILL.md",
+      "computedHash": "0769c92ae30ffedd75f944665763a2ceb9735716f3a5432e84bd23841b9d9767"
+    }
+  }
+}

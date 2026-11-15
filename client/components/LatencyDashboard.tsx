@@ -120,7 +120,7 @@ export const LatencyDashboard: React.FC<LatencyDashboardProps> = ({
           <div className="text-2xl font-mono font-bold text-emerald-200">
             {latestMetric ? `${latestMetric.totalLatencyMs}ms` : `${avgTotal || '215'}ms`}
           </div>
-          <p className="text-[11px] text-slate-400 leading-tight">End of user speech to first spoken word by Ayra.</p>
+          <p className="text-[11px] text-slate-400 leading-tight">End of user speech to first spoken word by Ira.</p>
         </div>
       </div>
 

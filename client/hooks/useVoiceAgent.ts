@@ -24,7 +24,7 @@ export function useVoiceAgent() {
   const [isConnected, setIsConnected] = useState(false);
   const [state, setState] = useState<ConversationState>('IDLE');
   const [activePersona, setActivePersona] = useState<PersonaConfig>({
-    name: 'Ayra',
+    name: 'Ira',
     trait: 'swati_companion',
     description: 'A friendly, expressive, thoughtful conversational companion inspired by Swati’s natural communication style.',
     speechStyle: 'Natural Indian conversational English with occasional organic expressions (haan, acha, arre, yaar, dekho), user-first empathy, talkative and engaging.',

@@ -10,7 +10,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
   if (isLandingPage) {
     return (
-      <main className="min-h-screen w-full bg-[#05030a] text-[#f8f7fb]">
+      <main className="min-h-screen w-full">
         {children}
       </main>
     );

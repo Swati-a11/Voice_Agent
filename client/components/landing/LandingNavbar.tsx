@@ -44,7 +44,7 @@ export const LandingNavbar: React.FC = () => {
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
               <span className="font-display font-semibold text-base sm:text-lg text-white tracking-tight">
-                Ayra
+                Ira
               </span>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-medium border border-purple-500/30">
                 AI Companion

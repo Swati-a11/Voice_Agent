@@ -12,12 +12,12 @@ interface PersonaSwitcherProps {
 
 export const PERSONA_OPTIONS = [
   {
-    name: 'Ayra',
-    title: 'Ayra (Default)',
+    name: 'Ira',
+    title: 'Ira (Default)',
     subtitle: "Swati-Inspired • Natural Hinglish",
     description: "Friendly, expressive, thoughtful companion with organic Hinglish expressions (haan, acha, arre, yaar, dekho).",
     icon: Sparkles,
-    color: 'text-purple-300 bg-purple-500/15 border-purple-500/30',
+    color: 'text-sky-300 bg-sky-500/15 border-sky-500/30',
   },
   {
     name: 'Zephyr',
@@ -92,7 +92,7 @@ export const PersonaSwitcher: React.FC<PersonaSwitcherProps> = ({
                       setIsOpen(false);
                     }}
                     className={`w-full text-left px-3 py-2.5 rounded-xl flex items-start gap-2.5 transition-colors ${
-                      isSelected ? 'bg-purple-600/30 border border-purple-500/40 text-white' : 'hover:bg-white/5 text-slate-300'
+                      isSelected ? 'bg-sky-600/25 border border-sky-500/35 text-white' : 'hover:bg-white/5 text-slate-300'
                     }`}
                   >
                     <div className={`p-1.5 rounded-lg border mt-0.5 ${option.color}`}>
@@ -101,7 +101,7 @@ export const PersonaSwitcher: React.FC<PersonaSwitcherProps> = ({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <span className="font-semibold text-xs text-white">{option.title}</span>
-                        {isSelected && <span className="text-[10px] text-purple-300 font-medium">Active</span>}
+                        {isSelected && <span className="text-[10px] text-sky-300 font-medium">Active</span>}
                       </div>
                       <p className="text-[11px] text-slate-400 truncate">{option.subtitle}</p>
                     </div>

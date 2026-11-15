@@ -49,9 +49,9 @@ export const CallControls: React.FC<CallControlsProps> = ({
           <button
             type="button"
             onClick={onStartCall}
-            className="px-7 py-3.5 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-medium text-sm sm:text-base tracking-tight flex items-center gap-2.5 shadow-lg shadow-purple-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+            className="agent-call-start px-7 py-3.5 rounded-full bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-medium text-sm sm:text-base tracking-tight flex items-center gap-2.5 shadow-lg shadow-sky-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
           >
-            <Phone size={18} className="animate-pulse text-purple-200" />
+            <Phone size={18} className="animate-pulse text-sky-100" />
             <span>Start Voice Call</span>
           </button>
         ) : (

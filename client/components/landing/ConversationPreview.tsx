@@ -15,7 +15,7 @@ export const ConversationPreview: React.FC = () => {
     },
     {
       speaker: 'agent',
-      label: 'Ayra',
+      label: 'Ira',
       text: "Arre yaar, three hours is pretty close. I get why you're stressed. If I were in your place, I wouldn't start learning new topics now. Let's do a quick mock interview together. Ready?",
       time: 'Streaming audio',
       isAudioPlaying: true,
@@ -28,7 +28,7 @@ export const ConversationPreview: React.FC = () => {
     },
     {
       speaker: 'agent',
-      label: 'Ayra',
+      label: 'Ira',
       text: "Okay, let's do it! First question: what is React, and why would you choose it for building modern web applications?",
       time: 'Streaming audio',
     },
@@ -85,7 +85,7 @@ export const ConversationPreview: React.FC = () => {
             </div>
             <div>
               <div className="text-sm font-semibold text-white flex items-center gap-2">
-                Ayra
+                Ira
                 <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
               </div>
               <div className="text-[11px] text-white/40">Swati-Inspired • Natural Hinglish</div>

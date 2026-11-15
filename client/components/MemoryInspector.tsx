@@ -49,7 +49,7 @@ export const MemoryInspector: React.FC<MemoryInspectorProps> = ({ memories, onAd
       </div>
 
       <p className="text-xs text-slate-400 leading-relaxed">
-        Ayra automatically remembers context across calls so you never have to repeat yourself.
+        Ira automatically remembers context across calls so you never have to repeat yourself.
       </p>
 
       {/* Facts List */}

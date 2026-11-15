@@ -147,11 +147,11 @@ export const ScenarioSimulator: React.FC<ScenarioSimulatorProps> = ({ onRunSpeec
 
   const categories = [
     { id: 'all', label: 'All Scenarios', icon: Sparkles },
-    { id: 'conversation', label: '💬 Conversation', icon: MessageSquare },
-    { id: 'interruption', label: '⚡ Barge-In', icon: Zap },
-    { id: 'topic', label: '🔄 Topic Switches', icon: RefreshCw },
-    { id: 'hinglish', label: '🇮🇳 Hinglish', icon: Volume2 },
-    { id: 'noise', label: '🛡️ Noise Filter', icon: ShieldCheck },
+    { id: 'conversation', label: 'Conversation', icon: MessageSquare },
+    { id: 'interruption', label: 'Barge-In', icon: Zap },
+    { id: 'topic', label: 'Topic Switches', icon: RefreshCw },
+    { id: 'hinglish', label: 'Hinglish', icon: Volume2 },
+    { id: 'noise', label: 'Noise Filter', icon: ShieldCheck },
   ];
 
   return (

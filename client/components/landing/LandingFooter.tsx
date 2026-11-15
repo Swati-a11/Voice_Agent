@@ -14,7 +14,7 @@ export const LandingFooter: React.FC = () => {
           
           <div className="relative z-10 max-w-xl mx-auto">
             <h3 className="font-display font-medium text-2xl sm:text-3xl text-white mb-3 tracking-tight">
-              Ready to talk with Ayra?
+              Ready to talk with Ira?
             </h3>
             <p className="text-sm text-white/60 mb-6 leading-relaxed">
               Experience truly human-like voice conversations with sub-400ms latency, Hinglish code-switching, and instant interruptions.
@@ -37,7 +37,7 @@ export const LandingFooter: React.FC = () => {
               <Sparkles size={15} className="text-white" />
             </div>
             <span className="font-display font-semibold text-white tracking-tight">
-              Ayra Voice AI
+              Ira Voice AI
             </span>
           </Link>
 
@@ -63,7 +63,7 @@ export const LandingFooter: React.FC = () => {
 
         {/* Copyright & Disclaimer */}
         <div className="w-full pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/40">
-          <p>© {new Date().getFullYear()} Ayra AI. Natural conversational companion.</p>
+          <p>Copyright {new Date().getFullYear()} Ira AI. Natural conversational companion.</p>
           <p className="text-[11px] text-white/30">
             Personal AI assistant inspired by Swati’s communication style • ₹0 Local TTS Architecture
           </p>

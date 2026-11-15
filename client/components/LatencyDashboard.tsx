@@ -24,6 +24,10 @@ export const LatencyDashboard: React.FC<LatencyDashboardProps> = ({
   const avgTTFT = Math.round(recentSlice.reduce((sum, m) => sum + m.llmTTFTMs, 0) / count);
   const avgTTFA = Math.round(recentSlice.reduce((sum, m) => sum + m.ttsTTFAMs, 0) / count);
   const avgTotal = Math.round(recentSlice.reduce((sum, m) => sum + m.totalLatencyMs, 0) / count);
+  const averageInterruption = interruptionLogs.length
+    ? Math.round(interruptionLogs.reduce((sum, event) => sum + event.durationMs, 0) / interruptionLogs.length)
+    : null;
+  const filteredNoiseCount = interruptionLogs.filter((event) => event.type === 'REJECTED_NOISE').length;
 
   return (
     <div className="w-full space-y-4">
@@ -36,17 +40,17 @@ export const LatencyDashboard: React.FC<LatencyDashboardProps> = ({
           <div>
             <div className="text-xs uppercase tracking-wider text-slate-400 font-semibold">Real-Time Voice Speed</div>
             <div className="text-xl sm:text-2xl font-bold text-white font-display">
-              Average Response: <span className="text-purple-300 font-mono">{avgTotal ? `${avgTotal}ms` : '320ms'}</span>
+              Average Response: <span className="text-purple-300 font-mono">{metrics.length ? `${avgTotal}ms` : '—'}</span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">Target: Under 500ms for natural human conversational cadence.</p>
+            <p className="text-xs text-slate-400 mt-0.5">{metrics.length ? 'Target: under 500ms for a natural conversational pace.' : 'Your response times will appear after your first conversation.'}</p>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-xs pt-2 md:pt-0 border-t md:border-t-0 border-white/[0.06]">
           <div>
             <div className="text-slate-400">Interruption Reaction</div>
-            <div className="text-base font-bold font-mono text-cyan-300">&lt; 35ms</div>
-            <div className="text-[10px] text-emerald-400 font-medium">● Instant Barge-in</div>
+            <div className="text-base font-bold font-mono text-cyan-300">{averageInterruption === null ? '—' : `${averageInterruption}ms avg`}</div>
+            <div className="text-[10px] text-emerald-400 font-medium">{interruptionLogs.length} events logged</div>
           </div>
           <div>
             <div className="text-slate-400">Audio Pipeline</div>
@@ -73,7 +77,7 @@ export const LatencyDashboard: React.FC<LatencyDashboardProps> = ({
             <span className="text-[10px] text-cyan-400 font-mono">Target &lt;200ms</span>
           </div>
           <div className="text-2xl font-mono font-bold text-cyan-200">
-            {latestMetric ? `${latestMetric.sttLatencyMs}ms` : `${avgSTT || '20'}ms`}
+            {latestMetric ? `${latestMetric.sttLatencyMs}ms` : metrics.length ? `${avgSTT}ms` : '—'}
           </div>
           <p className="text-[11px] text-slate-400 leading-tight">Instant voice activity detection &amp; transcription.</p>
         </div>
@@ -88,9 +92,9 @@ export const LatencyDashboard: React.FC<LatencyDashboardProps> = ({
             <span className="text-[10px] text-purple-400 font-mono">Target &lt;150ms</span>
           </div>
           <div className="text-2xl font-mono font-bold text-purple-200">
-            {latestMetric ? `${latestMetric.llmTTFTMs}ms` : `${avgTTFT || '160'}ms`}
+            {latestMetric ? `${latestMetric.llmTTFTMs}ms` : metrics.length ? `${avgTTFT}ms` : '—'}
           </div>
-          <p className="text-[11px] text-slate-400 leading-tight">Time for Gemini to generate the first word token.</p>
+          <p className="text-[11px] text-slate-400 leading-tight">Time to shape the first words of Ira&rsquo;s reply.</p>
         </div>
 
         {/* 3. Voice Audio (TTS) */}
@@ -103,7 +107,7 @@ export const LatencyDashboard: React.FC<LatencyDashboardProps> = ({
             <span className="text-[10px] text-pink-400 font-mono">Target &lt;50ms</span>
           </div>
           <div className="text-2xl font-mono font-bold text-pink-200">
-            {latestMetric ? `${latestMetric.ttsTTFAMs}ms` : `${avgTTFA || '35'}ms`}
+            {latestMetric ? `${latestMetric.ttsTTFAMs}ms` : metrics.length ? `${avgTTFA}ms` : '—'}
           </div>
           <p className="text-[11px] text-slate-400 leading-tight">Streaming speech synthesis &amp; audio buffer start.</p>
         </div>
@@ -118,7 +122,7 @@ export const LatencyDashboard: React.FC<LatencyDashboardProps> = ({
             <span className="text-[10px] text-emerald-400 font-mono">Goal &lt;500ms</span>
           </div>
           <div className="text-2xl font-mono font-bold text-emerald-200">
-            {latestMetric ? `${latestMetric.totalLatencyMs}ms` : `${avgTotal || '215'}ms`}
+            {latestMetric ? `${latestMetric.totalLatencyMs}ms` : metrics.length ? `${avgTotal}ms` : '—'}
           </div>
           <p className="text-[11px] text-slate-400 leading-tight">End of user speech to first spoken word by Ira.</p>
         </div>
@@ -129,13 +133,13 @@ export const LatencyDashboard: React.FC<LatencyDashboardProps> = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm font-semibold text-white">
             <ShieldCheck size={16} className="text-emerald-400" />
-            <span>Instant Barge-In &amp; Noise Discrimination</span>
+            <span>Barge-In &amp; Noise Filtering</span>
           </div>
-          <span className="text-xs text-emerald-400 font-medium">● 0 False Triggers</span>
+          <span className="text-xs text-emerald-400 font-medium">{filteredNoiseCount} brief sounds filtered</span>
         </div>
 
         <p className="text-xs text-slate-400 leading-relaxed">
-          When you speak while the agent is talking, playback cuts off instantly in under 35ms. Short background noises (like coughing or mic bumps) are filtered to prevent accidental interruptions.
+          When you speak over Ira, she stops and listens. Brief background sounds are checked so they don&rsquo;t accidentally interrupt your conversation.
         </p>
 
         {interruptionLogs.length > 0 && (

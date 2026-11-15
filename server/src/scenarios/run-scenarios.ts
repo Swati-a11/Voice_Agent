@@ -22,6 +22,9 @@ async function main() {
         }
       } else {
         console.error(`❌ FAILED: ${scenario.name}`);
+        result.logs
+          .filter((line) => line.startsWith('[ASSERTION FAILED]'))
+          .forEach((line) => console.error('   ', line));
       }
     } catch (err) {
       console.error(`❌ ERROR in ${scenario.name}:`, err);

@@ -48,11 +48,12 @@ export const CallControls: React.FC<CallControlsProps> = ({
         {!isCallActive ? (
           <button
             type="button"
+            disabled={!isConnected}
             onClick={onStartCall}
-            className="agent-call-start px-7 py-3.5 rounded-full bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-medium text-sm sm:text-base tracking-tight flex items-center gap-2.5 shadow-lg shadow-sky-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+            className="agent-call-start px-7 py-3.5 rounded-full bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 disabled:opacity-55 disabled:cursor-wait text-white font-medium text-sm sm:text-base tracking-tight flex items-center gap-2.5 shadow-lg shadow-sky-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
           >
-            <Phone size={18} className="animate-pulse text-sky-100" />
-            <span>Talk to Ira</span>
+            <Phone size={18} className={isConnected ? 'text-sky-100' : 'animate-pulse text-sky-100'} />
+            <span>{isConnected ? 'Talk to Ira' : 'Connecting to Ira…'}</span>
           </button>
         ) : (
           <button

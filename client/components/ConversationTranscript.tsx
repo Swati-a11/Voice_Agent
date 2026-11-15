@@ -10,6 +10,7 @@ interface ConversationTranscriptProps {
   onToggle?: () => void;
   onClear: () => void;
   onSendMessage?: (text: string) => void;
+  isConnected: boolean;
 }
 
 export const ConversationTranscript: React.FC<ConversationTranscriptProps> = ({
@@ -17,6 +18,7 @@ export const ConversationTranscript: React.FC<ConversationTranscriptProps> = ({
   isOpen,
   onClear,
   onSendMessage,
+  isConnected,
 }) => {
   const scrollEndRef = useRef<HTMLDivElement | null>(null);
   const [inputText, setInputText] = useState('');
@@ -65,7 +67,7 @@ export const ConversationTranscript: React.FC<ConversationTranscriptProps> = ({
             <div className="p-2 rounded-full bg-white/[0.03] text-purple-400">
               <Sparkles size={18} />
             </div>
-            <span>Nothing here yet. Say hello when you’re ready.</span>
+            <span>{isConnected ? 'Nothing here yet. Say hello when you’re ready.' : 'Ira is reconnecting. Your conversation will be ready shortly.'}</span>
           </div>
         ) : (
           turns.map((turn) => {
@@ -115,12 +117,13 @@ export const ConversationTranscript: React.FC<ConversationTranscriptProps> = ({
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            placeholder="Type a message or question (e.g. 'Can you tell me a story?')..."
-            className="flex-1 px-4 py-2.5 rounded-full bg-white/[0.05] border border-white/[0.1] text-xs sm:text-sm text-white placeholder-slate-400 focus:outline-none focus:border-purple-500 transition-colors"
+            disabled={!isConnected}
+            placeholder={isConnected ? "Type a message or question (e.g. 'Can you tell me a story?')..." : 'Reconnecting to Ira…'}
+            className="flex-1 px-4 py-2.5 rounded-full bg-white/[0.05] border border-white/[0.1] text-xs sm:text-sm text-white placeholder-slate-400 focus:outline-none focus:border-purple-500 transition-colors disabled:cursor-wait disabled:opacity-60"
           />
           <button
             type="submit"
-            disabled={!inputText.trim()}
+            disabled={!inputText.trim() || !isConnected}
             className="p-2.5 rounded-full bg-purple-600 hover:bg-purple-500 disabled:opacity-30 disabled:hover:bg-purple-600 text-white transition-all cursor-pointer"
           >
             <Send size={15} />

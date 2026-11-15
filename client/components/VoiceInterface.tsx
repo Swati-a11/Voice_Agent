@@ -182,6 +182,7 @@ export const VoiceInterface: React.FC = () => {
               isOpen={true}
               onToggle={() => {}}
               onClear={clearTranscript}
+              isConnected={isConnected}
               onSendMessage={(text) => sendUserSpeech(text, 350, false)}
             />
           </div>

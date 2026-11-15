@@ -5,6 +5,7 @@ import { Play, Sparkles, Zap, MessageSquare, RefreshCw, Volume2, ShieldCheck, Ch
 
 interface ScenarioSimulatorProps {
   onRunSpeech: (text: string, isInterruption?: boolean) => void;
+  isConnected: boolean;
   isOpen?: boolean;
 }
 
@@ -131,7 +132,7 @@ const SCENARIOS: ScenarioItem[] = [
   },
 ];
 
-export const ScenarioSimulator: React.FC<ScenarioSimulatorProps> = ({ onRunSpeech }) => {
+export const ScenarioSimulator: React.FC<ScenarioSimulatorProps> = ({ onRunSpeech, isConnected }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [lastExecutedId, setLastExecutedId] = useState<string | null>(null);
 
@@ -174,6 +175,12 @@ export const ScenarioSimulator: React.FC<ScenarioSimulatorProps> = ({ onRunSpeec
         ))}
       </div>
 
+      {!isConnected && (
+        <p className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 text-xs text-slate-400">
+          Ira is reconnecting. These examples will be ready as soon as she&rsquo;s back online.
+        </p>
+      )}
+
       {/* Scenarios Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
         {filteredScenarios.map((scenario) => {
@@ -205,10 +212,12 @@ export const ScenarioSimulator: React.FC<ScenarioSimulatorProps> = ({ onRunSpeec
                 <button
                   type="button"
                   onClick={() => handleRun(scenario)}
+                  disabled={!isConnected}
+                  title={!isConnected ? 'Waiting for Ira to reconnect' : undefined}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer ${
                     isRunning
                       ? 'bg-emerald-500 text-white'
-                      : 'bg-purple-600/30 hover:bg-purple-600 border border-purple-500/40 hover:border-transparent text-purple-200 hover:text-white'
+                      : 'bg-purple-600/30 hover:bg-purple-600 border border-purple-500/40 hover:border-transparent text-purple-200 hover:text-white disabled:cursor-not-allowed disabled:opacity-45'
                   }`}
                 >
                   {isRunning ? (
@@ -219,7 +228,7 @@ export const ScenarioSimulator: React.FC<ScenarioSimulatorProps> = ({ onRunSpeec
                   ) : (
                     <>
                       <Play size={11} fill="currentColor" />
-                      <span>Simulate</span>
+                      <span>{isConnected ? 'Simulate' : 'Offline'}</span>
                     </>
                   )}
                 </button>

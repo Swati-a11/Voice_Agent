@@ -74,6 +74,7 @@ export default function ScenariosPage() {
       {/* Main Scenarios Grid */}
       <div className="space-y-4">
         <ScenarioSimulator
+          isConnected={isConnected}
           onRunSpeech={(text, isInterruption) => sendUserSpeech(text, 350, isInterruption)}
         />
       </div>
@@ -84,6 +85,7 @@ export default function ScenariosPage() {
           turns={turns}
           isOpen={true}
           onClear={clearTranscript}
+          isConnected={isConnected}
           onSendMessage={(text) => sendUserSpeech(text, 350, false)}
         />
       </div>

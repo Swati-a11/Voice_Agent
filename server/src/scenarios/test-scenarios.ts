@@ -1157,6 +1157,7 @@ export async function runScenario(scenario: ScenarioDefinition): Promise<{
   let manager = new ConversationManager({ userId: currentUserId, personaName: 'Ira' });
   const logs: string[] = [];
   const metrics: any[] = [];
+  const failures: string[] = [];
 
   const attachListeners = (mgr: ConversationManager) => {
     mgr.on('state_change', (evt) => {
@@ -1183,6 +1184,8 @@ export async function runScenario(scenario: ScenarioDefinition): Promise<{
   for (const step of scenario.steps) {
     logs.push(`\n--- STEP: ${step.description} ---`);
 
+    const previousAgentSpeechChunks = logs.filter((line) => line.startsWith('[AGENT SPEECH]')).length;
+
     if (step.action === 'start_new_session') {
       manager.endCall();
       currentUserId = step.payload?.userId || 'test-user';
@@ -1208,14 +1211,43 @@ export async function runScenario(scenario: ScenarioDefinition): Promise<{
       });
       logs.push(`[NOISE EVALUATION] ${evalRes.event.type} -> ${evalRes.event.reason}`);
     }
+
+    if (step.expectedState && manager.stateMachine.getState() !== step.expectedState) {
+      failures.push(`${step.description}: expected state ${step.expectedState}, received ${manager.stateMachine.getState()}`);
+    }
+    if (step.expectedCondition && !step.expectedCondition(manager)) {
+      failures.push(`${step.description}: expected condition was not met`);
+    }
+
+    if (step.action === 'user_speech' || step.action === 'simulate_interruption') {
+      const inputText = String(step.payload?.text || '');
+      const expectsSilence = !inputText.trim() || /\[(?:cough|noise|background noise)\]/i.test(inputText) ||
+        /duplicate transcript|deduplicat(ed|ion)|brief acknowledgement|bare acknowledgement/i.test(step.description) ||
+        /^(?:hmm+|yeah+|okay|ok|right|mm-hmm)[.!?]*$/i.test(inputText);
+      const currentAgentSpeechChunks = logs.filter((line) => line.startsWith('[AGENT SPEECH]')).length;
+      if (!expectsSilence && currentAgentSpeechChunks === previousAgentSpeechChunks) {
+        failures.push(`${step.description}: no Ira response was recorded`);
+      }
+
+      // The browser returns to listening when streamed TTS ends. Scenario tests have no audio device,
+      // so mirror that client transition before the next synthetic user turn.
+      if (manager.stateMachine.getState() === 'AGENT_SPEAKING') {
+        manager.stateMachine.transitionTo('LISTENING', 'SIMULATED_PLAYBACK_COMPLETE');
+      }
+    }
   }
 
   manager.endCall();
 
+  if (manager.stateMachine.getState() !== 'IDLE') {
+    failures.push(`Call teardown left the state machine in ${manager.stateMachine.getState()}`);
+  }
+  failures.forEach((failure) => logs.push(`[ASSERTION FAILED] ${failure}`));
+
   return {
     scenarioId: scenario.id,
     name: scenario.name,
-    passed: true,
+    passed: failures.length === 0,
     logs,
     metrics
   };

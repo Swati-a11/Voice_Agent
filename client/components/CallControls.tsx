@@ -52,7 +52,7 @@ export const CallControls: React.FC<CallControlsProps> = ({
             className="agent-call-start px-7 py-3.5 rounded-full bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-medium text-sm sm:text-base tracking-tight flex items-center gap-2.5 shadow-lg shadow-sky-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
           >
             <Phone size={18} className="animate-pulse text-sky-100" />
-            <span>Start Voice Call</span>
+            <span>Talk to Ira</span>
           </button>
         ) : (
           <button
@@ -61,7 +61,7 @@ export const CallControls: React.FC<CallControlsProps> = ({
             className="px-7 py-3.5 rounded-full bg-rose-600 hover:bg-rose-500 text-white font-medium text-sm sm:text-base tracking-tight flex items-center gap-2.5 shadow-lg shadow-rose-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
           >
             <PhoneOff size={18} />
-            <span>End Call</span>
+            <span>End conversation</span>
           </button>
         )}
 

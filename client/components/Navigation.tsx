@@ -13,7 +13,7 @@ export const Navigation: React.FC = () => {
   const { state, activePersona, switchPersona } = useVoiceContext();
 
   const navItems = [
-    { href: '/agent', label: 'Voice Call', icon: Mic },
+    { href: '/agent', label: 'Talk with Ira', icon: Mic },
     { href: '/scenarios', label: 'Scenarios', icon: PlayCircle },
     { href: '/metrics', label: 'Performance', icon: Activity },
     { href: '/settings', label: 'Memory & Persona', icon: Database },
@@ -23,17 +23,17 @@ export const Navigation: React.FC = () => {
     switch (state) {
       case 'LISTENING':
       case 'USER_SPEAKING':
-        return { text: 'Listening', class: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30' };
+        return { text: 'I’m listening', class: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30' };
       case 'PROCESSING':
       case 'TOOL_CALLING':
-        return { text: 'Thinking', class: 'bg-sky-500/15 text-sky-300 border-sky-500/30' };
+        return { text: 'One moment', class: 'bg-sky-500/15 text-sky-300 border-sky-500/30' };
       case 'AGENT_SPEAKING':
-        return { text: 'Speaking', class: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30' };
+        return { text: 'Ira’s talking', class: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30' };
       case 'INTERRUPTED':
-        return { text: 'Barge-In', class: 'bg-rose-500/15 text-rose-300 border-rose-500/30' };
+        return { text: 'Go ahead', class: 'bg-rose-500/15 text-rose-300 border-rose-500/30' };
       case 'IDLE':
       default:
-        return { text: 'Standby', class: 'bg-white/5 text-slate-400 border-white/10' };
+        return { text: 'Ready when you are', class: 'bg-white/5 text-slate-400 border-white/10' };
     }
   };
 

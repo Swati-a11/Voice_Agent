@@ -40,7 +40,7 @@ export const ConversationTranscript: React.FC<ConversationTranscriptProps> = ({
       <div className="px-5 py-3.5 flex items-center justify-between border-b border-white/[0.06] bg-white/[0.02]">
         <div className="flex items-center gap-2.5">
           <MessageSquare size={16} className="text-purple-400" />
-          <span className="font-semibold text-sm text-white">Live Conversation Transcript</span>
+          <span className="font-semibold text-sm text-white">Our conversation</span>
           <span className="text-[11px] px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-300 font-mono">
             {turns.length} messages
           </span>
@@ -65,7 +65,7 @@ export const ConversationTranscript: React.FC<ConversationTranscriptProps> = ({
             <div className="p-2 rounded-full bg-white/[0.03] text-purple-400">
               <Sparkles size={18} />
             </div>
-            <span>No messages yet. Tap &ldquo;Start Voice Call&rdquo; or type below to chat.</span>
+            <span>Nothing here yet. Say hello when you’re ready.</span>
           </div>
         ) : (
           turns.map((turn) => {

@@ -7,10 +7,10 @@ import { ConversationState } from '../types';
 import { AudioLines, Sparkles } from 'lucide-react';
 
 const statusText: Record<ConversationState, string> = {
-  IDLE: 'Ready when you are', LISTENING: 'Listening to you', USER_SPEAKING: 'Listening to you',
-  PROCESSING: 'Thinking it through', TOOL_CALLING: 'Finding the right answer',
-  AGENT_SPEAKING: 'Ira is talking', INTERRUPTED: 'Listening to you', BACKCHANNEL: 'Following along',
-  TOPIC_SWITCH: 'Following the new topic', TOPIC_RETURN: 'Picking up where we left off', WAITING_FOR_CONTINUATION: 'I’m here with you',
+  IDLE: 'Whenever you’re ready', LISTENING: 'I’m listening', USER_SPEAKING: 'I’m listening',
+  PROCESSING: 'One moment…', TOOL_CALLING: 'Let me check that',
+  AGENT_SPEAKING: 'Ira’s talking', INTERRUPTED: 'Go ahead', BACKCHANNEL: 'I’m with you',
+  TOPIC_SWITCH: 'Let’s talk about that', TOPIC_RETURN: 'Picking up where we left off', WAITING_FOR_CONTINUATION: 'Take your time',
 };
 
 export function DuoVisualizer({ state, audioLevel = 0, isPlaying = false }: { state: ConversationState; audioLevel?: number; isPlaying?: boolean }) {

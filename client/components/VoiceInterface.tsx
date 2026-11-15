@@ -54,20 +54,20 @@ export const VoiceInterface: React.FC = () => {
   const getStateBadge = () => {
     switch (state) {
       case 'LISTENING':
-        return <span className="badge badge-listening animate-pulse"><Radio size={13} /> Listening...</span>;
+        return <span className="badge badge-listening animate-pulse"><Radio size={13} /> I’m listening</span>;
       case 'USER_SPEAKING':
-        return <span className="badge badge-listening"><Radio size={13} /> You are speaking</span>;
+        return <span className="badge badge-listening"><Radio size={13} /> Go ahead</span>;
       case 'PROCESSING':
-        return <span className="badge badge-processing"><LoaderCircle size={13} className="animate-spin" /> Thinking...</span>;
+        return <span className="badge badge-processing"><LoaderCircle size={13} className="animate-spin" /> One moment…</span>;
       case 'AGENT_SPEAKING':
-        return <span className="badge badge-speaking"><AudioLines size={13} /> Speaking...</span>;
+        return <span className="badge badge-speaking"><AudioLines size={13} /> Ira’s talking</span>;
       case 'INTERRUPTED':
-        return <span className="badge badge-interrupted"><X size={13} /> Interrupted (Listening to you)</span>;
+        return <span className="badge badge-interrupted"><X size={13} /> Go ahead, I’m listening</span>;
       case 'TOOL_CALLING':
-        return <span className="badge badge-tool animate-pulse"><Cpu size={13} /> Processing request...</span>;
+        return <span className="badge badge-tool animate-pulse"><Cpu size={13} /> Let me check that</span>;
       case 'IDLE':
       default:
-        return <span className="badge bg-white/5 text-slate-400 border border-white/10"><Circle size={10} /> Standby</span>;
+        return <span className="badge bg-white/5 text-slate-400 border border-white/10"><Circle size={10} /> Ready when you are</span>;
     }
   };
 

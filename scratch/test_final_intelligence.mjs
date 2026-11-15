@@ -3,7 +3,7 @@ import { IntentClassifier } from '/Users/swatikumari/Desktop/voice_agent/server/
 
 async function runTest() {
   console.log("====================================================");
-  console.log("STARTING AYRA FINAL CONVERSATION INTELLIGENCE TEST");
+  console.log("STARTING Ira FINAL CONVERSATION INTELLIGENCE TEST");
   console.log("====================================================\n");
 
   const cm = new ConversationManager('user_test_final');
@@ -40,8 +40,8 @@ async function runTest() {
     }
   }
 
-  // 1. "Hi Ayra."
-  await testTurn("Hi Ayra.", (r) => /hey|how are you|doing today/i.test(r), "Greeting response");
+  // 1. "Hi Ira."
+  await testTurn("Hi Ira.", (r) => /hey|how are you|doing today/i.test(r), "Greeting response");
 
   // 2. "I am doing great today, I just completed my homework."
   await testTurn("I am doing great today, I just completed my homework.", (r) => /homework|satisfying|rest of your day|great/i.test(r) && !/not sure what you mean/i.test(r), "Homework completion acknowledgement");

@@ -32,7 +32,7 @@ async function runSessionTests() {
   const cm1 = new ConversationManager('session-1');
   
   const r1 = await ask(cm1, 'today I had a fight with my friend');
-  console.log('User: "today I had a fight with my friend" -> Ayra:', r1);
+  console.log('User: "today I had a fight with my friend" -> Ira:', r1);
   assert(
     r1.toLowerCase().includes('what happened') || r1.toLowerCase().includes('yaar'),
     'Friend fight opening',
@@ -40,7 +40,7 @@ async function runSessionTests() {
   );
 
   const r2 = await ask(cm1, 'I don\'t know she was actually very rude to me');
-  console.log('User: "I don\'t know she was actually very rude to me" -> Ayra:', r2);
+  console.log('User: "I don\'t know she was actually very rude to me" -> Ira:', r2);
   assert(
     (r2.toLowerCase().includes('sucks') || r2.toLowerCase().includes('overthink') || r2.toLowerCase().includes('what did she say') || r2.toLowerCase().includes('rude')) &&
     !r2.includes('Ahh okay. Go on.') && !r2.includes('Yeah? And?'),
@@ -49,7 +49,7 @@ async function runSessionTests() {
   );
 
   const r3 = await ask(cm1, 'can you tell me about stars');
-  console.log('User: "can you tell me about stars" -> Ayra:', r3);
+  console.log('User: "can you tell me about stars" -> Ira:', r3);
   assert(
     r3.toLowerCase().includes('plasma') || r3.toLowerCase().includes('nuclear fusion') || r3.toLowerCase().includes('sun') || r3.toLowerCase().includes('celestial'),
     'Tell me about stars explains astronomy (not story listener reaction)',
@@ -57,7 +57,7 @@ async function runSessionTests() {
   );
 
   const r4 = await ask(cm1, 'what is friction');
-  console.log('User: "what is friction" -> Ayra:', r4);
+  console.log('User: "what is friction" -> Ira:', r4);
   assert(
     r4.toLowerCase().includes('friction') || r4.toLowerCase().includes('resisting force') || r4.toLowerCase().includes('sliding'),
     'Explains friction clearly',
@@ -65,7 +65,7 @@ async function runSessionTests() {
   );
 
   const r5 = await ask(cm1, 'tell me about loop engineering');
-  console.log('User: "tell me about loop engineering" -> Ayra:', r5);
+  console.log('User: "tell me about loop engineering" -> Ira:', r5);
   assert(
     r5.toLowerCase().includes('loop') || r5.toLowerCase().includes('feedback') || r5.toLowerCase().includes('iterative'),
     'Explains loop engineering clearly',
@@ -73,7 +73,7 @@ async function runSessionTests() {
   );
 
   const r6 = await ask(cm1, 'name five animals');
-  console.log('User: "name five animals" -> Ayra:', r6);
+  console.log('User: "name five animals" -> Ira:', r6);
   assert(
     r6.toLowerCase().includes('tiger') || r6.toLowerCase().includes('elephant') || r6.toLowerCase().includes('dog') || r6.toLowerCase().includes('dolphin'),
     'Names five animals with engaging warmth',
@@ -85,7 +85,7 @@ async function runSessionTests() {
   const cm2 = new ConversationManager('session-2');
 
   const ir1 = await ask(cm2, 'I want to take my interview for ml engineer');
-  console.log('User: "I want to take my interview for ml engineer" -> Ayra:', ir1);
+  console.log('User: "I want to take my interview for ml engineer" -> Ira:', ir1);
   assert(
     ir1.toLowerCase().includes('ml engineer') || ir1.toLowerCase().includes('rag') || ir1.toLowerCase().includes('vector'),
     'Starts ML Engineer mock interview with domain Q1',
@@ -93,7 +93,7 @@ async function runSessionTests() {
   );
 
   const ir2 = await ask(cm2, 'I under vector embroiding by using vector database like pinof file coin');
-  console.log('User answers Q1 -> Ayra:', ir2);
+  console.log('User answers Q1 -> Ira:', ir2);
   assert(
     (ir2.toLowerCase().includes('vector') || ir2.toLowerCase().includes('embedding') || ir2.toLowerCase().includes('database') || ir2.toLowerCase().includes('solid')) &&
     (ir2.toLowerCase().includes('latency') || ir2.toLowerCase().includes('websocket') || ir2.toLowerCase().includes('streaming') || ir2.toLowerCase().includes('stt')) &&
@@ -106,7 +106,7 @@ async function runSessionTests() {
   console.log('\n--- Test Suite 3: Single Word Noise Filtering ---');
   const cm3 = new ConversationManager('session-3');
   const sr1 = await ask(cm3, 'top');
-  console.log('User: "top" -> Ayra:', sr1);
+  console.log('User: "top" -> Ira:', sr1);
   assert(
     !sr1.includes('Top? Tell me more'),
     'Single word "top" (stop typo) does not trigger annoying question expansion',

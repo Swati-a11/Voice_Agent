@@ -19,7 +19,7 @@ function testAssert(condition, name, details = '') {
 
 async function runFinalContextResolverSuite() {
   console.log('================================================================');
-  console.log('AYRA FINAL CONTEXT RESOLVER & STT REPAIR TEST SUITE');
+  console.log('Ira FINAL CONTEXT RESOLVER & STT REPAIR TEST SUITE');
   console.log('================================================================\n');
 
   // --- Part 1: STT Semantic Repair Layer ---
@@ -55,7 +55,7 @@ async function runFinalContextResolverSuite() {
   }
 
   const a1 = await sayA("I am feeling very nervous today. I have an interview tomorrow and honestly I'm scared I'll mess up.");
-  testAssert(/nervous|role|interview/i.test(a1), "Conv A Turn 1: Ayra recognizes interview anxiety & asks role", `Received: "${a1}"`);
+  testAssert(/nervous|role|interview/i.test(a1), "Conv A Turn 1: Ira recognizes interview anxiety & asks role", `Received: "${a1}"`);
 
   const a2 = await sayA("It is the role of software developer.");
   testAssert(/software developer|fundamentals|projects|problem-solving|problem solving|mock/i.test(a2) && !/not sure/i.test(a2), "Conv A Turn 2: Understood role answer & gives targeted preparation advice", `Received: "${a2}"`);
@@ -73,7 +73,7 @@ async function runFinalContextResolverSuite() {
   }
 
   const b1 = await sayB("I just had a fight with my best friend.");
-  testAssert(/what happened|yaar/i.test(b1), "Conv B Turn 1: Ayra reacts with 'Ahh yaar. What happened?'", `Received: "${b1}"`);
+  testAssert(/what happened|yaar/i.test(b1), "Conv B Turn 1: Ira reacts with 'Ahh yaar. What happened?'", `Received: "${b1}"`);
 
   const b2 = await sayB("my friend was route to me today but I also said some really hard things back do you think I should approach");
   testAssert(/apologize|what she said|both sides|fault|blame/i.test(b2) && !/not sure|mood for/i.test(b2), "Conv B Turn 2: Robust STT repair and balanced friendship advice", `Received: "${b2}"`);

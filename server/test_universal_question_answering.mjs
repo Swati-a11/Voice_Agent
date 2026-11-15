@@ -35,7 +35,7 @@ async function runUniversalQAQuestionTests() {
 
   // 1. "what is Gemini?"
   const r1 = await ask(cm, 'what is Gemini?');
-  console.log('User: "what is Gemini?" -> Ayra:', r1);
+  console.log('User: "what is Gemini?" -> Ira:', r1);
   assert(
     (r1.toLowerCase().includes('gemini') || r1.toLowerCase().includes('google') || r1.toLowerCase().includes('multimodal')) &&
     !r1.includes('is a fascinating subject') && !r1.includes('Tell me what specific part'),
@@ -45,7 +45,7 @@ async function runUniversalQAQuestionTests() {
 
   // 2. "tell me something about Gemini"
   const r2 = await ask(cm, 'tell me something about Gemini');
-  console.log('User: "tell me something about Gemini" -> Ayra:', r2);
+  console.log('User: "tell me something about Gemini" -> Ira:', r2);
   assert(
     (r2.toLowerCase().includes('gemini') || r2.toLowerCase().includes('google') || r2.toLowerCase().includes('multimodal')) &&
     !r2.includes('is a fascinating subject') && !r2.includes('Is baare mein aur kya soch rahe ho'),
@@ -55,7 +55,7 @@ async function runUniversalQAQuestionTests() {
 
   // 3. "tell me about DSA"
   const r3 = await ask(cm, 'tell me about DSA');
-  console.log('User: "tell me about DSA" -> Ayra:', r3);
+  console.log('User: "tell me about DSA" -> Ira:', r3);
   assert(
     (r3.toLowerCase().includes('data structures') || r3.toLowerCase().includes('algorithms') || r3.toLowerCase().includes('dsa')) &&
     !r3.includes('is a fascinating subject') && !r3.includes('Is baare mein aur kya soch rahe ho'),
@@ -65,7 +65,7 @@ async function runUniversalQAQuestionTests() {
 
   // 4. "what is DSA?"
   const r4 = await ask(cm, 'what is DSA?');
-  console.log('User: "what is DSA?" -> Ayra:', r4);
+  console.log('User: "what is DSA?" -> Ira:', r4);
   assert(
     (r4.toLowerCase().includes('data structures') || r4.toLowerCase().includes('algorithms') || r4.toLowerCase().includes('dsa')) &&
     !r4.includes('is a fascinating subject'),
@@ -75,7 +75,7 @@ async function runUniversalQAQuestionTests() {
 
   // 5. "what is JavaScript?"
   const r5 = await ask(cm, 'what is JavaScript?');
-  console.log('User: "what is JavaScript?" -> Ayra:', r5);
+  console.log('User: "what is JavaScript?" -> Ira:', r5);
   assert(
     (r5.toLowerCase().includes('javascript') || r5.toLowerCase().includes('web') || r5.toLowerCase().includes('event loop') || r5.toLowerCase().includes('programming language')),
     '5. "what is JavaScript?" gives actual JavaScript definition',
@@ -84,7 +84,7 @@ async function runUniversalQAQuestionTests() {
 
   // 6. "what is React?"
   const r6 = await ask(cm, 'what is React?');
-  console.log('User: "what is React?" -> Ayra:', r6);
+  console.log('User: "what is React?" -> Ira:', r6);
   assert(
     (r6.toLowerCase().includes('react') || r6.toLowerCase().includes('library') || r6.toLowerCase().includes('user interfaces') || r6.toLowerCase().includes('virtual dom')),
     '6. "what is React?" gives actual React definition',
@@ -93,7 +93,7 @@ async function runUniversalQAQuestionTests() {
 
   // 7. "what is Next.js?"
   const r7 = await ask(cm, 'what is Next.js?');
-  console.log('User: "what is Next.js?" -> Ayra:', r7);
+  console.log('User: "what is Next.js?" -> Ira:', r7);
   assert(
     (r7.toLowerCase().includes('next.js') || r7.toLowerCase().includes('react') || r7.toLowerCase().includes('vercel') || r7.toLowerCase().includes('framework')),
     '7. "what is Next.js?" gives actual Next.js definition',
@@ -102,7 +102,7 @@ async function runUniversalQAQuestionTests() {
 
   // 8. "what is React Native?"
   const r8 = await ask(cm, 'what is React Native?');
-  console.log('User: "what is React Native?" -> Ayra:', r8);
+  console.log('User: "what is React Native?" -> Ira:', r8);
   assert(
     (r8.toLowerCase().includes('react native') || r8.toLowerCase().includes('mobile') || r8.toLowerCase().includes('ios') || r8.toLowerCase().includes('android')),
     '8. "what is React Native?" gives actual React Native definition',
@@ -111,7 +111,7 @@ async function runUniversalQAQuestionTests() {
 
   // 9. "what is RAG?"
   const r9 = await ask(cm, 'what is RAG?');
-  console.log('User: "what is RAG?" -> Ayra:', r9);
+  console.log('User: "what is RAG?" -> Ira:', r9);
   assert(
     (r9.toLowerCase().includes('retrieval') || r9.toLowerCase().includes('rag') || r9.toLowerCase().includes('vector')),
     '9. "what is RAG?" gives actual RAG definition',
@@ -120,7 +120,7 @@ async function runUniversalQAQuestionTests() {
 
   // 10. "what is a door?"
   const r10 = await ask(cm, 'what is a door?');
-  console.log('User: "what is a door?" -> Ayra:', r10);
+  console.log('User: "what is a door?" -> Ira:', r10);
   assert(
     (r10.toLowerCase().includes('door') || r10.toLowerCase().includes('barrier') || r10.toLowerCase().includes('entrance')),
     '10. "what is a door?" gives actual door definition',
@@ -129,7 +129,7 @@ async function runUniversalQAQuestionTests() {
 
   // 11. "what is a bell?"
   const r11 = await ask(cm, 'what is a bell?');
-  console.log('User: "what is a bell?" -> Ayra:', r11);
+  console.log('User: "what is a bell?" -> Ira:', r11);
   assert(
     (r11.toLowerCase().includes('bell') || r11.toLowerCase().includes('ringing') || r11.toLowerCase().includes('sound') || r11.toLowerCase().includes('acoustic')),
     '11. "what is a bell?" gives actual bell definition',
@@ -138,7 +138,7 @@ async function runUniversalQAQuestionTests() {
 
   // 12. "what is AC?"
   const r12 = await ask(cm, 'what is AC?');
-  console.log('User: "what is AC?" -> Ayra:', r12);
+  console.log('User: "what is AC?" -> Ira:', r12);
   assert(
     (r12.toLowerCase().includes('air conditioning') || r12.toLowerCase().includes('cools') || r12.toLowerCase().includes('indoor')),
     '12. "what is AC?" gives actual air-conditioner definition',
@@ -147,7 +147,7 @@ async function runUniversalQAQuestionTests() {
 
   // 13. "tell me about AC"
   const r13 = await ask(cm, 'tell me about AC');
-  console.log('User: "tell me about AC" -> Ayra:', r13);
+  console.log('User: "tell me about AC" -> Ira:', r13);
   assert(
     (r13.toLowerCase().includes('air conditioning') || r13.toLowerCase().includes('cools') || r13.toLowerCase().includes('indoor')),
     '13. "tell me about AC" gives actual AC explanation',
@@ -156,7 +156,7 @@ async function runUniversalQAQuestionTests() {
 
   // 14. "what is the moon?"
   const r14 = await ask(cm, 'what is the moon?');
-  console.log('User: "what is the moon?" -> Ayra:', r14);
+  console.log('User: "what is the moon?" -> Ira:', r14);
   assert(
     (r14.toLowerCase().includes('moon') || r14.toLowerCase().includes('satellite') || r14.toLowerCase().includes('tides')),
     '14. "what is the moon?" gives actual moon explanation',
@@ -165,7 +165,7 @@ async function runUniversalQAQuestionTests() {
 
   // 15. "what are stars?"
   const r15 = await ask(cm, 'what are stars?');
-  console.log('User: "what are stars?" -> Ayra:', r15);
+  console.log('User: "what are stars?" -> Ira:', r15);
   assert(
     (r15.toLowerCase().includes('stars') || r15.toLowerCase().includes('plasma') || r15.toLowerCase().includes('fusion') || r15.toLowerCase().includes('sun')),
     '15. "what are stars?" gives actual star explanation',
@@ -214,7 +214,7 @@ async function runUniversalQAQuestionTests() {
 
   // 21. "wish me luck"
   const r21 = await ask(cm, 'wish me luck');
-  console.log('User: "wish me luck" -> Ayra:', r21);
+  console.log('User: "wish me luck" -> Ira:', r21);
   assert(
     (r21.toLowerCase().includes('all the best') || r21.toLowerCase().includes('got this') || r21.toLowerCase().includes('good luck')),
     '21. "wish me luck" returns good-wish response',
@@ -223,7 +223,7 @@ async function runUniversalQAQuestionTests() {
 
   // 22. "motivate me"
   const r22 = await ask(cm, 'motivate me');
-  console.log('User: "motivate me" -> Ayra:', r22);
+  console.log('User: "motivate me" -> Ira:', r22);
   assert(
     (r22.toLowerCase().includes('potential') || r22.toLowerCase().includes('capable') || r22.toLowerCase().includes('push forward')),
     '22. "motivate me" returns motivation response',

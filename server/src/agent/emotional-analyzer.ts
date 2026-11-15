@@ -228,11 +228,11 @@ export class EmotionalAnalyzer {
       confidence: 0.7,
       tone: 'casual',
       ttsAdjustment: {
-        rate: 1.05,
-        pitch: 1.0,
+        rate: 1.0,
+        pitch: 1.05,
         volume: 1.0
       },
-      strategyGuidance: 'Natural Indian conversational style, warm, expressive, approachable.'
+      strategyGuidance: 'Warm, bright, gently playful Indian conversational style. Use clear, rounded phrasing with a light melodic lift while keeping the delivery natural and never exaggerated.'
     };
   }
 

@@ -75,6 +75,11 @@ export const VoiceInterface: React.FC = () => {
     <div className="ira-agent flex flex-col items-center justify-between max-w-5xl mx-auto space-y-6 w-full px-3 sm:px-6 pb-12">
       {/* Center Stage: Interactive Orb & Conversation Core */}
       <main className="agent-center-stage w-full flex flex-col items-center justify-center my-2 relative">
+        <div className="agent-welcome">
+          <span className="agent-kicker">IRA’S VOICE ROOM <i /></span>
+          <h1>Let’s talk<br /><em>about your day.</em></h1>
+          <p>A little space for whatever’s on your mind.</p>
+        </div>
         {/* Status Pill & Topic */}
         <div className="mb-3 flex flex-wrap items-center justify-center gap-2">
           {getStateBadge()}
@@ -213,8 +218,8 @@ export const VoiceInterface: React.FC = () => {
       </section>
 
       {/* Footer */}
-      <footer className="w-full text-center text-xs text-slate-500 pt-4">
-        Truly Human-Like Real-Time Voice Agent • Built with Google Gemini &amp; Web Speech
+      <footer className="agent-footer w-full text-center text-xs text-slate-500 pt-4">
+        Thoughtful conversation, whenever you need it.
       </footer>
     </div>
   );

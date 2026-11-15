@@ -68,8 +68,8 @@ export class BrowserTTSProvider implements TTSProvider {
   private cachedVoice: SpeechSynthesisVoice | null = null;
   public activeGenerationId: number = 0;
   private voiceSettings = {
-    rate: 1.05,
-    pitch: 1.0,
+    rate: 1.0,
+    pitch: 1.08,
     volume: 1.0
   };
   private activeFinishCallbacks = new Set<() => void>();

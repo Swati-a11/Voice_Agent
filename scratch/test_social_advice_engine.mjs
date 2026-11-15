@@ -17,7 +17,7 @@ function assert(condition, message, detail = '') {
 
 async function runTests() {
   console.log('================================================================');
-  console.log('  TESTING AYRA FINAL HUMAN-LIKE CONTEXTUAL ADVICE ENGINE (1-43)');
+  console.log('  TESTING Ira FINAL HUMAN-LIKE CONTEXTUAL ADVICE ENGINE (1-43)');
   console.log('================================================================\n');
 
   // Test 1: Section 32 - Complete Friend Fight Multi-Turn Flow

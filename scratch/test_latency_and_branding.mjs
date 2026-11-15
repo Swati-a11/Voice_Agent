@@ -3,7 +3,7 @@ import { WebSearchService } from '../server/dist/agent/web-search-service.js';
 
 async function runAcceptanceTests() {
   console.log('═══════════════════════════════════════════════════════════════');
-  console.log('   AYRA LOW-LATENCY & BRANDING ACCEPTANCE TEST SUITE');
+  console.log('   Ira LOW-LATENCY & BRANDING ACCEPTANCE TEST SUITE');
   console.log('═══════════════════════════════════════════════════════════════\n');
 
   const results = [];
@@ -56,16 +56,16 @@ async function runAcceptanceTests() {
   }
 
   // -------------------------------------------------------------
-  // TEST 1: Initial Greeting contains "Ayra, built by Swati"
+  // TEST 1: Initial Greeting contains "Ira, built by Swati"
   // -------------------------------------------------------------
   console.log('\n--- TEST 1: Initial Greeting with Swati Branding ---');
   const m1 = new ConversationManager({ userId: 'test-user-1' });
   const r1 = await sendTurn(m1, 'Hello.');
   console.log(`User: "Hello."`);
-  console.log(`Ayra: "${r1.text}" (TTFA: ${r1.firstChunkTime}ms)`);
+  console.log(`Ira: "${r1.text}" (TTFA: ${r1.firstChunkTime}ms)`);
   assert(
-    'Test 1: Initial greeting contains "Ayra" and "Swati"',
-    /ayra/i.test(r1.text) && /swati/i.test(r1.text) && r1.firstChunkTime < 100,
+    'Test 1: Initial greeting contains "Ira" and "Swati"',
+    /Ira/i.test(r1.text) && /swati/i.test(r1.text) && r1.firstChunkTime < 100,
     `Response: "${r1.text}", TTFA: ${r1.firstChunkTime}ms`
   );
 
@@ -76,10 +76,10 @@ async function runAcceptanceTests() {
   const m2 = new ConversationManager({ userId: 'test-user-2' });
   const r2 = await sendTurn(m2, 'Tell me about yourself.');
   console.log(`User: "Tell me about yourself."`);
-  console.log(`Ayra: "${r2.text}" (TTFA: ${r2.firstChunkTime}ms)`);
+  console.log(`Ira: "${r2.text}" (TTFA: ${r2.firstChunkTime}ms)`);
   assert(
-    'Test 2: Fast natural introduction ("I\'m Ayra, a conversational AI built by Swati...")',
-    /ayra/i.test(r2.text) && /built by swati/i.test(r2.text) && r2.firstChunkTime < 100,
+    'Test 2: Fast natural introduction ("I\'m Ira, a conversational AI built by Swati...")',
+    /Ira/i.test(r2.text) && /built by swati/i.test(r2.text) && r2.firstChunkTime < 100,
     `Response: "${r2.text}"`
   );
 
@@ -91,7 +91,7 @@ async function runAcceptanceTests() {
   await sendTurn(m3, 'Hello.');
   const r3 = await sendTurn(m3, 'Bye.');
   console.log(`User: "Bye."`);
-  console.log(`Ayra: "${r3.text}" (TTFA: ${r3.firstChunkTime}ms)`);
+  console.log(`Ira: "${r3.text}" (TTFA: ${r3.firstChunkTime}ms)`);
   assert(
     'Test 3: Immediate goodbye without trailing question',
     /bye|take care|talk to you later/i.test(r3.text) && !r3.text.includes('?') && r3.firstChunkTime < 100,
@@ -119,7 +119,7 @@ async function runAcceptanceTests() {
   const m5 = new ConversationManager({ userId: 'test-user-5' });
   const r5 = await sendTurn(m5, "I'm really stressed about my interview.");
   console.log(`User: "I'm really stressed about my interview."`);
-  console.log(`Ayra: "${r5.text}" (TTFA: ${r5.firstChunkTime}ms)`);
+  console.log(`Ira: "${r5.text}" (TTFA: ${r5.firstChunkTime}ms)`);
   assert(
     'Test 5: Responds empathetically with emotional grounding',
     /stress|interview|overwhelm|understand/i.test(r5.text),
@@ -133,7 +133,7 @@ async function runAcceptanceTests() {
   const m6 = new ConversationManager({ userId: 'test-user-6' });
   const r6 = await sendTurn(m6, "What is quantum physics?");
   console.log(`User: "What is quantum physics?"`);
-  console.log(`Ayra: "${r6.text}" (${r6.chunks.length} chunks, TTFA: ${r6.firstChunkTime}ms)`);
+  console.log(`Ira: "${r6.text}" (${r6.chunks.length} chunks, TTFA: ${r6.firstChunkTime}ms)`);
   assert(
     'Test 6: Delivers structured speech chunks with low TTFA',
     r6.text.length > 20 && r6.firstChunkTime < 100,
@@ -148,7 +148,7 @@ async function runAcceptanceTests() {
   m7.stateMachine.transitionTo('AGENT_SPEAKING', 'TEST');
   const r7 = await sendTurn(m7, "Stop wait, let's talk about space.", true);
   console.log(`User interrupted: "Stop wait, let's talk about space."`);
-  console.log(`Ayra: "${r7.text}"`);
+  console.log(`Ira: "${r7.text}"`);
   assert(
     'Test 7: Interruption seamlessly pivots to new topic',
     /space|universe|star|planet|cosmos/i.test(r7.text),

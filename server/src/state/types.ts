@@ -302,7 +302,7 @@ export interface FullConversationContext {
   conversationGoal?: string | null;
   storyState: ConversationStory;
   lastUserMessage?: string;
-  lastAyraMessage?: string;
+  lastIraMessage?: string;
   lastMeaningfulUserMessage?: string;
 }
 

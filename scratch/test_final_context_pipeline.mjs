@@ -19,7 +19,7 @@ function testAssert(condition, name, details = '') {
 
 async function runTestPipeline() {
   console.log('================================================================');
-  console.log('AYRA FINAL CONTEXT RESOLUTION & STT REPAIR TEST SUITE');
+  console.log('Ira FINAL CONTEXT RESOLUTION & STT REPAIR TEST SUITE');
   console.log('================================================================\n');
 
   // --- Part 1: STT Semantic Repair Layer (Section 5) ---
@@ -64,7 +64,7 @@ async function runTestPipeline() {
   // TEST 1: Pending question role resolution
   const s1 = createSpeaker('user-test-1');
   const r1_1 = await s1.say("I have an interview tomorrow and I'm nervous.");
-  testAssert(/nervous|role|interview/i.test(r1_1), "TEST 1 Turn 1: Ayra acknowledges nerves and asks role");
+  testAssert(/nervous|role|interview/i.test(r1_1), "TEST 1 Turn 1: Ira acknowledges nerves and asks role");
   const r1_2 = await s1.say("its for best lover roll");
   testAssert(/web developer|fundamentals|html|css|javascript|react|mock/i.test(r1_2) && !/not sure/i.test(r1_2), "TEST 1 Turn 2: Pending question role resolved from STT repaired 'best lover roll'", `Received: "${r1_2}"`);
 
@@ -77,7 +77,7 @@ async function runTestPipeline() {
   const s3 = createSpeaker('user-test-3');
   await s3.say("I just had a fight with my best friend.");
   const r3 = await s3.say("she says you don't have knowledge you are so dumb");
-  testAssert(/hurtful|what did you say back|ouch/i.test(r3) && !/excuse me|how dare/i.test(r3), "TEST 3: Reported speech understood as friend's words, not insult to Ayra", `Received: "${r3}"`);
+  testAssert(/hurtful|what did you say back|ouch/i.test(r3) && !/excuse me|how dare/i.test(r3), "TEST 3: Reported speech understood as friend's words, not insult to Ira", `Received: "${r3}"`);
 
   // TEST 4: Both Potentially Responsible
   const s4 = createSpeaker('user-test-4');
@@ -118,15 +118,15 @@ async function runTestPipeline() {
   const r12 = await s11.say("tell me what happened in the world right now");
   testAssert(/world|geopolitical|economic|ai|energy|global/i.test(r12), "TEST 12: 'what happened in the world right now' answered directly", `Received: "${r12}"`);
 
-  // TEST 13: Correction of Ayra ("it is not a compliment")
+  // TEST 13: Correction of Ira ("it is not a compliment")
   const s13 = createSpeaker('user-test-13');
   const r13 = await s13.say("it is not a compliment");
   testAssert(/point taken|hurt|confidence/i.test(r13), "TEST 13: Correction 'it is not a compliment' recognized", `Received: "${r13}"`);
 
-  // TEST 14: Direct Insult to Ayra ("you are so dumb")
+  // TEST 14: Direct Insult to Ira ("you are so dumb")
   const s14 = createSpeaker('user-test-14');
   const r14 = await s14.say("you are so dumb");
-  testAssert(/excuse me|harsh/i.test(r14), "TEST 14: Direct insult to Ayra defended playfully", `Received: "${r14}"`);
+  testAssert(/excuse me|harsh/i.test(r14), "TEST 14: Direct insult to Ira defended playfully", `Received: "${r14}"`);
 
   // TEST 15: Correction + Reported Speech ("no no you're not dumb, my friend says that I am dumb")
   const s15 = createSpeaker('user-test-15');

@@ -19,7 +19,7 @@ function testAssert(condition, name, details = '') {
 
 async function runRoutingTestSuite() {
   console.log('====================================================');
-  console.log('AYRA CRITICAL CONVERSATION ROUTING & CONTEXT ENGINE TEST SUITE');
+  console.log('Ira CRITICAL CONVERSATION ROUTING & CONTEXT ENGINE TEST SUITE');
   console.log('====================================================');
 
   // 1. Test STT Normalization

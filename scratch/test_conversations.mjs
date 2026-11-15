@@ -2,7 +2,7 @@ import { ConversationManager } from '../server/dist/agent/conversation-manager.j
 
 async function runConversations() {
   console.log("=================================================");
-  console.log("AYRA MULTI-TURN HUMAN CONVERSATION BENCHMARKS");
+  console.log("Ira MULTI-TURN HUMAN CONVERSATION BENCHMARKS");
   console.log("=================================================\n");
 
   // Helper to talk to a manager
@@ -37,7 +37,7 @@ async function runConversations() {
     const user = turnsA[i];
     const agent = await simulateTurn(managerA, user);
     console.log(`[Turn ${i + 1}] User : "${user}"`);
-    console.log(`         Ayra : "${agent}"\n`);
+    console.log(`         Ira : "${agent}"\n`);
   }
 
   // ==========================================
@@ -60,7 +60,7 @@ async function runConversations() {
     const user = turnsB[i];
     const agent = await simulateTurn(managerB, user);
     console.log(`[Turn ${i + 1}] User : "${user}"`);
-    console.log(`         Ayra : "${agent}"\n`);
+    console.log(`         Ira : "${agent}"\n`);
   }
 
   // ==========================================
@@ -83,7 +83,7 @@ async function runConversations() {
     const user = turnsC[i];
     const agent = await simulateTurn(managerC, user);
     console.log(`[Turn ${i + 1}] User : "${user}"`);
-    console.log(`         Ayra : "${agent}"\n`);
+    console.log(`         Ira : "${agent}"\n`);
   }
 }
 

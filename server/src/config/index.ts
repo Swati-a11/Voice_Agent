@@ -11,7 +11,7 @@ const geminiModel = (!rawModel || rawModel.includes('3.6')) ? 'gemini-3.7-flash'
 export const config = {
   port: parseInt(process.env.PORT || '3001', 10),
   host: process.env.HOST || '0.0.0.0',
-  defaultPersona: process.env.DEFAULT_PERSONA || 'Ayra',
+  defaultPersona: process.env.DEFAULT_PERSONA || 'Ira',
   
   // Google Gemini API Configuration (Gemini Only)
   geminiApiKey: process.env.GEMINI_API_KEY || '',

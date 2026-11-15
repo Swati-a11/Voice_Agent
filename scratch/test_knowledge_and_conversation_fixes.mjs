@@ -26,11 +26,11 @@ async function testScenario() {
     });
     await manager.handleUserSpeech({ text: turn });
     lastResponse = responseText.trim();
-    console.log(`User: "${turn}"\nAyra: "${lastResponse}"`);
+    console.log(`User: "${turn}"\nIra: "${lastResponse}"`);
   }
 
-  assert(!lastResponse.toLowerCase().includes('professor'), `FAILED: Ayra mentioned professor in friend fight! Output: ${lastResponse}`);
-  assert(!lastResponse.toLowerCase().includes('class ke saamne'), `FAILED: Ayra mentioned class ke saamne in friend fight! Output: ${lastResponse}`);
+  assert(!lastResponse.toLowerCase().includes('professor'), `FAILED: Ira mentioned professor in friend fight! Output: ${lastResponse}`);
+  assert(!lastResponse.toLowerCase().includes('class ke saamne'), `FAILED: Ira mentioned class ke saamne in friend fight! Output: ${lastResponse}`);
   console.log('✅ TEST 1 PASSED: Friend fight story did not trigger professor hallucination.');
 
   // Test 2: Interviewer Mode with Dynamic "I don't know"
@@ -53,7 +53,7 @@ async function testScenario() {
     await managerInterview.handleUserSpeech({ text: step.input });
     managerInterview.removeAllListeners('agent_speech_chunk');
     const finalResp = responseText.trim();
-    console.log(`User: "${step.input}"\nAyra: "${finalResp}"\n`);
+    console.log(`User: "${step.input}"\nIra: "${finalResp}"\n`);
     assert(step.check(finalResp), `FAILED check for "${step.input}". Output was: "${finalResp}"`);
   }
   console.log('✅ TEST 2 PASSED: Interviewer roleplay gives dynamic, question-tailored explanations and feedback.');
@@ -97,7 +97,7 @@ async function testScenario() {
     await managerTeacher.handleUserSpeech({ text: item.input });
     managerTeacher.removeAllListeners('agent_speech_chunk');
     const finalResp = responseText.trim();
-    console.log(`User: "${item.input}"\nAyra: "${finalResp}"\n`);
+    console.log(`User: "${item.input}"\nIra: "${finalResp}"\n`);
     assert(item.check(finalResp), `FAILED check for "${item.input}". Output was: "${finalResp}"`);
   }
   console.log('✅ TEST 3 PASSED: Universal knowledge and Teacher roleplay successfully explain topics clearly like Google/tutor without false deflections.');

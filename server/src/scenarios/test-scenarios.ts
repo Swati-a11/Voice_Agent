@@ -330,14 +330,14 @@ export const TEST_SCENARIOS: ScenarioDefinition[] = [
     ]
   },
   {
-    id: 'test_28_ayra_full_human_like_conversation_test_suite',
-    name: 'TEST 28: Ayra Human-Like Conversation Comprehensive Test Suite (Sections 1-23)',
-    category: 'Ayra Complete Suite',
-    description: 'Validates all 23 sections of the Ayra Human-Like Conversation specification: Introduction, Personal Info/Memory, Casual Conversation, Humour & Hindi Jokes, Emotional Intelligence, Health/Concern, Knowledge & PM of India, Hinduism, Incomplete Speech, Interrupt/Barge-in, Story Mode & Continuity, Mock Interview, Personality Banter & Apology Recovery, Natural Follow-Up, No-Question Milestone, and Goodbye.',
+    id: 'test_28_Ira_full_human_like_conversation_test_suite',
+    name: 'TEST 28: Ira Human-Like Conversation Comprehensive Test Suite (Sections 1-23)',
+    category: 'Ira Complete Suite',
+    description: 'Validates all 23 sections of the Ira Human-Like Conversation specification: Introduction, Personal Info/Memory, Casual Conversation, Humour & Hindi Jokes, Emotional Intelligence, Health/Concern, Knowledge & PM of India, Hinduism, Incomplete Speech, Interrupt/Barge-in, Story Mode & Continuity, Mock Interview, Personality Banter & Apology Recovery, Natural Follow-Up, No-Question Milestone, and Goodbye.',
     steps: [
       // 1. Basic Introduction
       { action: 'user_speech', payload: { text: 'Hi' }, description: 'Natural greeting' },
-      { action: 'user_speech', payload: { text: "What's your name?" }, description: 'Identity check -> Ayra' },
+      { action: 'user_speech', payload: { text: "What's your name?" }, description: 'Identity check -> Ira' },
       { action: 'user_speech', payload: { text: 'Tell me about yourself.' }, description: 'Self introduction' },
       { action: 'user_speech', payload: { text: 'How are you?' }, description: 'Conversational status check' },
 
@@ -714,7 +714,7 @@ export const TEST_SCENARIOS: ScenarioDefinition[] = [
       { action: 'simulate_interruption', payload: { text: 'Actually explain Redux instead.', durationMs: 350 }, description: 'Scenario 5b: Mid-sentence barge-in -> Old response cancelled, Redux processed' },
 
       // 6. Conversational Wait / Hold State
-      { action: 'user_speech', payload: { text: 'Wait.' }, description: 'Scenario 6a: User says "Wait." -> Ayra stops and listens without monologue or loop' },
+      { action: 'user_speech', payload: { text: 'Wait.' }, description: 'Scenario 6a: User says "Wait." -> Ira stops and listens without monologue or loop' },
       { action: 'user_speech', payload: { text: 'Actually, explain JavaScript closures.' }, description: 'Scenario 6b: User speaks after hold -> Answers closures' },
 
       // 7. Self-Correction: "No, I meant React."
@@ -835,7 +835,7 @@ export const TEST_SCENARIOS: ScenarioDefinition[] = [
       { action: 'user_speech', payload: { text: "Stop. Explain TypeScript interfaces instead." }, description: '20. STOP + New Request: Old generation invalidated, TypeScript answered immediately' },
       { action: 'user_speech', payload: { text: "Explain React hooks." }, description: '21a. Generation A starts' },
       { action: 'simulate_interruption', payload: { text: "Wait, explain Vue 3 instead.", durationMs: 350 }, description: '21b. Generation B overrides Generation A mid-stream' },
-      { action: 'user_speech', payload: { text: "Wait." }, description: '22a. Hold / Wait Command: Ayra pauses and waits in active listening state' },
+      { action: 'user_speech', payload: { text: "Wait." }, description: '22a. Hold / Wait Command: Ira pauses and waits in active listening state' },
       { action: 'user_speech', payload: { text: "Actually, tell me a quick joke." }, description: '22b. Resume After Hold: Tells quick joke' },
 
       // 25-30. Rapid Stress, Story Continuity & Goodbye
@@ -882,7 +882,7 @@ export const TEST_SCENARIOS: ScenarioDefinition[] = [
       { action: 'user_speech', payload: { text: "Wait, what was the starship name?" }, description: '16. In-Story Clarification: Answered accurately' },
       { action: 'user_speech', payload: { text: "Continue the story." }, description: '17. Story Resume: Continues from exact narrative checkpoint' },
       { action: 'user_speech', payload: { text: "I'm feeling really happy and energized today!" }, description: '18. Emotion Adaptation: Upbeat matched energy' },
-      { action: 'user_speech', payload: { text: "Thank you Ayra, that was great. Bye." }, description: '19. Natural Goodbye: Warm short sign-off without asking questions' },
+      { action: 'user_speech', payload: { text: "Thank you Ira, that was great. Bye." }, description: '19. Natural Goodbye: Warm short sign-off without asking questions' },
       { action: 'user_speech', payload: { text: "Hi again!" }, description: '20. Re-engagement: Fresh turn starts smoothly without stale state' }
     ]
   },
@@ -890,7 +890,7 @@ export const TEST_SCENARIOS: ScenarioDefinition[] = [
     id: 'test_40_real_world_voice_bug_fix_matrix',
     name: 'TEST 40: Real-World Voice Bug Fix Suite (All 25 Test Matrix Items)',
     category: 'Real-World Voice Bug Fix Pass',
-    description: 'Validates all 25 test matrix items: TTS playback stability, 20 interruption cycles, STOP handling, stale callback & watchdog safety, noisy compliment normalization, "you" non-entity guard, Alia Bhatt -> she -> YouTube -> it entity precedence, referent-shift correction, human conversational repairs, and consistent Ayra naming.',
+    description: 'Validates all 25 test matrix items: TTS playback stability, 20 interruption cycles, STOP handling, stale callback & watchdog safety, noisy compliment normalization, "you" non-entity guard, Alia Bhatt -> she -> YouTube -> it entity precedence, referent-shift correction, human conversational repairs, and consistent Ira naming.',
     steps: [
       // 1-5. TTS, Interruption & STOP Lifecycle
       { action: 'user_speech', payload: { text: 'Tell me about quantum computing.' }, description: '1. Normal TTS: Full clean playback without audio drop' },
@@ -928,7 +928,7 @@ export const TEST_SCENARIOS: ScenarioDefinition[] = [
       // 10-15. Noisy Compliments & Pronoun Non-Entity Safeguards
       { action: 'user_speech', payload: { text: 'I think you are actually getting cutie kuthe at this' }, description: '10. Noisy compliment: Normalized & answered playfully ("Wait, did you just call me cute?")' },
       { action: 'user_speech', payload: { text: 'do you know about you' }, description: '11. "you" as conversational pronoun: Never treated as searchable web entity' },
-      { action: 'user_speech', payload: { text: 'what is your name' }, description: '12. "your": Responds with Ayra identity without entity lookup' },
+      { action: 'user_speech', payload: { text: 'what is your name' }, description: '12. "your": Responds with Ira identity without entity lookup' },
       { action: 'user_speech', payload: { text: 'do you know me' }, description: '13. "me": Conversational memory check without entity lookup' },
       { action: 'user_speech', payload: { text: 'what is my degree' }, description: '14. "my": Contextual user fact check without entity lookup' },
       { action: 'user_speech', payload: { text: 'what about the other person' }, description: '15. "the other person": Asks for clarification rather than creating entity "The Other Person"' },
@@ -940,12 +940,12 @@ export const TEST_SCENARIOS: ScenarioDefinition[] = [
       { action: 'user_speech', payload: { text: 'Okay, what about YouTube?' }, description: '19. Switching to YouTube: Latest explicit entity wins; Alia Bhatt evicted' },
       { action: 'user_speech', payload: { text: 'Who founded it?' }, description: '20. Pronoun after YouTube: "it" -> YouTube (Steve Chen, Chad Hurley, Jawed Karim)' },
 
-      // 21-25. Correction, Fragments, Unknown Entity & Ayra Naming
+      // 21-25. Correction, Fragments, Unknown Entity & Ira Naming
       { action: 'user_speech', payload: { text: "no no that's not what I meant I was talking about the other person" }, description: '21. Correction followed by referent shift: Discards old entity cleanly' },
       { action: 'user_speech', payload: { text: 'know YouTube' }, description: '22. Conversational fragment: Normalized to "do you know YouTube" -> YouTube info' },
       { action: 'user_speech', payload: { text: 'you too much' }, description: '23. Ambiguous fragment: Handled with human conversational repair' },
       { action: 'user_speech', payload: { text: 'Who is Dr NonExistentPerson404?' }, description: '24. Unknown entity: Truthful response without fake hallucination' },
-      { action: 'user_speech', payload: { text: 'Who are you?' }, description: '25. Nova -> Ayra UI naming: Spoken and transcript assistant identity is consistently Ayra' }
+      { action: 'user_speech', payload: { text: 'Who are you?' }, description: '25. Nova -> Ira UI naming: Spoken and transcript assistant identity is consistently Ira' }
     ]
   },
   {
@@ -1004,7 +1004,7 @@ export const TEST_SCENARIOS: ScenarioDefinition[] = [
       { action: 'user_speech', payload: { text: 'Continue the story.' }, description: '35. Story Resumption: Resumes paused space story seamlessly' },
 
       // 36-58. EXACT 23-TURN REPLAY TRANSCRIPT (Section 25)
-      { action: 'user_speech', payload: { text: 'Hi Ayra, who are you?' }, description: 'Replay Turn 1: Self-introduction' },
+      { action: 'user_speech', payload: { text: 'Hi Ira, who are you?' }, description: 'Replay Turn 1: Self-introduction' },
       { action: 'user_speech', payload: { text: 'Do you know Alia Bhatt?' }, description: 'Replay Turn 2: Alia Bhatt entity' },
       { action: 'user_speech', payload: { text: 'How old is she?' }, description: 'Replay Turn 3: Pronoun "she" -> Alia Bhatt age' },
       { action: 'user_speech', payload: { text: 'What movies has she done recently?' }, description: 'Replay Turn 4: Pronoun "she" -> Alia Bhatt recent films' },
@@ -1078,7 +1078,7 @@ export const TEST_SCENARIOS: ScenarioDefinition[] = [
     category: 'Mem0 Real Memory',
     description: 'Ensures casual greetings, jokes, and trivia do not clutter long-term memory.',
     steps: [
-      { action: 'user_speech', payload: { text: 'Hi Ayra.' }, description: 'Casual greeting' },
+      { action: 'user_speech', payload: { text: 'Hi Ira.' }, description: 'Casual greeting' },
       { action: 'user_speech', payload: { text: 'How are you doing today?' }, description: 'Casual pleasantry' },
       { action: 'user_speech', payload: { text: 'Tell me a joke.' }, description: 'Casual joke request' },
       { action: 'user_speech', payload: { text: 'What is the capital of France?' }, description: 'General trivia lookup' }
@@ -1154,7 +1154,7 @@ export async function runScenario(scenario: ScenarioDefinition): Promise<{
   metrics: any[];
 }> {
   let currentUserId = 'test-user';
-  let manager = new ConversationManager({ userId: currentUserId, personaName: 'Ayra' });
+  let manager = new ConversationManager({ userId: currentUserId, personaName: 'Ira' });
   const logs: string[] = [];
   const metrics: any[] = [];
 
@@ -1186,12 +1186,12 @@ export async function runScenario(scenario: ScenarioDefinition): Promise<{
     if (step.action === 'start_new_session') {
       manager.endCall();
       currentUserId = step.payload?.userId || 'test-user';
-      manager = new ConversationManager({ userId: currentUserId, personaName: 'Ayra' });
+      manager = new ConversationManager({ userId: currentUserId, personaName: 'Ira' });
       attachListeners(manager);
       manager.startCall();
       logs.push(`[SESSION] Started new session for userId: "${currentUserId}"`);
     } else if (step.action === 'switch_persona') {
-      manager.setPersona(step.payload?.personaName || 'Ayra');
+      manager.setPersona(step.payload?.personaName || 'Ira');
       logs.push(`[PERSONA] Switched persona to: "${step.payload?.personaName}"`);
     } else if (step.action === 'user_speech') {
       await manager.handleUserSpeech({ text: step.payload.text });

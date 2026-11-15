@@ -18,7 +18,7 @@ export const LandingPage: React.FC = () => {
       <div className="home-grain" aria-hidden="true" />
       <header className="home-nav">
         <Link href="/" className="brand-lockup" aria-label="Ira home">
-          <span className="brand-icon"><span /></span>
+          <Image src="/ira-mark.svg" alt="" aria-hidden="true" width={42} height={42} className="ira-logo-mark" />
           <span><b>Ira</b><small>COMPANION FIELD NOTES · VOL. 01</small></span>
         </Link>
         <nav className="home-nav-links" aria-label="Main navigation"><a href="#about">The story</a><a href="#magic">The little things</a></nav>
@@ -53,7 +53,7 @@ export const LandingPage: React.FC = () => {
         </section>
       </main>
 
-      <footer className="home-footer"><Link href="/" className="footer-brand"><span className="brand-icon small"><span /></span> Ira</Link><span>A softer place to land, one conversation at a time.</span><TalkTransitionLink href="/agent" className="footer-link">Say hello <ArrowUpRight size={13} /></TalkTransitionLink></footer>
+      <footer className="home-footer"><Link href="/" className="footer-brand"><Image src="/ira-mark.svg" alt="" aria-hidden="true" width={30} height={30} className="ira-logo-mark" /> Ira</Link><span>A softer place to land, one conversation at a time.</span><TalkTransitionLink href="/agent" className="footer-link">Say hello <ArrowUpRight size={13} /></TalkTransitionLink></footer>
     </div>
   );
 };

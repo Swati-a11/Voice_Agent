@@ -1,16 +1,16 @@
-# Ayra — A Real-Time Voice Agent You Can Actually Talk To
+# Ira — A Real-Time Voice Agent You Can Actually Talk To
 
-Ayra is a voice agent built to feel like a real conversation, not a "press to talk, wait, get a reply" chatbot. You can interrupt it mid-sentence, it knows when you're just saying "hmm" versus actually asking something, it follows the conversation as you jump between topics, and it can switch naturally between Hindi and English the way people actually talk.
+Ira is a voice agent built to feel like a real conversation, not a "press to talk, wait, get a reply" chatbot. You can interrupt it mid-sentence, it knows when you're just saying "hmm" versus actually asking something, it follows the conversation as you jump between topics, and it can switch naturally between Hindi and English the way people actually talk.
 
 ---
 
 ## What it can do
 
 **You can interrupt it, and it actually stops.**
-If Ayra is talking and you start speaking, it stops immediately — no finishing its sentence, no talking over you. It's also smart about telling the difference between you actually interrupting and just coughing or saying "hmm" while it talks — those get ignored so it doesn't stop for no reason. Every time this happens, it gets logged so you can see it working (see the dashboard below).
+If Ira is talking and you start speaking, it stops immediately — no finishing its sentence, no talking over you. It's also smart about telling the difference between you actually interrupting and just coughing or saying "hmm" while it talks — those get ignored so it doesn't stop for no reason. Every time this happens, it gets logged so you can see it working (see the dashboard below).
 
 **It knows when you're done talking, not just when you pause.**
-"I was thinking because..." and "I was thinking about dinner tonight." sound different to Ayra — the first one is clearly unfinished, so it waits instead of jumping in too early.
+"I was thinking because..." and "I was thinking about dinner tonight." sound different to Ira — the first one is clearly unfinished, so it waits instead of jumping in too early.
 
 **It gives small "I'm listening" cues while you talk.**
 If you're mid-story for a while, it'll drop in a quiet "hmm" or "yeah" here and there — like a person nodding along — without cutting you off or taking over.

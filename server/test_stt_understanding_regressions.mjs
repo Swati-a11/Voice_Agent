@@ -18,7 +18,7 @@ function assert(condition, message) {
 
 async function runTests() {
   console.log('==================================================');
-  console.log('RUNNING AYRA STT UNDERSTANDING REGRESSION TESTS');
+  console.log('RUNNING Ira STT UNDERSTANDING REGRESSION TESTS');
   console.log('==================================================\n');
 
   const manager = new ConversationManager('test-user-stt');
@@ -47,7 +47,7 @@ async function runTests() {
   const res2 = await getResponse("who build you");
   const isSpeechFallback2 = /missed that|clear nahi sunayi|broke up|didn't catch|voice thodi/i.test(res2);
   assert(!isSpeechFallback2, `Must NOT trigger speech fallback for "who build you". Got: "${res2}"`);
-  assert(/swati/i.test(res2), `Response should state Swati built Ayra. Got: "${res2}"`);
+  assert(/swati/i.test(res2), `Response should state Swati built Ira. Got: "${res2}"`);
 
   // TEST 3: "tell me something about human brain"
   console.log('\n--- TEST 3: "tell me something about human brain" ---');
@@ -75,7 +75,7 @@ async function runTests() {
   const res6 = await getResponse("who make you");
   const isSpeechFallback6 = /missed that|clear nahi sunayi|broke up|didn't catch|voice thodi/i.test(res6);
   assert(!isSpeechFallback6, `Must NOT trigger speech fallback for "who make you". Got: "${res6}"`);
-  assert(/swati/i.test(res6), `Response should state Swati built Ayra. Got: "${res6}"`);
+  assert(/swati/i.test(res6), `Response should state Swati built Ira. Got: "${res6}"`);
 
   // TEST 7: "main stressed hoon because mere paas good projects nahi hai"
   console.log('\n--- TEST 7: "main stressed hoon because mere paas good projects nahi hai" ---');

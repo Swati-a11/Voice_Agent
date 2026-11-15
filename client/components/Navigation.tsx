@@ -2,8 +2,9 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Sparkles, Mic, Activity, Database, PlayCircle } from 'lucide-react';
+import { Mic, Activity, Database, PlayCircle } from 'lucide-react';
 import { useVoiceContext } from '../context/VoiceAgentContext';
 import { PersonaSwitcher } from './PersonaSwitcher';
 import { ThemeToggle } from './ThemeToggle';
@@ -44,9 +45,7 @@ export const Navigation: React.FC = () => {
       <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
         {/* Brand */}
         <Link href="/" className="flex items-center gap-2.5 text-white font-display text-base font-semibold group">
-          <div className="h-8 w-8 rounded-xl bg-sky-500 flex items-center justify-center shadow-md shadow-sky-500/25 group-hover:scale-105 transition-transform">
-            <Sparkles size={16} className="text-white" />
-          </div>
+          <Image src="/ira-mark.svg" alt="" aria-hidden="true" width={40} height={40} className="ira-logo-mark" />
           <div className="flex items-center gap-1.5">
             <span className="tracking-tight text-white font-semibold">Ira</span>
             <span className="hidden sm:inline-flex text-[11px] px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/20 font-medium">

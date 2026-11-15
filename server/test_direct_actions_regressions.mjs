@@ -77,7 +77,7 @@ async function runDirectActionTests() {
 
   // Single Direct Request 1: "say all the best to me"
   const r1 = await ask(cm, 'say all the best to me');
-  console.log('User: "say all the best to me" -> Ayra:', r1);
+  console.log('User: "say all the best to me" -> Ira:', r1);
   assert(
     (r1.toLowerCase().includes('all the best') || r1.toLowerCase().includes('got this')) &&
     !r1.includes('Acha, I see! Is baare mein aur kya soch rahe ho?'),
@@ -87,7 +87,7 @@ async function runDirectActionTests() {
 
   // Single Direct Request 2: "wish me luck"
   const r2 = await ask(cm, 'wish me luck');
-  console.log('User: "wish me luck" -> Ayra:', r2);
+  console.log('User: "wish me luck" -> Ira:', r2);
   assert(
     r2.toLowerCase().includes('all the best') || r2.toLowerCase().includes('got this') || r2.toLowerCase().includes('good luck'),
     'Direct action "wish me luck" returns good wish',
@@ -96,7 +96,7 @@ async function runDirectActionTests() {
 
   // Single Direct Request 3: "say something nice to me"
   const r3 = await ask(cm, 'say something nice to me');
-  console.log('User: "say something nice to me" -> Ayra:', r3);
+  console.log('User: "say something nice to me" -> Ira:', r3);
   assert(
     r3.toLowerCase().includes('awesome') || r3.toLowerCase().includes('amazing') || r3.toLowerCase().includes('thoughtful'),
     'Direct action "say something nice to me" returns positive reassurance',
@@ -105,7 +105,7 @@ async function runDirectActionTests() {
 
   // Single Direct Request 4: "motivate me"
   const r4 = await ask(cm, 'motivate me');
-  console.log('User: "motivate me" -> Ayra:', r4);
+  console.log('User: "motivate me" -> Ira:', r4);
   assert(
     r4.toLowerCase().includes('potential') || r4.toLowerCase().includes('push forward') || r4.toLowerCase().includes('capable'),
     'Direct action "motivate me" returns motivation',
@@ -114,7 +114,7 @@ async function runDirectActionTests() {
 
   // Single Direct Request 5: "say happy birthday to me"
   const r5 = await ask(cm, 'say happy birthday to me');
-  console.log('User: "say happy birthday to me" -> Ayra:', r5);
+  console.log('User: "say happy birthday to me" -> Ira:', r5);
   assert(
     r5.toLowerCase().includes('happy birthday'),
     'Direct action "say happy birthday to me" returns birthday celebration',
@@ -123,7 +123,7 @@ async function runDirectActionTests() {
 
   // Single Direct Request 6: "who build you"
   const r6 = await ask(cm, 'who build you');
-  console.log('User: "who build you" -> Ayra:', r6);
+  console.log('User: "who build you" -> Ira:', r6);
   assert(
     r6.toLowerCase().includes('swati'),
     'Imperfect STT "who build you" returns identity "built by Swati"',
@@ -132,7 +132,7 @@ async function runDirectActionTests() {
 
   // Single Direct Request 7: "who make you"
   const r7 = await ask(cm, 'who make you');
-  console.log('User: "who make you" -> Ayra:', r7);
+  console.log('User: "who make you" -> Ira:', r7);
   assert(
     r7.toLowerCase().includes('swati'),
     'Imperfect STT "who make you" returns identity "built by Swati"',
@@ -141,7 +141,7 @@ async function runDirectActionTests() {
 
   // Single Direct Request 8: "what you doing"
   const r8 = await ask(cm, 'what you doing');
-  console.log('User: "what you doing" -> Ayra:', r8);
+  console.log('User: "what you doing" -> Ira:', r8);
   assert(
     r8.toLowerCase().includes('hanging out') || r8.toLowerCase().includes('up to'),
     'Imperfect STT "what you doing" returns casual chat status',
@@ -150,7 +150,7 @@ async function runDirectActionTests() {
 
   // Single Direct Request 9: "tell me something about human brain"
   const r9 = await ask(cm, 'tell me something about human brain');
-  console.log('User: "tell me something about human brain" -> Ayra:', r9);
+  console.log('User: "tell me something about human brain" -> Ira:', r9);
   assert(
     r9.toLowerCase().includes('brain') || r9.toLowerCase().includes('controls') || r9.toLowerCase().includes('memory'),
     'Broad science question "tell me something about human brain" gives brain overview without asking probing clarification',
@@ -159,7 +159,7 @@ async function runDirectActionTests() {
 
   // Single Direct Request 10: "tell me something about stars"
   const r10 = await ask(cm, 'tell me something about stars');
-  console.log('User: "tell me something about stars" -> Ayra:', r10);
+  console.log('User: "tell me something about stars" -> Ira:', r10);
   assert(
     r10.toLowerCase().includes('plasma') || r10.toLowerCase().includes('fusion') || r10.toLowerCase().includes('sun') || r10.toLowerCase().includes('milky way'),
     'Broad science question "tell me something about stars" gives astronomy overview',
@@ -173,16 +173,16 @@ async function runDirectActionTests() {
   const cmContext = new ConversationManager({ userId: 'test-user-contextual-resume' });
 
   const turn1 = await ask(cmContext, 'I am very stressed out today');
-  console.log('User: "I am very stressed out today" -> Ayra:', turn1);
+  console.log('User: "I am very stressed out today" -> Ira:', turn1);
 
   const turn2 = await ask(cmContext, 'actually my resume');
-  console.log('User: "actually my resume" -> Ayra:', turn2);
+  console.log('User: "actually my resume" -> Ira:', turn2);
 
   const turn3 = await ask(cmContext, 'is going to release today');
-  console.log('User: "is going to release today" -> Ayra:', turn3);
+  console.log('User: "is going to release today" -> Ira:', turn3);
 
   const turn4 = await ask(cmContext, 'say all the best to me');
-  console.log('User: "say all the best to me" -> Ayra:', turn4);
+  console.log('User: "say all the best to me" -> Ira:', turn4);
 
   assert(
     (turn4.toLowerCase().includes('all the best') || turn4.toLowerCase().includes('got this')) &&

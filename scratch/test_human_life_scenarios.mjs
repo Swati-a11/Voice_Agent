@@ -41,8 +41,8 @@ async function runHumanLifeTests() {
   // ==========================================
   console.log("--- 1. SECTION 33: EXACT MULTI-TURN CONVERSATION ---");
   
-  let res = await say("Hey Ayra.");
-  assert(/how are you|hey|doing today/i.test(res) && !/not sure what you mean/i.test(res), "S33.1: Hey Ayra", res);
+  let res = await say("Hey Ira.");
+  assert(/how are you|hey|doing today/i.test(res) && !/not sure what you mean/i.test(res), "S33.1: Hey Ira", res);
 
   res = await say("I had a fight with my friend today.");
   assert(/fight|friend|explain|off today|what happened/i.test(res), "S33.2: Fight with friend", res);

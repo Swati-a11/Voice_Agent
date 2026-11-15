@@ -23,7 +23,7 @@ async function runRealBrowserSession() {
   const turns = [
     {
       id: 1,
-      input: "Hi Ayra.",
+      input: "Hi Ira.",
       check: (res) => /hey|how are you|good to hear/i.test(res),
       name: "Turn 1 (Greeting)"
     },
@@ -111,7 +111,7 @@ async function runRealBrowserSession() {
     await manager.handleUserSpeech({ text: t.input });
     manager.off('agent_speech_chunk', chunkListener);
 
-    assert(t.check(responseText), `${t.name} -> Ayra: "${responseText}"`, `Input: ${t.input} | Received: ${responseText}`);
+    assert(t.check(responseText), `${t.name} -> Ira: "${responseText}"`, `Input: ${t.input} | Received: ${responseText}`);
   }
 }
 

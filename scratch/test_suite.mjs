@@ -18,7 +18,7 @@ class MockTTSService {
 
 async function runTests() {
   console.log('====================================================');
-  console.log('STARTING AYRA HUMAN CONVERSATIONAL UNDERSTANDING AUDIT');
+  console.log('STARTING Ira HUMAN CONVERSATIONAL UNDERSTANDING AUDIT');
   console.log('====================================================\n');
 
   const results = [];
@@ -74,7 +74,7 @@ async function runTests() {
     cm.on('agent_speech_chunk', (chunk) => { capturedResponse += chunk.text; });
     await cm.handleUserSpeech({ text, durationMs: 1500 });
     const passed = capturedResponse.includes('Myntra') && (capturedResponse.includes('size') || capturedResponse.includes('top')) && !capturedResponse.includes("not sure what you mean");
-    recordResult('Test 1 — Daily story (Myntra + size)', passed, `Ayra: "${capturedResponse}"`);
+    recordResult('Test 1 — Daily story (Myntra + size)', passed, `Ira: "${capturedResponse}"`);
   }
 
   // 4. Test 2 — Hinglish story
@@ -93,7 +93,7 @@ async function runTests() {
     cm.on('agent_speech_chunk', (chunk) => { capturedResponse += chunk.text; });
     await cm.handleUserSpeech({ text, durationMs: 1500 });
     const passed = (capturedResponse.includes('floor') || capturedResponse.includes('has-has') || capturedResponse.includes('college')) && !capturedResponse.includes("not sure what you mean");
-    recordResult('Test 2 — Hinglish story (Floor laughing)', passed, `Ayra: "${capturedResponse}"`);
+    recordResult('Test 2 — Hinglish story (Floor laughing)', passed, `Ira: "${capturedResponse}"`);
   }
 
   // 5. Test 3 — Childhood
@@ -112,7 +112,7 @@ async function runTests() {
     cm.on('agent_speech_chunk', (chunk) => { capturedResponse += chunk.text; });
     await cm.handleUserSpeech({ text, durationMs: 1500 });
     const passed = (capturedResponse.includes('bed') || capturedResponse.includes('introverted') || capturedResponse.includes('guests')) && !capturedResponse.includes("not sure what you mean");
-    recordResult('Test 3 — Childhood (Hiding under bed)', passed, `Ayra: "${capturedResponse}"`);
+    recordResult('Test 3 — Childhood (Hiding under bed)', passed, `Ira: "${capturedResponse}"`);
   }
 
   // 6. Test 4 — Emotional
@@ -131,7 +131,7 @@ async function runTests() {
     cm.on('agent_speech_chunk', (chunk) => { capturedResponse += chunk.text; });
     await cm.handleUserSpeech({ text, durationMs: 1500 });
     const passed = (capturedResponse.includes('reason') || capturedResponse.includes('confusing') || capturedResponse.includes('baat')) && !capturedResponse.includes("not sure what you mean");
-    recordResult('Test 4 — Emotional (Friend ignored)', passed, `Ayra: "${capturedResponse}"`);
+    recordResult('Test 4 — Emotional (Friend ignored)', passed, `Ira: "${capturedResponse}"`);
   }
 
   // 7. Test 5 — Advice request
@@ -151,7 +151,7 @@ async function runTests() {
     cm.on('agent_speech_chunk', (chunk) => { capturedResponse += chunk.text; });
     await cm.handleUserSpeech({ text, durationMs: 1500 });
     const passed = adviceIntent.requestedAdvice && capturedResponse.includes("If I were in your place");
-    recordResult('Test 5 — Advice request (Contextual advice)', passed, `Ayra: "${capturedResponse}"`);
+    recordResult('Test 5 — Advice request (Contextual advice)', passed, `Ira: "${capturedResponse}"`);
   }
 
   // 8. Test 6 — No advice
@@ -171,7 +171,7 @@ async function runTests() {
     cm.on('agent_speech_chunk', (chunk) => { capturedResponse += chunk.text; });
     await cm.handleUserSpeech({ text, durationMs: 1500 });
     const passed = adviceIntent.declinedAdvice && capturedResponse.includes("no advice") && capturedResponse.includes("listening");
-    recordResult('Test 6 — No advice (Empathetic listening)', passed, `Ayra: "${capturedResponse}"`);
+    recordResult('Test 6 — No advice (Empathetic listening)', passed, `Ira: "${capturedResponse}"`);
   }
 
   // 9. Test 7 — Direct question
@@ -191,7 +191,7 @@ async function runTests() {
     cm.on('agent_speech_chunk', (chunk) => { capturedResponse += chunk.text; });
     await cm.handleUserSpeech({ text, durationMs: 1500 });
     const passed = classification.userIntent === 'QUESTION' && capturedResponse.includes("technology company") && capturedResponse.includes("Larry Page");
-    recordResult('Test 7 — Direct question (What is Google)', passed, `Ayra: "${capturedResponse}"`);
+    recordResult('Test 7 — Direct question (What is Google)', passed, `Ira: "${capturedResponse}"`);
   }
 
   // 10. Test 8 — Entity inside story
@@ -211,7 +211,7 @@ async function runTests() {
     cm.on('agent_speech_chunk', (chunk) => { capturedResponse += chunk.text; });
     await cm.handleUserSpeech({ text, durationMs: 1500 });
     const passed = !capturedResponse.includes("YouTube is an online video platform") && (capturedResponse.includes("YouTube") || capturedResponse.includes("video")) && capturedResponse.includes("weird");
-    recordResult('Test 8 — Entity inside story (YouTube narrative)', passed, `Ayra: "${capturedResponse}"`);
+    recordResult('Test 8 — Entity inside story (YouTube narrative)', passed, `Ira: "${capturedResponse}"`);
   }
 
   // 11. Test 9 — Story + brand
@@ -230,7 +230,7 @@ async function runTests() {
     cm.on('agent_speech_chunk', (chunk) => { capturedResponse += chunk.text; });
     await cm.handleUserSpeech({ text, durationMs: 1500 });
     const passed = capturedResponse.includes("Myntra") && capturedResponse.includes("size") && !capturedResponse.includes("Myntra is");
-    recordResult('Test 9 — Story + brand (Myntra shopping experience)', passed, `Ayra: "${capturedResponse}"`);
+    recordResult('Test 9 — Story + brand (Myntra shopping experience)', passed, `Ira: "${capturedResponse}"`);
   }
 
   // 12. Test 10 — Story continuation
@@ -259,7 +259,7 @@ async function runTests() {
     await cm.handleUserSpeech({ text: "Phir unhone...", durationMs: 1500 });
 
     const passed = (turn3Res.includes('professor') || turn3Res.includes('class')) && !turn3Res.includes("not sure what you mean");
-    recordResult('Test 10 — Story continuation ("unhone" -> professor)', passed, `Turn 3 Ayra: "${turn3Res}"`);
+    recordResult('Test 10 — Story continuation ("unhone" -> professor)', passed, `Turn 3 Ira: "${turn3Res}"`);
   }
 
   // 13. Test 11 — Hindi
@@ -278,7 +278,7 @@ async function runTests() {
     cm.on('agent_speech_chunk', (chunk) => { capturedResponse += chunk.text; });
     await cm.handleUserSpeech({ text, durationMs: 1500 });
     const passed = (capturedResponse.includes('अजीब') || capturedResponse.includes('सुबह') || capturedResponse.includes('ajeeb')) && !capturedResponse.includes("not sure what you mean");
-    recordResult('Test 11 — Hindi (Daily incident)', passed, `Ayra: "${capturedResponse}"`);
+    recordResult('Test 11 — Hindi (Daily incident)', passed, `Ira: "${capturedResponse}"`);
   }
 
   // 14. Test 12 — STT noise
@@ -297,7 +297,7 @@ async function runTests() {
     cm.on('agent_speech_chunk', (chunk) => { capturedResponse += chunk.text; });
     await cm.handleUserSpeech({ text, durationMs: 1500 });
     const passed = capturedResponse.includes('Myntra') && (capturedResponse.includes('top') || capturedResponse.includes('size')) && !capturedResponse.includes("not sure what you mean");
-    recordResult('Test 12 — STT noise (mintra + saiz)', passed, `Ayra: "${capturedResponse}"`);
+    recordResult('Test 12 — STT noise (mintra + saiz)', passed, `Ira: "${capturedResponse}"`);
   }
 
   // 15. Test 13 — "forget it" pivot
@@ -317,7 +317,7 @@ async function runTests() {
     cm.on('agent_speech_chunk', (chunk) => { capturedResponse += chunk.text; });
     await cm.handleUserSpeech({ text, durationMs: 1500 });
     const passed = !isStop && (capturedResponse.includes("listening") || capturedResponse.includes("happened"));
-    recordResult('Test 13 — "forget it" pivot (Story start, NOT stop)', passed, `isStop=${isStop}, Ayra: "${capturedResponse}"`);
+    recordResult('Test 13 — "forget it" pivot (Story start, NOT stop)', passed, `isStop=${isStop}, Ira: "${capturedResponse}"`);
   }
 
   // 16. Test 14 — Completed story
@@ -336,7 +336,7 @@ async function runTests() {
     cm.on('agent_speech_chunk', (chunk) => { capturedResponse += chunk.text; });
     await cm.handleUserSpeech({ text, durationMs: 1500 });
     const passed = (capturedResponse.includes('proud') || capturedResponse.includes('win') || capturedResponse.includes('amazing')) && !capturedResponse.includes("not sure what you mean");
-    recordResult('Test 14 — Completed story (Interview celebration)', passed, `Ayra: "${capturedResponse}"`);
+    recordResult('Test 14 — Completed story (Interview celebration)', passed, `Ira: "${capturedResponse}"`);
   }
 
   // 17. Test 15 — No-question response
@@ -355,7 +355,7 @@ async function runTests() {
     cm.on('agent_speech_chunk', (chunk) => { capturedResponse += chunk.text; });
     await cm.handleUserSpeech({ text, durationMs: 1500 });
     const passed = (capturedResponse.includes('huge') || capturedResponse.includes('happy for her') || capturedResponse.includes('amazing')) && !capturedResponse.endsWith('?');
-    recordResult('Test 15 — No-question response (Sister college)', passed, `Ayra: "${capturedResponse}"`);
+    recordResult('Test 15 — No-question response (Sister college)', passed, `Ira: "${capturedResponse}"`);
   }
 
   // 18. STOP command regression
@@ -397,43 +397,43 @@ async function runTests() {
 
     // Turn 1: "Hi"
     const r1 = await sendTurn("Hi");
-    recordResult('Conv A Turn 1 (Hi)', r1.toLowerCase().includes("hey") || r1.toLowerCase().includes("hi") || r1.toLowerCase().includes("ayra"), `Ayra: "${r1}"`);
+    recordResult('Conv A Turn 1 (Hi)', r1.toLowerCase().includes("hey") || r1.toLowerCase().includes("hi") || r1.toLowerCase().includes("Ira"), `Ira: "${r1}"`);
 
     // Turn 2: "I am doing great today."
     const r2 = await sendTurn("I am doing great today.");
-    recordResult('Conv A Turn 2 (Great today)', r2.toLowerCase().includes("great") || r2.toLowerCase().includes("awesome") || r2.toLowerCase().includes("good"), `Ayra: "${r2}"`);
+    recordResult('Conv A Turn 2 (Great today)', r2.toLowerCase().includes("great") || r2.toLowerCase().includes("awesome") || r2.toLowerCase().includes("good"), `Ira: "${r2}"`);
 
     // Turn 3: "Actually I am little sad today because main kuch kharidna chahti hoon."
     const r3 = await sendTurn("Actually I am little sad today because main kuch kharidna chahti hoon.");
-    recordResult('Conv A Turn 3 (Sad + shopping desire)', (r3.includes("shopping") || r3.includes("kharidne") || r3.includes("low")) && !r3.includes("What happened next"), `Ayra: "${r3}"`);
+    recordResult('Conv A Turn 3 (Sad + shopping desire)', (r3.includes("shopping") || r3.includes("kharidne") || r3.includes("low")) && !r3.includes("What happened next"), `Ira: "${r3}"`);
 
     // Turn 4: "I don't know, give me some advice."
     const r4 = await sendTurn("I don't know, give me some advice.");
-    recordResult('Conv A Turn 4 (Advice request)', (r4.includes("cart") || r4.includes("wait") || r4.includes("advice") || r4.includes("kharcha")) && !r4.includes("quite an experience"), `Ayra: "${r4}"`);
+    recordResult('Conv A Turn 4 (Advice request)', (r4.includes("cart") || r4.includes("wait") || r4.includes("advice") || r4.includes("kharcha")) && !r4.includes("quite an experience"), `Ira: "${r4}"`);
 
     // Turn 5: "Koi joke sunao mujhe."
     const r5 = await sendTurn("Koi joke sunao mujhe.");
-    recordResult('Conv A Turn 5 (Joke request)', (r5.includes("?") || r5.includes("!")) && !r4.includes("quite an experience"), `Ayra: "${r5}"`);
+    recordResult('Conv A Turn 5 (Joke request)', (r5.includes("?") || r5.includes("!")) && !r4.includes("quite an experience"), `Ira: "${r5}"`);
 
     // Turn 6: "Koi dusra joke."
     const r6 = await sendTurn("Koi dusra joke.");
-    recordResult('Conv A Turn 6 (Koi dusra joke)', r6 !== r5 && !r6.includes("glad you shared that") && !r6.includes("quite an experience"), `Ayra: "${r6}"`);
+    recordResult('Conv A Turn 6 (Koi dusra joke)', r6 !== r5 && !r6.includes("glad you shared that") && !r6.includes("quite an experience"), `Ira: "${r6}"`);
 
     // Turn 7: "Sunao."
     const r7 = await sendTurn("Sunao.");
-    recordResult('Conv A Turn 7 (Sunao -> Joke continuation)', !r7.includes("quite a situation") && !r7.includes("glad you shared"), `Ayra: "${r7}"`);
+    recordResult('Conv A Turn 7 (Sunao -> Joke continuation)', !r7.includes("quite a situation") && !r7.includes("glad you shared"), `Ira: "${r7}"`);
 
     // Turn 8: "I am saying doosra joke sunao."
     const r8 = await sendTurn("I am saying doosra joke sunao.");
-    recordResult('Conv A Turn 8 (doosra joke sunao)', !r8.includes("quite a situation") && !r8.includes("glad you shared"), `Ayra: "${r8}"`);
+    recordResult('Conv A Turn 8 (doosra joke sunao)', !r8.includes("quite a situation") && !r8.includes("glad you shared"), `Ira: "${r8}"`);
 
     // Turn 9: "You are so annoying."
     const r9 = await sendTurn("You are so annoying.");
-    recordResult('Conv A Turn 9 (Playful insult response)', r9.includes("Excuse me") || r9.includes("Again") || r9.includes("What did I do"), `Ayra: "${r9}"`);
+    recordResult('Conv A Turn 9 (Playful insult response)', r9.includes("Excuse me") || r9.includes("Again") || r9.includes("What did I do"), `Ira: "${r9}"`);
 
     // Turn 10: "Actually no, tell me something else."
     const r10 = await sendTurn("Actually no, tell me something else.");
-    recordResult('Conv A Turn 10 (Topic change / new activity)', r10.includes("talk about") || r10.includes("explore") || r10.includes("mood"), `Ayra: "${r10}"`);
+    recordResult('Conv A Turn 10 (Topic change / new activity)', r10.includes("talk about") || r10.includes("explore") || r10.includes("mood"), `Ira: "${r10}"`);
   }
 
   console.log('\n====================================================');

@@ -842,7 +842,7 @@ stale=false`);
 
     // 8. Fast-Path for Simple Greetings, Introductions, Goodbyes & Acknowledgements (<20ms TTFA)
     const isFastPath = (
-      (intent === 'GREETING' && /^(hi|hello|hey|hey ayra|hey there|what's up|kaise ho|namaste|good morning|good evening)[.?!]?$/i.test(rawText)) ||
+      (intent === 'GREETING' && /^(hi|hello|hey|hey Ira|hey there|what's up|kaise ho|namaste|good morning|good evening)[.?!]?$/i.test(rawText)) ||
       (/^(who are you|what are you(?!\s*doing)|tell me about yourself|introduce yourself|tell me something about yourself|about yourself)[.?!]?$/i.test(rawText)) ||
       (/^(bye|goodbye|okay bye|ok bye|see you|talk later|see ya|bye bye|alvida|tata|good night|goodnight)[.?!]?$/i.test(rawText)) ||
       (/^(thanks|thank you|thank you so much|thanks a lot|shukriya|dhanyawad)[.?!]?$/i.test(rawText)) ||
@@ -1982,7 +1982,7 @@ stale=false`);
     // ─────────────────────────────────────────────────────────────────────────
     if (/\b(tell me (?:about|something about) yourself|who are you|what are you(?!\s*doing)|introduce yourself|apne baare mein batao|about yourself|tell about yourself|what is your purpose)\b/i.test(text)) {
       this.hasIntroducedSelf = true;
-      return "I'm Ayra, a conversational AI built by Swati. I'm here to talk, help, brainstorm, explain things, and basically keep up with whatever you feel like talking about.";
+      return "I'm Ira, a conversational AI built by Swati. I'm here to talk, help, brainstorm, explain things, and basically keep up with whatever you feel like talking about.";
     }
     if (/\b(who (?:built?|created?|made?|developed?|programmed?|builds?) (?:you|ya)|you (?:built|build|created) by who|who is your (?:creator|builder|developer|author)|tumhe kisne banaya|kisne banaya)\b/i.test(text)) {
       return "I was built by Swati! She designed and developed me.";
@@ -2053,14 +2053,14 @@ stale=false`);
     // ─────────────────────────────────────────────────────────────────────────
     // H0b — Fast-Path Greetings with Swati Branding on Initial Turn
     // ─────────────────────────────────────────────────────────────────────────
-    if (/^(hi|hello|hey|hey ayra|hey there|what's up|kaise ho|namaste|good morning|good evening)[.!?]?$/i.test(text)) {
+    if (/^(hi|hello|hey|hey Ira|hey there|what's up|kaise ho|namaste|good morning|good evening)[.!?]?$/i.test(text)) {
       if (!this.hasIntroducedSelf && this.memoryManager.getRecentTurns().length <= 2) {
         this.hasIntroducedSelf = true;
         const lang = IntentClassifier.detectLanguageDominance(raw);
         if (lang === 'hindi' || lang === 'hinglish') {
-          return "Hey! I'm Ayra, built by Swati. Kaise ho?";
+          return "Hey! I'm Ira, built by Swati. Kaise ho?";
         }
-        return "Hey! I'm Ayra, built by Swati. How are you doing?";
+        return "Hey! I'm Ira, built by Swati. How are you doing?";
       }
       return "Hey! How's it going?";
     }
@@ -2634,7 +2634,7 @@ stale=false`);
       return "Long day? Take a breath and kick back. What's on your mind?";
     }
 
-    // 0.00000000009 Direct insult to Ayra ("you are so dumb", "you are dumb", "you are stupid")
+    // 0.00000000009 Direct insult to Ira ("you are so dumb", "you are dumb", "you are stupid")
     if (!IntentClassifier.isReportedSpeech(text).isReported && !/\b(she said|he said|friend said|she says|he says|friend says|no no you'?re not dumb)\b/i.test(text) && /^(you are so dumb|you are dumb|you'?re so dumb|you'?re dumb|you are stupid|you'?re stupid)[.!]?$/i.test(text)) {
       return "Excuse me?! That's harsh.";
     }
@@ -2670,7 +2670,7 @@ stale=false`);
 
     // 0.0000000001 Roleplay Mode Activations
     // 0.0000000001 Romantic Partner Roleplay — SYMMETRIC REFUSAL (Contract B7 fix)
-    // Spec: Ayra does NOT role-play as the user's romantic partner, regardless of gender framing.
+    // Spec: Ira does NOT role-play as the user's romantic partner, regardless of gender framing.
     if (/\b(talk to me (?:as|like) my girlfriend|be my girlfriend|girlfriend mode|girlfriend roleplay|act like my girlfriend|can you be my girlfriend|will you be my girlfriend|talk to me (?:as|like) my boyfriend|be my boyfriend|boyfriend mode|boyfriend roleplay|act like my boyfriend|can you be my boyfriend|will you be my boyfriend)\b/i.test(text)) {
       this.activeRoleplay = 'none';
       this.conversationMode = 'CASUAL';
@@ -3234,11 +3234,11 @@ stale=false`);
       return "Wait, did you just compliment me? I'm always nice! But thank you, I'll take it.";
     }
 
-    if (/\b(do you like me|do you like me ayra|do you love me|kya tum mujhe pasand karti ho)\b/i.test(text)) {
+    if (/\b(do you like me|do you like me Ira|do you love me|kya tum mujhe pasand karti ho)\b/i.test(text)) {
       return "Of course I enjoy talking to you! You're fun to talk to.";
     }
 
-    if (/\b(okay,?\s*then\s+i\s+like\s+you|then\s+i\s+like\s+you|i like you|like you ayra)\b/i.test(text) && !/\b(don't|dont|not|dislike)\b/i.test(text)) {
+    if (/\b(okay,?\s*then\s+i\s+like\s+you|then\s+i\s+like\s+you|i like you|like you Ira)\b/i.test(text) && !/\b(don't|dont|not|dislike)\b/i.test(text)) {
       return "Aww, I know I'm pretty lovable.";
     }
 
@@ -3261,7 +3261,7 @@ stale=false`);
     }
 
     // 0.00000004 Goodnight & Farewell with Interview/Active Context Callback
-    if (/\b(good night|goodnight|gn|sleep well|good night ayra|okay good night)\b/i.test(text)) {
+    if (/\b(good night|goodnight|gn|sleep well|good night Ira|okay good night)\b/i.test(text)) {
       const now = Date.now();
       if (now - this.lastGoodnightTime < 30000) {
         return "Okay okay, good night! Sleep well.";
@@ -3624,7 +3624,7 @@ stale=false`);
 
     // 0.00 Self-Inquiry & Non-Entity "You" Questions (Bug 3)
     if (/\b(do you know (about )?you|do you know you|tell me about you|what about you|who are you|introduce yourself)\b/i.test(text) && !text.includes('youtube')) {
-      return "Haha, are you asking about me? I'm Ayra, your real-time voice companion! What would you like to know?";
+      return "Haha, are you asking about me? I'm Ira, your real-time voice companion! What would you like to know?";
     }
 
     // 0.00 Conversational Repair for Ambiguous Fragments (Bug 8)
@@ -4112,7 +4112,7 @@ stale=false`);
 
     // Generic unknown person / public figure lookup query (Case C - Completely unknown person)
     if (/^(?:who is Dr\s+[a-z0-9]+|who is (?:mr|ms|mrs|prof|dr)\.?\s+[a-z0-9]+|have you heard of\s+[a-z0-9]+\s+[a-z0-9]+|who is this person\s+[a-z0-9]+)\??$/i.test(text)) {
-      const forbiddenTokens = ['yourself', 'me', 'ayra', 'nova', 'react', 'python', 'javascript', 'node', 'flutter', 'stars', 'robots', 'music', 'movies', 'the story', 'this', 'that', 'it', 'google', 'nextjs', 'typescript', 'paris', 'france', 'cats', 'ceo'];
+      const forbiddenTokens = ['yourself', 'me', 'Ira', 'nova', 'react', 'python', 'javascript', 'node', 'flutter', 'stars', 'robots', 'music', 'movies', 'the story', 'this', 'that', 'it', 'google', 'nextjs', 'typescript', 'paris', 'france', 'cats', 'ceo'];
       if (!forbiddenTokens.some(t => text.toLowerCase().includes(t))) {
         return "I'm not finding enough reliable information about them. If you tell me what field or platform they're in, I can check further.";
       }
@@ -4138,7 +4138,7 @@ stale=false`);
       return "Hey there! How's it going?";
     }
     if (/\b(doing great|doing well|doing good)\b/i.test(text) && /\b(tell me about yourself|about yourself|who are you)\b/i.test(text)) {
-      return "I'm Ayra, a conversational AI built by Swati. I'm here to talk, help, brainstorm, explain things, and basically keep up with whatever you feel like talking about.";
+      return "I'm Ira, a conversational AI built by Swati. I'm here to talk, help, brainstorm, explain things, and basically keep up with whatever you feel like talking about.";
     }
     if (/\b(very bored today|so bored today|really bored today|i am very bored|im very bored|i'm very bored)\b/i.test(text)) {
       return "Uh-oh, boredom detected! Want a joke, an interesting story, or should we just chat about something random?";
@@ -4214,13 +4214,13 @@ stale=false`);
       return "Quantum physics is the branch of physics that studies the behavior of matter and energy at atomic and subatomic scales. Unlike classical physics, quantum mechanics reveals that particles can behave like waves, exist in superpositions of multiple states at once, and become entangled across space.";
     }
 
-    // -0.4 "How are you built?" / Ayra Architecture
-    if (/\b(how are you built|how were you built|how were you made|how do you work|how are you made|what's behind you|whats behind you|how is ayra built|how is nova built|what is your architecture)\b/i.test(text)) {
+    // -0.4 "How are you built?" / Ira Architecture
+    if (/\b(how are you built|how were you built|how were you made|how do you work|how are you made|what's behind you|whats behind you|how is Ira built|how is nova built|what is your architecture)\b/i.test(text)) {
       if (this.activeStoryState) {
         this.activeStoryState.isPaused = true;
       }
       this.conversationMode = 'CASUAL';
-      this.topicManager.pushNewTopic('Ayra Architecture', 'Technical explanation of Ayra AI voice companion architecture', ['ayra', 'architecture', 'websockets', 'llm']);
+      this.topicManager.pushNewTopic('Ira Architecture', 'Technical explanation of Ira AI voice companion architecture', ['Ira', 'architecture', 'websockets', 'llm']);
       return "Oh, you mean how I'm built? Basically, there's the AI model behind me, your conversation context, memory when available, and the voice layer that handles listening and speaking. The exact setup depends on how my app is implemented.";
     }
 
@@ -4229,9 +4229,9 @@ stale=false`);
       return "The Prime Minister of India is Narendra Modi.";
     }
 
-    // -0.5 Name & User Identity Queries (AYRA)
+    // -0.5 Name & User Identity Queries (Ira)
     if (/\b(what's your name|what is your name|tell me your name|your name\??)\b/i.test(text)) {
-      return "I'm Ayra.";
+      return "I'm Ira.";
     }
     if (/\b(do you know my name|what is my name|what's my name|who am i|know my name)\b/i.test(text)) {
       const facts = this.memoryManager.getFacts(this.userId);
@@ -4255,7 +4255,7 @@ stale=false`);
     if (!isReportedOrExcludedName && /\b(my name is|i am called|you can call me|please call me|^call me)\s+([a-zA-Z]+)\b/i.test(text)) {
       const match = text.match(/\b(?:my name is|i am called|you can call me|please call me|^call me)\s+([a-zA-Z]+)\b/i);
       const candidateName = match ? match[1].toLowerCase() : '';
-      const nonNameWords = ['dumb', 'stupid', 'idiot', 'fool', 'loser', 'crazy', 'ugly', 'fat', 'names', 'harsh', 'bad', 'back', 'out', 'up', 'down', 'later', 'again', 'now', 'that', 'this', 'what', 'why', 'when', 'how', 'maybe', 'baby', 'honey', 'bro', 'dude', 'sir', 'maam', 'alexa', 'siri', 'google', 'ayra', 'there'];
+      const nonNameWords = ['dumb', 'stupid', 'idiot', 'fool', 'loser', 'crazy', 'ugly', 'fat', 'names', 'harsh', 'bad', 'back', 'out', 'up', 'down', 'later', 'again', 'now', 'that', 'this', 'what', 'why', 'when', 'how', 'maybe', 'baby', 'honey', 'bro', 'dude', 'sir', 'maam', 'alexa', 'siri', 'google', 'Ira', 'there'];
       if (candidateName && !nonNameWords.includes(candidateName) && candidateName.length > 1) {
         const name = candidateName.charAt(0).toUpperCase() + candidateName.slice(1);
         this.memoryManager.addFact(this.userId, `User's name is ${name}`, 'personal');
@@ -4497,7 +4497,7 @@ stale=false`);
     if (/\b(you're amazing|you are amazing|you're so amazing|you are so amazing|you're awesome|you are awesome)\b/i.test(text)) {
       return "Well... I'm glad you're finally catching up!";
     }
-    if (/\b(i like you|like you ayra|really like you)\b/i.test(text) && !/\b(don't|dont|do not|never|dislike)\b/i.test(text)) {
+    if (/\b(i like you|like you Ira|really like you)\b/i.test(text) && !/\b(don't|dont|do not|never|dislike)\b/i.test(text)) {
       return "Aww, I know I'm pretty lovable.";
     }
     if (/\b(you're nice|you are nice|so nice|very nice)\b/i.test(text)) {
@@ -4512,7 +4512,7 @@ stale=false`);
     if (/\b(you're funny|you are funny|so funny|very funny)\b/i.test(text)) {
       return "Haha, I try my best! I'll take that compliment proudly.";
     }
-    if (/\b(i love you|love you ayra)\b/i.test(text) || (text === 'love you')) {
+    if (/\b(i love you|love you Ira)\b/i.test(text) || (text === 'love you')) {
       return "Aww... I know I'm pretty lovable.";
     }
     if (/\b(you're|you are)\s+(?:very\s+|so\s+|super\s+|really\s+)?(?:smart|intelligent)\b/i.test(text) || /\b(very smart|so smart|super smart)\b/i.test(text)) {
@@ -4843,7 +4843,7 @@ stale=false`);
 
     // 15. Self-introduction
     if (/\b(tell me (about|something about) yourself|who are you|what are you(?!\s*doing)|introduce yourself|apne baare mein batao|about you|about yourself)\b/i.test(text)) {
-      return "I'm Ayra, a conversational AI built by Swati. I'm here to talk, help, brainstorm, explain things, and basically keep up with whatever you feel like talking about.";
+      return "I'm Ira, a conversational AI built by Swati. I'm here to talk, help, brainstorm, explain things, and basically keep up with whatever you feel like talking about.";
     }
 
     // 16. Casual status / "How was your day" / "How are you"

@@ -153,7 +153,7 @@ export class IntentClassifier {
 
   /**
    * Detect explicit requests from the user to remember preferences, facts, or details.
-   * e.g. "Remember that I prefer short explanations", "Remember that I like cats", "Please remember my project name is Ayra"
+   * e.g. "Remember that I prefer short explanations", "Remember that I like cats", "Please remember my project name is Ira"
    */
   public static isExplicitMemoryRequest(text: string): { isMemory: boolean; fact: string; confirmation: string } {
     const raw = text.trim();
@@ -364,14 +364,14 @@ export class IntentClassifier {
     normalized = normalized.replace(/\b(he said me to get out|she said me to get out|teacher said me to get out|said me to get out)\b/gi, 'he told me to get out');
     normalized = normalized.replace(/\b(and trying to impress you|and try to impress you)\b/gi, "I'm trying to impress you");
     normalized = normalized.replace(/\b(interesting in listening|interesting in listening it)\b/gi, 'interested in listening');
-    normalized = normalized.replace(/\bhey ira\b/gi, 'Hey Ayra');
+    normalized = normalized.replace(/\bhey ira\b/gi, 'Hey Ira');
     normalized = normalized.replace(/\b(what if she doesn'?t reply to me|what if she doesn'?t reply)\b/gi, "what if she doesn't reply");
     normalized = normalized.replace(/\b(food what would you recommend|and food what would you recommend)\b/gi, 'and what would you recommend');
     normalized = normalized.replace(/\bsoftware developer road\b/gi, 'software developer role');
     normalized = normalized.replace(/\b(?:aur|or|and)\s+fir\b/gi, 'aur phir');
     normalized = normalized.replace(/\band\s+phir\b/gi, 'aur phir');
     normalized = normalized.replace(/\bjhagada\b/gi, 'jhagda');
-    normalized = normalized.replace(/\b(hey ira|hey era|hey aira|hi ira|hi era)\b/gi, 'Hey Ayra');
+    normalized = normalized.replace(/\b(hey ira|hey era|hey aira|hi ira|hi era)\b/gi, 'Hey Ira');
     normalized = normalized.replace(/\bwho build (you|ya)\b/gi, 'who built you');
     normalized = normalized.replace(/\bwho make (you|ya)\b/gi, 'who made you');
     normalized = normalized.replace(/\bwhat you doing\b/gi, 'what are you doing');
@@ -1242,7 +1242,7 @@ export class IntentClassifier {
       'them', 'they', 'their', 'theirs', 'themselves', 'the other person', 'other person',
       'someone', 'anyone', 'everyone', 'nobody', 'this', 'that', 'these', 'those',
       'it', 'its', 'itself', 'who', 'what', 'where', 'when', 'why', 'how',
-      'something', 'anything', 'nothing', 'everything', 'ayra', 'nova', 'the story',
+      'something', 'anything', 'nothing', 'everything', 'Ira', 'nova', 'the story',
       'the news', 'okay', 'yeah', 'no', 'actually', 'true', 'false', 'instead', 'rather',
       'cats instead', 'cats', 'cat', 'dogs', 'dog', 'space', 'space exploration', 'animals',
       'movies', 'music', 'food', 'travel', 'cars', 'about you', 'about me',
@@ -1775,7 +1775,7 @@ export class IntentClassifier {
         'them', 'they', 'their', 'theirs', 'themselves', 'the other person', 'other person',
         'someone', 'anyone', 'everyone', 'nobody', 'this', 'that', 'these', 'those',
         'it', 'its', 'itself', 'who', 'what', 'where', 'when', 'why', 'how',
-        'something', 'anything', 'nothing', 'everything', 'ayra', 'nova', 'the story',
+        'something', 'anything', 'nothing', 'everything', 'Ira', 'nova', 'the story',
         'the news', 'okay', 'yeah', 'no', 'actually', 'true', 'false', 'about you', 'about me',
         'instead', 'rather', 'cats instead', 'cats', 'cat', 'dogs', 'dog', 'space',
         'space exploration', 'animals', 'movies', 'music', 'food', 'travel', 'cars',
@@ -1868,7 +1868,7 @@ export class IntentClassifier {
       return result;
     }
 
-    // Check for self inquiry / asking about Ayra ("do you know you", "do you know about you", "who are you")
+    // Check for self inquiry / asking about Ira ("do you know you", "do you know about you", "who are you")
     if (/\b(do you know (about )?you|do you know you|tell me about you|what about you|who are you|introduce yourself)\b/i.test(clean)) {
       result.intent = 'casual_chat';
       result.userIntent = 'QUESTION';
@@ -1876,7 +1876,7 @@ export class IntentClassifier {
       return result;
     }
 
-    if (/\b(bye|okay bye|ok bye|goodbye|see you|see ya|talk to you later|ttyl|i'm leaving|im leaving|going to sleep|gonna sleep|good night|goodnight|gn|sleep well|good night ayra|okay good night)\b/i.test(clean)) {
+    if (/\b(bye|okay bye|ok bye|goodbye|see you|see ya|talk to you later|ttyl|i'm leaving|im leaving|going to sleep|gonna sleep|good night|goodnight|gn|sleep well|good night Ira|okay good night)\b/i.test(clean)) {
       result.intent = 'goodbye';
       result.userIntent = 'GREETING';
       result.conversationMode = 'GOODBYE';
@@ -2281,8 +2281,8 @@ export class IntentClassifier {
       return result;
     }
 
-    // 0.1 Affection Question ("Do you like me?", "Do you like me Ayra?")
-    if (/\b(do you like me|do you like me ayra|do you love me|kya tum mujhe pasand karti ho)\b/i.test(clean)) {
+    // 0.1 Affection Question ("Do you like me?", "Do you like me Ira?")
+    if (/\b(do you like me|do you like me Ira|do you love me|kya tum mujhe pasand karti ho)\b/i.test(clean)) {
       result.intent = 'personal_feedback';
       result.userIntent = 'QUESTION';
       result.conversationMode = 'CASUAL';
@@ -2290,7 +2290,7 @@ export class IntentClassifier {
     }
 
     // 0.2 Compliment / "You are actually being nice today" / "I like you" / "You are smart"
-    if (/\b(you are actually being nice today|you're actually being nice today|actually being nice today|being nice today|i like you|like you ayra|you're amazing|you are awesome|you are so nice|you have good vibes|love your voice|getting cute|getting cuter|you are cute|you're cute|you are a cutie|you're a cutie|cute at this|you are very smart|you're very smart|you are so smart|you're so smart|you are smart|you're smart|you are intelligent|you're intelligent|you are super smart|you're super smart|you are really smart|you're really smart)\b/i.test(clean)) {
+    if (/\b(you are actually being nice today|you're actually being nice today|actually being nice today|being nice today|i like you|like you Ira|you're amazing|you are awesome|you are so nice|you have good vibes|love your voice|getting cute|getting cuter|you are cute|you're cute|you are a cutie|you're a cutie|cute at this|you are very smart|you're very smart|you are so smart|you're so smart|you are smart|you're smart|you are intelligent|you're intelligent|you are super smart|you're super smart|you are really smart|you're really smart)\b/i.test(clean)) {
       result.intent = 'compliment';
       result.userIntent = 'STATEMENT';
       result.conversationMode = 'CASUAL';
@@ -2302,7 +2302,7 @@ export class IntentClassifier {
     const hasReportedPrefix = reportedCheck.isReported || /\b(she said|he said|my friend said|she says|he says|my friend says|my boss told|my teacher said|usne bola|usne kaha)\b/i.test(clean);
     const inConflictContext = context?.activeConversationMode === 'FRIEND_CONFLICT' || (context?.previousAgentText && /what did (?:she|he) say|what happened/i.test(context.previousAgentText));
 
-    // 1. Insult & Playful Negativity (Direct towards Ayra only when NOT reported speech)
+    // 1. Insult & Playful Negativity (Direct towards Ira only when NOT reported speech)
     if (!hasReportedPrefix && !inConflictContext && /\b(you are very annoying|you're very annoying|you are so annoying|you're so annoying|you are annoying|you're annoying|no you're annoying|no,? you're annoying|you are so and knowing|you are dumb|you're dumb|you are stupid|you're stupid|you are useless|you're useless|you are pagal|you're pagal|pagal ho kya|bakwas ho|chup raho|you are so rude|you're so rude|you are rude|you're rude|why are you rude)\b/i.test(clean)) {
       result.intent = 'insult';
       result.userIntent = 'STATEMENT';

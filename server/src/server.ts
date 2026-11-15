@@ -49,7 +49,7 @@ const clientMessageHistory = new Map<WebSocket, number[]>();
 app.get(['/health', '/api/health'], (req, res) => {
   res.json({
     status: 'ok',
-    service: 'ayra-voice-agent',
+    service: 'Ira-voice-agent',
     persona: defaultManager.getPersona().name,
     geminiConfigured: Boolean(config.geminiApiKey),
     mem0Configured: defaultManager.memoryManager.mem0Service.isAvailable(),

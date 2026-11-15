@@ -87,8 +87,8 @@ export function useTTSPlayer(options?: { onPlaybackEnd?: () => void; onPlaybackS
       const text = chunk.phoneticText || chunk.text;
       console.log(`[VOICE TRACE] TTS QUEUE state: QUEUED -> PLAYING (gen #${chunk.generationId || 0}): "${text.slice(0, 30)}..."`);
       const ttsOptions: TTSOptions = {
-        rate: chunk.ttsAdjustment?.rate ?? 1.05,
-        pitch: chunk.ttsAdjustment?.pitch ?? 1.0,
+        rate: chunk.ttsAdjustment?.rate ?? 1.0,
+        pitch: chunk.ttsAdjustment?.pitch ?? 1.08,
         volume: chunk.ttsAdjustment?.volume ?? 1.0,
         sessionId,
         turnId: chunk.turnId,
